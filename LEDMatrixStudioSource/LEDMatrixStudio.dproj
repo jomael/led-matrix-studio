@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{4420b33a-8db9-4d3a-8309-2322cd61b9f1}</ProjectGuid>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
+    <DCC_DependencyCheckOutputName>LEDMatrixStudio.exe</DCC_DependencyCheckOutputName>
+    <MainSource>LEDMatrixStudio.dpr</MainSource>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Version>7.0</Version>
+    <DCC_SymbolReferenceInfo>2</DCC_SymbolReferenceInfo>
+    <DCC_Define>RELEASE</DCC_Define>
+    <DCC_UnitSearchPath>E:\Software Development\Delphi 2007\projects\MatrixBuilder\code;E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\classes\;E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\;E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\</DCC_UnitSearchPath>
+    <DCC_ResourcePath>E:\Software Development\Delphi 2007\projects\MatrixBuilder\code;E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\classes\;E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\;E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\</DCC_ResourcePath>
+    <DCC_ObjPath>E:\Software Development\Delphi 2007\projects\MatrixBuilder\code;E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\classes\;E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\;E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\</DCC_ObjPath>
+    <DCC_IncludePath>E:\Software Development\Delphi 2007\projects\MatrixBuilder\code;E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\classes\;E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\;E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\</DCC_IncludePath>
+    <DCC_IntegerOverflowCheck>True</DCC_IntegerOverflowCheck>
+    <DCC_RangeChecking>True</DCC_RangeChecking>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <Version>7.0</Version>
+    <DCC_Define>DEBUG</DCC_Define>
+  </PropertyGroup>
+  <ProjectExtensions>
+    <Borland.Personality>Delphi.Personality</Borland.Personality>
+    <Borland.ProjectType />
+    <BorlandProject>
+<BorlandProject><Delphi.Personality><Parameters><Parameters Name="UseLauncher">False</Parameters><Parameters Name="LoadAllSymbols">True</Parameters><Parameters Name="LoadUnspecifiedSymbols">False</Parameters></Parameters><VersionInfo><VersionInfo Name="IncludeVerInfo">True</VersionInfo><VersionInfo Name="AutoIncBuild">False</VersionInfo><VersionInfo Name="MajorVer">0</VersionInfo><VersionInfo Name="MinorVer">8</VersionInfo><VersionInfo Name="Release">6</VersionInfo><VersionInfo Name="Build">0</VersionInfo><VersionInfo Name="Debug">True</VersionInfo><VersionInfo Name="PreRelease">True</VersionInfo><VersionInfo Name="Special">False</VersionInfo><VersionInfo Name="Private">False</VersionInfo><VersionInfo Name="DLL">False</VersionInfo><VersionInfo Name="Locale">2057</VersionInfo><VersionInfo Name="CodePage">1252</VersionInfo></VersionInfo><VersionInfoKeys><VersionInfoKeys Name="CompanyName">Maximum Octopus</VersionInfoKeys><VersionInfoKeys Name="FileDescription"></VersionInfoKeys><VersionInfoKeys Name="FileVersion">0.8.6.0</VersionInfoKeys><VersionInfoKeys Name="InternalName"></VersionInfoKeys><VersionInfoKeys Name="LegalCopyright">Paul Alan Freshney</VersionInfoKeys><VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys><VersionInfoKeys Name="OriginalFilename"></VersionInfoKeys><VersionInfoKeys Name="ProductName"></VersionInfoKeys><VersionInfoKeys Name="ProductVersion">0.8.6</VersionInfoKeys><VersionInfoKeys Name="Comments">paul@freshney.org :: maximumoctopus.com :: iLoveLEDs.co.uk</VersionInfoKeys></VersionInfoKeys><Source><Source Name="MainSource">LEDMatrixStudio.dpr</Source></Source></Delphi.Personality></BorlandProject></BorlandProject>
+  </ProjectExtensions>
+  <Import Project="$(MSBuildBinPath)\Borland.Delphi.Targets" />
+  <ItemGroup>
+    <DelphiCompile Include="LEDMatrixStudio.dpr">
+      <MainSource>MainSource</MainSource>
+    </DelphiCompile>
+  </ItemGroup>
+</Project>

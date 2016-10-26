@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2012/06/10 16:14:15.454.pas,C:\Users\Paul Freshney\Documents\RAD Studio\Projects\Unit1.pas=E:\Software Development\Delphi 2007\projects\MatrixBuilder\main.pas</Transaction>
+    <Transaction>2012/06/10 16:14:15.454.dfm,C:\Users\Paul Freshney\Documents\RAD Studio\Projects\Unit1.dfm=E:\Software Development\Delphi 2007\projects\MatrixBuilder\main.dfm</Transaction>
+    <Transaction>2012/06/10 17:12:14.656.dproj,C:\Users\Paul Freshney\Documents\RAD Studio\Projects\Project1.dproj=E:\Software Development\Delphi 2007\projects\MatrixBuilder\MatrixBuilder.dproj</Transaction>
+    <Transaction>2012/06/11 00:11:20.054.pas,E:\Software Development\Delphi 2007\projects\MatrixBuilder\Unit2.pas=E:\Software Development\Delphi 2007\projects\MatrixBuilder\about.pas</Transaction>
+    <Transaction>2012/06/11 00:11:20.073.dfm,E:\Software Development\Delphi 2007\projects\MatrixBuilder\Unit2.dfm=E:\Software Development\Delphi 2007\projects\MatrixBuilder\about.dfm</Transaction>
+    <Transaction>2012/06/13 14:00:15.364.dproj,E:\Software Development\Delphi 2007\projects\MatrixBuilder\MatrixBuilder.dproj=E:\Software Development\Delphi 2007\projects\MatrixBuilder\LEDMatrixStudio.dproj</Transaction>
+    <Transaction>2012/06/18 18:20:33.463.pas,E:\Software Development\Delphi 2007\projects\MatrixBuilder\Unit1.pas=E:\Software Development\Delphi 2007\projects\MatrixBuilder\utility.pas</Transaction>
+    <Transaction>2013/07/13 23:41:26.090.pas,E:\Software Development\Delphi 2007\projects\MatrixBuilder\Unit3.pas=E:\Software Development\Delphi 2007\projects\MatrixBuilder\importbitmap.pas</Transaction>
+    <Transaction>2013/07/13 23:41:26.090.dfm,E:\Software Development\Delphi 2007\projects\MatrixBuilder\Unit3.dfm=E:\Software Development\Delphi 2007\projects\MatrixBuilder\importbitmap.dfm</Transaction>
+    <Transaction>2013/07/17 13:40:04.162.pas,E:\Software Development\Delphi 2007\projects\MatrixBuilder\Unit3.pas=E:\Software Development\Delphi 2007\projects\MatrixBuilder\optimise.pas</Transaction>
+    <Transaction>2013/07/17 13:40:04.162.dfm,E:\Software Development\Delphi 2007\projects\MatrixBuilder\Unit3.dfm=E:\Software Development\Delphi 2007\projects\MatrixBuilder\optimise.dfm</Transaction>
+    <Transaction>2014/02/05 22:26:05.226.pas,E:\Software Development\Delphi 2007\projects\MatrixBuilder\Unit3.pas=E:\Software Development\Delphi 2007\projects\MatrixBuilder\export.pas</Transaction>
+    <Transaction>2014/02/05 22:26:05.226.dfm,E:\Software Development\Delphi 2007\projects\MatrixBuilder\Unit3.dfm=E:\Software Development\Delphi 2007\projects\MatrixBuilder\export.dfm</Transaction>
+    <Transaction>2014/02/08 16:49:06.900.pas,E:\Software Development\Delphi 2007\projects\MatrixBuilder\optimise.pas=</Transaction>
+    <Transaction>2014/02/08 16:49:06.900.dfm,E:\Software Development\Delphi 2007\projects\MatrixBuilder\optimise.dfm=</Transaction>
+    <Transaction>2014/10/26 13:15:08.284.pas,E:\Software Development\Delphi 2007\projects\MatrixBuilder\Unit1.pas=E:\Software Development\Delphi 2007\projects\MatrixBuilder\thematrix.pas</Transaction>
+    <Transaction>2014/10/31 19:48:03.878.pas,E:\Software Development\Delphi 2007\projects\MatrixBuilder\Unit3.pas=E:\Software Development\Delphi 2007\projects\MatrixBuilder\fontviewer.pas</Transaction>
+    <Transaction>2014/10/31 19:48:03.878.dfm,E:\Software Development\Delphi 2007\projects\MatrixBuilder\Unit3.dfm=E:\Software Development\Delphi 2007\projects\MatrixBuilder\fontviewer.dfm</Transaction>
+    <Transaction>2014/11/01 23:04:19.813.pas,E:\Software Development\Delphi 2007\projects\MatrixBuilder\Unit3.pas=E:\Software Development\Delphi 2007\projects\MatrixBuilder\newproject.pas</Transaction>
+    <Transaction>2014/11/01 23:04:19.813.dfm,E:\Software Development\Delphi 2007\projects\MatrixBuilder\Unit3.dfm=E:\Software Development\Delphi 2007\projects\MatrixBuilder\newproject.dfm</Transaction>
+    <Transaction>2015/05/21 18:41:17.446.pas,E:\Software Development\Delphi 2007\projects\MatrixBuilder\Unit1.pas=E:\Software Development\Delphi 2007\projects\MatrixBuilder\xglobal.pas</Transaction>
+    <Transaction>2015/05/21 23:46:00.917.pas,E:\Software Development\Delphi 2007\projects\MatrixBuilder\Unit3.pas=E:\Software Development\Delphi 2007\projects\MatrixBuilder\exportcode.pas</Transaction>
+    <Transaction>2015/05/21 23:46:00.917.dfm,E:\Software Development\Delphi 2007\projects\MatrixBuilder\Unit3.dfm=E:\Software Development\Delphi 2007\projects\MatrixBuilder\exportcode.dfm</Transaction>
+    <Transaction>2015/05/27 23:06:11.074.pas,E:\Software Development\Delphi 2007\projects\MatrixBuilder\Unit3.pas=E:\Software Development\Delphi 2007\projects\MatrixBuilder\preferences.pas</Transaction>
+    <Transaction>2015/05/27 23:06:11.074.dfm,E:\Software Development\Delphi 2007\projects\MatrixBuilder\Unit3.dfm=E:\Software Development\Delphi 2007\projects\MatrixBuilder\preferences.dfm</Transaction>
+    <Transaction>2015/05/28 17:20:48.501.pas,E:\Software Development\Delphi 2007\projects\MatrixBuilder\Unit1.pas=E:\Software Development\Delphi 2007\projects\MatrixBuilder\optimisation.pas</Transaction>
+    <Transaction>2015/12/30 17:01:52.696.pas,E:\Software Development\Delphi 2007\projects\MatrixBuilder\exportcode.pas=E:\Software Development\Delphi 2007\projects\MatrixBuilder\exportbinary.pas</Transaction>
+    <Transaction>2015/12/30 17:01:52.696.dfm,E:\Software Development\Delphi 2007\projects\MatrixBuilder\exportcode.dfm=E:\Software Development\Delphi 2007\projects\MatrixBuilder\exportbinary.dfm</Transaction>
+    <Transaction>2015/12/30 17:02:58.428.pas,E:\Software Development\Delphi 2007\projects\MatrixBuilder\exportbinary.pas=</Transaction>
+    <Transaction>2015/12/30 17:02:58.428.dfm,E:\Software Development\Delphi 2007\projects\MatrixBuilder\exportbinary.dfm=</Transaction>
+    <Transaction>2015/12/30 17:04:15.960.pas,E:\Software Development\Delphi 2007\projects\MatrixBuilder\Unit1.pas=E:\Software Development\Delphi 2007\projects\MatrixBuilder\exportoutputcode.pas</Transaction>
+  </Transactions>
+</BorlandProject>
