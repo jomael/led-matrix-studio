@@ -1,0 +1,157 @@
+// ===================================================================
+//
+// (c) Paul Alan Freshney 2015
+// www.freshney.org :: paul@freshney.org :: maximumoctopus.com
+//
+// www.MaximumOctopus.com/electronics/builder.htm
+//
+// Please do not redistribute the source code!
+//
+//   Started: May 28th 2015
+//  Modified: June 3rd 2015
+//
+// ===================================================================
+
+unit optimisation;
+
+interface
+
+uses classes, SysUtils, utility, xglobal;
+
+function Optimise(teo : TExportOptions; var aData : TStringList): boolean;
+procedure ProcessUnique(aData : TStringList; var aUniqueItems : TStringList);
+
+implementation
+
+function Optimise(teo : TExportOptions; var aData : TStringList): boolean;
+ var
+  lUniqueItems : TStringList;
+  lOutput : TStringList;
+  t, os, i, lIndexDataSize : integer;
+  s : string;
+
+ begin
+  lUniqueItems := TStringList.Create;
+  lUniqueItems.Sorted := True;
+
+  lOutput      := TStringList.Create;
+
+  // ===========================================================================
+
+  ProcessUnique(aData, lUniqueItems);
+
+  // == now calculate whether the optimisation is worth it! ====================
+
+  case lUniqueItems.Count of
+    0..255     : lIndexDataSize := 1;
+    256..65535 : lIndexDataSize := 2;
+  else
+    lIndexDataSize := 4;
+  end;
+
+  // ===========================================================================
+
+  os := (MatrixMain.DataSizeBytes * lUniqueItems.Count) +
+        ((MatrixMain.MatrixWidth * MatrixMain.MatrixHeight * MatrixMain.FrameCount) * lIndexDataSize);
+
+  showmessage(inttostr(os));
+
+  if os < MatrixMain.CalculateMemoryUsage then begin
+
+    Result := True;
+
+    aData.Clear;
+
+    GetPreamble(teo, aData);
+
+    GetSpacerLine(teo.Language, aData);
+
+    aData.Add(GetCommentCharacter(teo.Language) + 'Unoptimised size: ' + IntToStr(MatrixMain.CalculateMemoryUsage) + ' bytes');
+    aData.Add(GetCommentCharacter(teo.Language) + '  Optimised size: ' + IntToStr(os) + ' bytes');
+    aData.Add(GetCommentCharacter(teo.Language) + '          Saving: ' + IntToStr(MatrixMain.CalculateMemoryUsage - os) + ' bytes (' +
+                                     IntToStr(Round(((MatrixMain.CalculateMemoryUsage - os)/MatrixMain.CalculateMemoryUsage) * 100)) + '%)');
+
+    GetSpacerLine(teo.Language, aData);
+
+    aData.Add(GetCommentCharacter(teo.Language) + ' Access with leddataindex[ledarray[x]] ');
+
+    GetSpacerLine(teo.Language, aData);
+
+    aData.Add('');
+
+    aData.Add(GetVariableType(teo.Language, teo.NumberSize) + 'leddataindex[] = {');
+
+    s := '';
+    for t:= 0 to lUniqueItems.Count - 1 do begin
+      s := s + lUniqueItems[t];
+
+      if t <> lUniqueItems.Count - 1 then
+        s := s + ', ';
+    end;
+
+    aData.Add(s + '};');
+
+    aData.Add('');
+
+    // =========================================================================
+
+    teo.CleanMode  := False;
+    teo.NumberSize := lIndexDataSize;
+
+    if teo.RGBEnabled then begin
+      if CreateExportAnimationRGB(teo, lOutput, i, lUniqueItems) then begin
+        for t := 0 to lOutput.Count - 1 do
+          aData.Add(lOutput[t]);
+      end
+      else
+        aData.Add('Error!');
+    end
+    else begin
+      if CreateExportAnimation(teo, lOutput, i, lUniqueItems) then begin
+        for t := 0 to lOutput.Count - 1 do
+          aData.Add(lOutput[t]);
+      end
+      else
+        aData.Add('Error!');
+    end;
+  end
+  else
+    Result := False;
+
+  // ===========================================================================
+
+  lUniqueItems.Free;
+  lOutput.Free;
+end;
+
+procedure ProcessUnique(aData : TStringList; var aUniqueItems : TStringList);
+ var
+  u, i : integer;
+  s : string;
+
+ begin
+  for u:=0 to aData.Count - 1 do begin
+    s := '';
+
+    for i := 1 to length(aData[u]) do begin
+      if aData[u][i] = ' ' then begin
+        if aUniqueItems.IndexOf(s) = -1 then begin
+          aUniqueItems.Add(s);
+        end;
+
+        s := '';
+      end
+      else
+        s := s + aData[u][i];
+    end;
+
+    if s <> '' then begin
+      if aUniqueItems.IndexOf(s) = -1 then begin
+        aUniqueItems.Add(s);
+      end;
+    end;
+  end;
+end;
+
+
+end.

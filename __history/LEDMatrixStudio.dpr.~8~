@@ -1,0 +1,42 @@
+// ===================================================================
+//
+// (c) Paul Alan Freshney 2014
+// www.freshney.org :: paul@freshney.org :: maximumoctopus.com
+//
+// Please do not redistribute the source code!
+//
+//   Started: June 10th 2012
+//  Modified: November 2nd 2014
+//
+// ===================================================================
+
+program LEDMatrixStudio;
+
+uses
+  Forms,
+  main in 'main.pas' {Form1},
+  about in 'about.pas' {Form2},
+  utility in 'utility.pas',
+  checkversion in 'checkversion.pas' {frmCheckVersion},
+  checkupdatesplash in 'checkupdatesplash.pas' {frmUpdateSplash},
+  importbitmap in 'importbitmap.pas' {frmImportBitmap},
+  export in 'export.pas' {frmExport},
+  thematrix in 'thematrix.pas',
+  fontviewer in 'fontviewer.pas' {frmFontViewer},
+  newproject in 'newproject.pas' {frmNewProject},
+  xglobal in 'xglobal.pas',
+  exportcode in 'exportcode.pas' {Form3};
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TForm1, Form1);
+  Application.CreateForm(TfrmAbout, frmAbout);
+  Application.CreateForm(TfrmCheckVersion, frmCheckVersion);
+  Application.CreateForm(TfrmUpdateSplash, frmUpdateSplash);
+  Application.CreateForm(TfrmImportBitmap, frmImportBitmap);
+  Application.CreateForm(TForm3, Form3);
+  Application.Run;
+end.

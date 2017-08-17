@@ -1,0 +1,118 @@
+object Form3: TForm3
+  Left = 0
+  Top = 0
+  Caption = 'Form3'
+  ClientHeight = 412
+  ClientWidth = 852
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  PixelsPerInch = 96
+  TextHeight = 13
+  object lShapeOn3: TLabel
+    Left = 64
+    Top = 9
+    Width = 24
+    Height = 13
+    Caption = 'ON 3'
+    Visible = False
+  end
+  object ShapeOn3: TShape
+    Tag = 3
+    Left = 93
+    Top = 4
+    Width = 25
+    Height = 20
+    Cursor = crHandPoint
+    Hint = 'Click to change the colour of active (on) pixels (bi-colour 3)'
+    Brush.Color = clBlack
+    Visible = False
+  end
+  object lShapeOn2: TLabel
+    Left = 124
+    Top = 9
+    Width = 24
+    Height = 13
+    Caption = 'ON 2'
+    Visible = False
+  end
+  object ShapeOn2: TShape
+    Tag = 2
+    Left = 152
+    Top = 4
+    Width = 25
+    Height = 20
+    Cursor = crHandPoint
+    Hint = 'Click to change the colour of active (on) pixels (bi-colour 2)'
+    Brush.Color = clBlack
+    Visible = False
+  end
+  object lShapeOn1: TLabel
+    Left = 183
+    Top = 9
+    Width = 24
+    Height = 13
+    Caption = 'ON 1'
+  end
+  object ShapeOn1: TShape
+    Tag = 1
+    Left = 215
+    Top = 4
+    Width = 25
+    Height = 20
+    Cursor = crHandPoint
+    Hint = 'Click to change the colour of active (on) pixels'
+    Brush.Color = clBlack
+  end
+  object lShapeOff: TLabel
+    Left = 246
+    Top = 9
+    Width = 20
+    Height = 13
+    Caption = 'OFF'
+  end
+  object ShapeOff: TShape
+    Left = 272
+    Top = 4
+    Width = 25
+    Height = 20
+    Cursor = crHandPoint
+    Hint = 'Click to change the colour of inactive (off) pixels'
+  end
+  object Label6: TLabel
+    Left = 317
+    Top = 9
+    Width = 39
+    Height = 13
+    Caption = 'Selector'
+  end
+  object ShapeSelection: TShape
+    Tag = 4
+    Left = 365
+    Top = 4
+    Width = 25
+    Height = 20
+    Cursor = crHandPoint
+    Hint = 'Click to change the colour of selected pixles (drawing modes)'
+  end
+  object Label7: TLabel
+    Left = 401
+    Top = 9
+    Width = 44
+    Height = 13
+    Caption = 'Light box'
+  end
+  object ShapeLightBox: TShape
+    Tag = 5
+    Left = 451
+    Top = 4
+    Width = 25
+    Height = 20
+    Cursor = crHandPoint
+    Hint = 'Click to change the colour of light box pixels (light box mode)'
+  end
+end

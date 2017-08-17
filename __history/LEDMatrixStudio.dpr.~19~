@@ -1,0 +1,48 @@
+// ===================================================================
+//
+// (c) Paul Alan Freshney 2015
+// www.freshney.org :: paul@freshney.org :: maximumoctopus.com
+//
+// www.MaximumOctopus.com/electronics/builder.htm
+//
+// Please do not redistribute the source code!
+//
+//   Started: June 10th 2012
+//  Modified: June 3rd 2015
+//
+// ===================================================================
+
+program LEDMatrixStudio;
+
+uses
+  Forms,
+  main in 'main.pas' {Form1},
+  about in 'about.pas' {Form2},
+  utility in 'utility.pas',
+  checkversion in 'checkversion.pas' {frmCheckVersion},
+  checkupdatesplash in 'checkupdatesplash.pas' {frmUpdateSplash},
+  importbitmap in 'importbitmap.pas' {frmImportBitmap},
+  export in 'export.pas' {frmExport},
+  thematrix in 'thematrix.pas',
+  fontviewer in 'fontviewer.pas' {frmFontViewer},
+  newproject in 'newproject.pas' {frmNewProject},
+  xglobal in 'xglobal.pas',
+  preferences in 'preferences.pas' {frmPreferences},
+  optimisation in 'optimisation.pas',
+  exportcode in 'exportcode.pas' {frmExportCode},
+  exportoutputcode in 'exportoutputcode.pas',
+  exportoutputbinary in 'exportoutputbinary.pas';
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TForm1, Form1);
+  Application.CreateForm(TfrmAbout, frmAbout);
+  Application.CreateForm(TfrmCheckVersion, frmCheckVersion);
+  Application.CreateForm(TfrmUpdateSplash, frmUpdateSplash);
+  Application.CreateForm(TfrmImportBitmap, frmImportBitmap);
+  Application.CreateForm(TfrmExportCode, frmExportCode);
+  Application.Run;
+end.

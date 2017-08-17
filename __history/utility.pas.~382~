@@ -1,0 +1,1773 @@
+// ===================================================================
+//
+// (c) Paul Alan Freshney 2015
+// www.freshney.org :: paul@freshney.org :: maximumoctopus.com
+//
+// www.MaximumOctopus.com/electronics/builder.htm
+//
+// Please do not redistribute the source code!
+//
+//   Started: June 10th 2012
+//  Modified: June 11th 2015
+//
+// ===================================================================
+
+unit utility;
+
+interface
+
+uses ExtCtrls, shellapi, SysUtils, Windows, classes, dialogs, thematrix, xglobal;
+
+type
+  TDataOut = record
+               count : integer;
+               data  : array[0..7] of string;
+             end;
+
+  TProjectSettings = record
+                       mtype   : integer;
+                       width   : integer;
+                       height  : integer;
+                       clear   : boolean;
+                       special : integer;
+                     end;
+
+const
+  LEDStudioDate      = 'June 13th 2015';
+  LEDStudioVersion   = 'v0.8.1 BETA';
+
+  LeftOffset         = 70;
+
+  BiColoursLSBLeft   : array[0..3] of string = ('00', '01', '10', '11');
+  BiColoursLSBRight  : array[0..3] of string = ('00', '10', '01', '11');
+
+  NumberSizes        : array[0..4] of integer = (7, 15, 31, 7, 15);
+  NumberPadding      : array[0..4] of integer = (2, 4, 8, 2, 4);
+
+function  ValidateNumber(s : string; max : integer): boolean;
+function  HexToInt(const s : string): Int64;
+function  RGBConvertTo(rgb, convertmode, lsblocation : LongWord ): LongWord ;
+function  IntegerToBinary(ns : integer; anumber : int64): string;
+function  PadString(aChar : char; aCount : integer): string;
+
+procedure AddContentByRowCol(teo : TExportOptions; s : string; var aOutput : TStringList);
+procedure AddContentByFrame(teo : TExportOptions; s : string; frame : integer; var aOutput : TStringList);
+
+function  GetVariableType(aLanguage, aNumberSize : integer): string;
+function  GetVariableID(aLanguage : integer): string;
+function  GetLineContent(aLanguage : integer; aLineContent : integer): string;
+function  GetLSB(aLanguage : integer; aLSB : integer): string;
+function  GetOrientation(teo : TExportOptions): string;
+function  GetScanDirection(teo : TExportOptions): string;
+function  GetNumberFormat(aLanguage, aNumberFormat: integer): string;
+function  GetNumberSize(aLanguage : integer; aNumberSize : integer): string;
+function  GetSource(aLanguage : integer; aSaveType : integer): string;
+function  GetCommentCharacter(aLanguage : integer): string;
+function  GetRGBMode(aLanguage : integer; aRGBMode : integer): string;
+procedure GetSpacerLine(aLanguage : integer; var aOutput : TStringList);
+procedure GetPreamble(teo : TExportOptions; var aOutput : TStringList);
+
+procedure ClearTExportOptions(aIsRGB : boolean; var aEEO : TExportOptions);
+
+function  RemoveExtension(s : string): string;
+
+function  ExecuteFile(bob : THandle; const FileName, Params, DefaultDir: string): THandle;
+
+function  GetAutoSaveName: string;
+
+function  GetPresetParameterType(s : string): integer;
+
+function  LoadProfileFromFile(fn : string): TExportOptions;
+
+function  GetRowData(hexmode : boolean; direction, aFrame, rowid : integer): string;
+function  GetColumnData(hexmode : boolean; direction, aFrame, colid : integer): string;
+
+function  ExportRowData(teo : TExportOptions; aFrame, rowid : integer; spacingchar : string): TDataOut;
+function  ExportColumnData(teo : TExportOptions; aFrame, colid : integer; spacingchar : string): TDataOut;
+
+function  ExportRowDataRGB(prefix : string; teo : TExportOptions; aFrame, rowid : integer; spacingchar : string): TDataOut;
+function  ExportColumnDataRGB(prefix : string; teo : TExportOptions; aFrame, colid : integer; spacingchar : string): TDataOut;
+
+function  CreateExportAnimation(teo : TExportOptions; var aOutput : TStringList; var entrycount : integer; var aUniqueItems : TStringList): boolean;
+function  CreateExportAnimationRGB(teo : TExportOptions; var aOutput : TStringList; var entrycount : integer; var aUniqueItems : TStringList): boolean;
+
+var
+ MatrixMain     : TTheMatrix;
+
+ AppSettings    : TAppSettings;
+
+ MatrixGradient : array[0.._MaxHeight] of TShape;
+
+implementation
+
+function PadString(aChar : char; aCount : integer): string;
+ begin
+  Result := '';
+
+  while Length(Result) < aCount do
+    Result := Result + aChar;
+end;
+
+function ValidateNumber(s : string; max : integer): boolean;
+ var
+  t : integer;
+
+ begin
+  Result := True;
+
+  for t:=1 to length(s) do begin
+    if not((Ord(s[t]) >= 48) and (Ord(s[t]) <= 57)) then
+      Result := False;
+  end;
+
+  if Result then begin
+    if max <> -1 then begin
+      if StrToInt(s) > max then
+        Result := False;
+    end;
+  end;
+end;
+
+function CreatedDate: string;
+ var
+  mm,dd,yy : word;
+
+ begin
+  DecodeDate(Now, yy, mm, dd);
+
+  if dd < 10 then
+    Result := 'Date : 0' + IntToStr(dd) + '/'
+  else
+    Result := 'Date : ' + Result + IntToStr(dd) + '/';
+
+  if mm < 10 then
+    Result := Result + '0' + IntToStr(mm) + '/'
+  else
+    Result := Result + IntToStr(mm) + '/';
+
+  Result := Result + IntToStr(yy);
+end;
+
+function HexToInt(const s : string): Int64;
+ var
+  i : integer;
+  digit : integer;
+
+ begin
+  Result := 0;
+
+  for i:=1 to length(s) do begin
+    case Ord(s[i]) of
+      48..57 : digit := StrToInt(s[i]);
+      65..70 : digit := Ord(s[i]) - 55;
+    else
+      showmessage('ERROR: ' + s[i]);
+      digit :=0;
+    end;
+
+    Result := Result + (digit * powers16[length(s) - i]);
+  end;
+end;
+
+function RGBConvertTo(rgb, convertmode, lsblocation : LongWord ): LongWord;
+ var
+  xR : LongWord ;
+  xG : LongWord ;
+  xB : LongWord ;
+  xT : LongWord ;
+  t : integer;
+
+ begin
+  xR := (rgb and $0000ff);         // Windows colour structure = BGR
+  xB := (rgb and $ff0000) shr 16;
+  xG := (rgb and $00ff00) shr 8;
+
+  case convertmode of
+    rgbConvertToRGB : xT := (xR shl 16) + (xG shl 8) + xB;
+    rgbConvertToBGR : xT := (xB shl 16) + (xG shl 8) + xR;
+    rgbConvertToGRB : xT := (xG shl 16) + (xR shl 8) + xB;
+  else
+    xT := 0;
+  end;
+
+  if lsblocation = 0 then begin // flip bit order
+    Result := 0;
+
+    for t:=0 to 31 do
+      if (xT and powers[t]) = powers[t] then
+        Result := Result + powers[31 - t];
+  end
+  else
+    Result := xT;
+end;
+
+function IntegerToBinary(ns : integer; anumber : int64): string;
+ var
+  i : integer;
+
+ begin
+  Result:='';
+
+  for i:=1 to ns + 1 do
+    Result := Result + '0';
+
+  for i:=0 to ns do begin
+    if (anumber and powers[i]) = powers[i] then
+      Result[(ns - i) + 1] := '1';
+  end;
+end;
+
+function RemoveExtension(s : string): string;
+ var
+  idx,t : integer;
+
+ begin
+  idx    := -1;
+  Result := s;
+
+  for t:=1 to length(s) do
+    if s[t] = '.' then idx := t;
+
+  if idx <> -1 then
+    Result := Copy(s, 1, idx - 1);
+end;
+
+procedure ClearTExportOptions(aIsRGB : boolean; var aEEO : TExportOptions);
+ begin
+  aEEO.IncludePreamble := True;              //
+  aEEO.CleanMode       := False;             // True = exclude everything from data output except the data!
+  aEEO.ExportMode      := -1;                 // 0 = anim, 1 = user memories
+  aEEO.StartFrame      := 1;
+  aEEO.EndFrame        := 1;
+  aEEO.Source          := sourceRows;        // 0 = columns, 1 = rows
+  aEEO.Orientation     := RowsTopToBottom;   // 0 = top to bottom/left right, 1 = bottom to top/right left
+  aEEO.ScanDirection   := scanRowLeftToRight;
+  aEEO.LSB             := lsbRight;          // 0 = top/left, 1 = bottom/right
+  aEEO.Language        := langCSV;           // 0 = CSV, 1 = PICAXE, 2 = C[], 3 = C[][], 4 = Python[], 5 = Python[][], 6 = microchip
+  aEEO.NumberFormat    := nfHex;             // 0 = decimal, 1 = binary, 2 = hex
+  aEEO.NumberSize      := ns8Bit;            //
+  aEEO.LineContent     := LineContentRowCol;
+  aEEO.LineCount       := 10;
+  aEEO.FontMode        := False;
+  aEEO.Optimise        := False;
+  aEEO.MinWidth        := -1;
+  aEEO.MaxWidth        := -1;
+  aEEO.MinHeight       := -1;
+  aEEO.MaxHeight       := -1;
+
+  if aIsRGB then begin
+    aEEO.RGBEnabled      := True;
+    aEEO.RGBMode         := 0;
+    aEEO.RGBChangePixels := False;
+    aEEO.RGBChangeColour := $00000000;
+  end
+  else begin
+    aEEO.RGBEnabled      := False;
+    aEEO.RGBMode         := 0;
+    aEEO.RGBChangePixels := False;
+    aEEO.RGBChangeColour := $00000000;
+  end;
+
+  aEEO.cdescription    := '';
+  aEEO.DataPadding     := '';
+end;
+
+function ExecuteFile(bob : THandle; const FileName, Params, DefaultDir: string): THandle;
+ var
+  zFileName, zParams, zDir: array[0..254] of Char;
+
+ begin
+  Result := ShellExecute(bob, nil, StrPCopy(zFileName, FileName), StrPCopy(zParams, Params), StrPCopy(zDir, DefaultDir), SW_SHOW);
+end;
+
+function GetAutoSaveName: string;
+ var
+  lYear, lMonth, lDay : word;
+  lHour, lMin, lSec, lMSec : word;
+
+ begin
+  DecodeDate(Now, lYear, lMonth, lDay);
+  DecodeTime(Now, lHour, lMin, lSec, lMSec);
+
+  Result := 'autosave_' + IntToStr(lYear);
+
+  if lMonth < 10 then
+    Result := Result + '0' + IntToStr(lMonth)
+  else
+    Result := Result + IntToStr(lMonth);
+
+  if lDay < 10 then
+    Result := Result + '0' + IntToStr(lDay) + '_'
+  else
+    Result := Result + IntToStr(lDay) + '_';
+
+  if lHour < 10 then
+    Result := Result + '0' + IntToStr(lHour)
+  else
+    Result := Result + IntToStr(lHour);
+
+  if lSec < 10 then
+    Result := Result + '0' + IntToStr(lSec)
+  else
+    Result := Result + IntToStr(lSec);
+
+  Result := Result + '.leds';
+end;
+
+function GetPresetParameterType(s : string): integer;
+ begin
+  if s[1] = '{' then
+    Result := 0
+  else if s[1] = '}' then
+    Result := 1
+  else if s[1] = 'w' then
+    Result := 2
+  else if s[1] = 'h' then
+    Result := 3
+  else if s[1] = 'a' then
+    Result := 4
+  else if s[1] = 'b' then
+    Result := 5
+  else if s[1] = 'c' then
+    Result := 6
+  else if s[1] = 'd' then
+    Result := 7
+  else if s[1] = 'e' then
+    Result := 8
+  else if s[1] = 'm' then
+    Result := 9
+  else
+    Result := -1;
+end;
+
+function LoadProfileFromFile(fn : string): TExportOptions;
+ var
+  tf : TextFile;
+  s,v : string;
+
+ function parameterType(s : string): integer;
+  begin
+   if s[1] = '{' then
+     Result := 0
+   else if s[1] = '}' then
+     Result := 1
+   else if s[1] = 'a' then
+     Result := 2
+   else if s[1] = 'b' then
+     Result := 3
+   else if s[1] = 'c' then
+     Result := 4
+   else if s[1] = 'd' then
+     Result := 5
+   else if s[1] = 'e' then
+     Result := 6
+   else if s[1] = 'f' then
+     Result := 7
+   else if s[1] = 'g' then
+     Result := 8
+   else if s[1] = 'h' then
+     Result := 9
+   else if s[1] = 'i' then
+     Result := 10
+   else if s[1] = 'r' then
+     Result := 11
+   else if s[1] = 's' then
+     Result := 12
+   else if s[1] = 't' then
+     Result := 13
+   else if s[1] = 'v' then
+     Result := 30
+   else if s[1] = 'w' then
+     Result := 31
+   else if s[1] = 'y' then
+     Result := 32
+   else if s[1] = 'z' then
+     Result := 33
+   else
+     Result := -1;
+ end;
+
+ begin
+  if FileExists(fn) then begin  
+    AssignFile(tf, fn);
+    Reset(tf);
+
+    while not(eof(tf)) do begin
+      readln(tf, s);
+
+      if s<>'' then begin
+        v := Copy(s, 3, length(s) - 2);
+
+        case parameterType(s) of
+            0 : if pos('RGB', UpperCase(s)) <> 0 then
+                  Result.RGBEnabled := True
+                else
+                  Result.RGBEnabled := False;  
+            1 : {};
+            2 : Result.Source          := StrToInt(v);
+            3 : Result.orientation     := StrToInt(v);
+            4 : Result.LSB             := StrToInt(v);
+            5 : Result.Language        := StrToInt(v);
+            6 : Result.NumberFormat    := StrToInt(v);
+            7 : Result.NumberSize      := StrToInt(v);
+            8 : Result.ScanDirection   := StrToInt(v);
+            9 : Result.LineContent     := StrToInt(v);
+           10 : Result.LineCount       := StrToInt(v);
+           11 : Result.RGBMode         := StrToInt(v);
+           12 : Result.RGBChangePixels := StrToBool(v);
+           13 : Result.RGBChangeColour := StrToInt(v);
+           30 : Result.MinWidth        := StrToInt(v);
+           31 : Result.MaxWidth        := StrToInt(v);
+           32 : Result.MinHeight       := StrToInt(v);
+           33 : Result.MaxHeight       := StrToInt(v);
+        else
+          Result.Source := -1; // error
+        end;
+      end;
+    end;
+
+    CloseFile(tf);
+  end;
+end;
+
+function GetRowData(hexmode : boolean; direction, aFrame, rowid : integer): string;
+ var
+  x : integer;
+  mydata : int64;
+
+ begin
+  Result := '';
+  mydata := 0;
+
+  for x:=0 to MatrixMain.MatrixWidth - 1 do begin
+    if TMatrix(MatrixMain.Matrix[aFrame]).Grid[x, rowid] = 1 then begin
+      if direction = 0 then
+        mydata := mydata + (powers[x])
+      else
+        mydata := mydata + (powers[MatrixMain.MatrixWidth - x]);
+    end;
+  end;
+
+  if hexmode then
+    Result := IntToHex(mydata, AppSettings.PadModeHexRow)
+  else
+    Result := IntToStr(mydata);
+end;
+
+function GetColumnData(hexmode : boolean; direction, aFrame, colid : integer): string;
+ var
+  y : integer;
+  mydata : int64;
+
+ begin
+  Result := '';
+  mydata := 0;
+
+  for y:=0 to MatrixMain.MatrixHeight - 1 do begin
+    if TMatrix(MatrixMain.Matrix[aFrame]).Grid[colid, y] = 1 then begin
+      if direction = 0 then
+        mydata := mydata + (powers[y])
+      else
+        mydata := mydata + (powers[MatrixMain.MatrixHeight - y]);
+    end;
+  end;
+
+  if hexmode then
+    Result := IntToHex(mydata, AppSettings.PadModeHexCol)
+  else
+    Result := IntToStr(mydata);
+end;
+
+function ExportRowData(teo : TExportOptions; aFrame, rowid : integer; spacingchar : string): TDataOut;
+ var
+  s : string;
+  nsbits, nspads : integer;
+  bitcounter, dataindex, x, lScanDirection : integer;
+  internalnumber : array[0..7] of Int64;
+  lMatrixData : TMatrix;
+
+ begin
+  Result.count := 0;
+
+  for x:=0 to 7 do begin
+    internalnumber[x] := -1;
+    Result.data[x]    := '';
+  end;
+
+  nsbits := NumberSizes[teo.NumberSize];
+  nspads := NumberPadding[teo.NumberSize];
+
+  lScanDirection := teo.ScanDirection;
+
+  // ===========================================================================
+
+  if teo.ExportMode = 0 then
+    lMatrixData := TMatrix(MatrixMain.Matrix[aFrame])
+  else
+    lMatrixData := TMatrix(MatrixMain.MatrixUser[aFrame]);
+
+  // ===========================================================================
+
+  bitcounter := 0;
+  dataindex  := 0;
+  internalnumber[dataindex] := 0;
+
+  if teo.Orientation = 0 then begin
+    case lScanDirection of
+      scanRowAltLeftRight : if odd(rowid) then
+                                lScanDirection := scanRowRightToLeft
+                              else
+                                lScanDirection := scanRowLeftToRight;
+      scanRowAltRightLeft : if odd(rowid) then
+                                lScanDirection := scanRowLeftToRight
+                              else
+                                lScanDirection := scanRowRightToLeft;
+    end;
+  end
+  else if teo.Orientation = 1 then begin
+    case lScanDirection of
+      scanRowAltLeftRight : if odd(MatrixMain.MatrixHeight - rowid - 1) then
+                                lScanDirection := scanRowRightToLeft
+                              else
+                                lScanDirection := scanRowLeftToRight;
+      scanRowAltRightLeft : if odd(MatrixMain.MatrixHeight - rowid - 1) then
+                                lScanDirection := scanRowLeftToRight
+                              else
+                                lScanDirection := scanRowRightToLeft;
+    end;
+  end;
+
+  // ===========================================================================
+
+  if lScanDirection = scanRowLeftToRight then begin // left to right
+    for x:=0 to MatrixMain.MatrixWidth - 1 do begin
+      if MatrixMain.MatrixDead.Grid[x, rowid] = 0 then begin
+        if lMatrixData.Grid[x, rowid] = 1 then begin
+          if teo.LSB = 0 then
+            internalnumber[dataindex] := internalnumber[dataindex] + (powers[bitcounter])
+          else
+            internalnumber[dataindex] := internalnumber[dataindex] + (powers[nsbits - bitcounter]);
+        end;
+
+        if bitcounter = nsbits then begin
+          bitcounter := 0;
+          inc(dataindex);
+
+          if (x <> MatrixMain.MatrixWidth - 1) then
+            internalnumber[dataindex] := 0;
+
+          inc(Result.Count);
+        end
+        else
+          inc(bitcounter);
+      end;
+    end;
+  end
+  else if lScanDirection = scanRowRightToLeft then begin                  // right to left
+    for x:=MatrixMain.MatrixWidth - 1 downto 0 do begin
+      if MatrixMain.MatrixDead.Grid[x, rowid] = 0 then begin
+        if lMatrixData.Grid[x, rowid] = 1 then begin
+          if teo.LSB = 0 then
+            internalnumber[dataindex] := internalnumber[dataindex] + (powers[bitcounter])
+          else
+            internalnumber[dataindex] := internalnumber[dataindex] + (powers[nsbits - bitcounter]);
+        end;
+
+        if bitcounter=nsbits then begin
+          bitcounter := 0;
+          inc(dataindex);
+
+          if (x <> 0) then
+            internalnumber[dataindex] := 0;
+
+          inc(Result.Count);
+        end
+        else
+          inc(bitcounter);
+      end;
+    end;
+  end;
+
+  // ===========================================================================  
+
+  for x:=0 to 7 do begin
+    if internalnumber[x] <> -1 then begin
+      case teo.NumberSize of
+        ns8bitSwap  : begin // swap nybbles
+                        s := IntToHex(internalnumber[x], 2);
+
+                        internalnumber[x] := HexToInt(s[2] + s[1]);
+                      end;
+        ns16bitSwap : begin // swap bytes
+                        s := IntToHex(internalnumber[x], 4);
+
+                        internalnumber[x] := HexToInt(s[3] + s[4] + s[1] + s[2]);
+                      end;
+      end;
+
+      case teo.NumberFormat of
+        nfDecimal : Result.data[x] := IntToStr(internalnumber[x]);
+        nfBinary  : Result.data[x] := IntegerToBinary(nsbits, internalnumber[x]);
+        nfHex     : Result.data[x] := IntToHex(internalnumber[x], nspads);
+      end;
+    end;
+  end;
+end;
+
+function ExportRowDataRGB(prefix : string; teo : TExportOptions; aFrame, rowid : integer; spacingchar : string): TDataOut;
+ var
+  lOutput : string;
+  lScanDirection : integer;
+  x : integer;
+  lMatrixData : TMatrix;
+
+ begin
+  Result.count   := 0;
+  lOutput        := '';
+  lScanDirection := teo.ScanDirection;
+
+  // ===========================================================================
+
+  if teo.ExportMode = 0 then
+    lMatrixData := TMatrix(MatrixMain.Matrix[aFrame])
+  else
+    lMatrixData := TMatrix(MatrixMain.MatrixUser[aFrame]);
+
+  // ===========================================================================
+
+  if teo.Orientation = 0 then begin
+    case lScanDirection of
+      scanRowAltLeftRight : if odd(rowid) then
+                                lScanDirection := scanRowRightToLeft
+                              else
+                                lScanDirection := scanRowLeftToRight;
+      scanRowAltRightLeft : if odd(rowid) then
+                                lScanDirection := scanRowLeftToRight
+                              else
+                                lScanDirection := scanRowRightToLeft;
+    end;
+  end
+  else if teo.Orientation = 1 then begin
+    case lScanDirection of
+      scanRowAltLeftRight : if odd(MatrixMain.MatrixHeight - rowid - 1) then
+                                lScanDirection := scanRowRightToLeft
+                              else
+                                lScanDirection := scanRowLeftToRight;
+      scanRowAltRightLeft : if odd(MatrixMain.MatrixHeight - rowid - 1) then
+                                lScanDirection := scanRowLeftToRight
+                              else
+                                lScanDirection := scanRowRightToLeft;
+    end;
+  end;
+
+  // ===========================================================================
+
+  if lScanDirection = scanRowLeftToRight then begin        // left to right
+    for x:=0 to MatrixMain.MatrixWidth - 1 do begin
+      if MatrixMain.MatrixDead.Grid[x, rowid] = 0 then begin
+        if (teo.RGBChangePixels) and (lMatrixData.Grid[x, rowid] = MatrixMain.RGBBackground) then
+          lOutput := lOutput + prefix + IntToHex(RGBConvertTo(teo.RGBChangeColour, teo.RGBMode, teo.LSB), 8)
+        else
+          lOutput := lOutput + prefix + IntToHex(RGBConvertTo(lMatrixData.Grid[x, rowid], teo.RGBMode, teo.LSB), 8);
+
+//        if x <> MatrixMain.MatrixWidth - 1 then
+          lOutput := lOutput + spacingchar;
+
+        inc(Result.Count);
+      end;
+    end;
+  end
+  else if lScanDirection = scanRowRightToLeft then begin        // right to left
+    for x := MatrixMain.MatrixWidth - 1 downto scanRowRightToLeft do begin
+      if MatrixMain.MatrixDead.Grid[x, rowid] = 0 then begin
+        if (teo.RGBChangePixels) and (lMatrixData.Grid[x, rowid] = MatrixMain.RGBBackground) then
+          lOutput := lOutput + prefix + IntToHex(RGBConvertTo(teo.RGBChangeColour, teo.RGBMode, teo.LSB), 8)
+        else
+          lOutput := lOutput + prefix + IntToHex(RGBConvertTo(lMatrixData.Grid[x, rowid], teo.RGBMode, teo.LSB), 8);
+
+//        if x <> 0 then
+          lOutput := lOutput + spacingchar;
+
+        inc(Result.Count);
+      end;
+    end;
+  end;
+
+  // ===========================================================================
+
+  Result.data[0] := lOutput;
+end;
+
+function ExportColumnData(teo : TExportOptions; aFrame, colid : integer; spacingchar : string): TDataOut;
+ var
+  s : string;
+  nsbits, nspads : integer;
+  bitcounter, dataindex, y, lScanDirection : integer;
+  internalnumber : array[0..7] of Int64;
+  lMatrixData : TMatrix;
+
+ begin
+  Result.count := 0;
+
+  for y:=0 to 7 do begin
+    internalnumber[y] := -1;
+    Result.data[y] := '';
+  end;
+
+  nsbits := NumberSizes[teo.NumberSize];
+  nspads := NumberPadding[teo.NumberSize];
+
+  lScanDirection := teo.ScanDirection;
+
+  // ===========================================================================
+
+  if teo.ExportMode = 0 then
+    lMatrixData := TMatrix(MatrixMain.Matrix[aFrame])
+  else
+    lMatrixData := TMatrix(MatrixMain.MatrixUser[aFrame]);
+
+  // ===========================================================================
+
+  bitcounter := 0;
+  dataindex  := 0;
+  internalnumber[dataindex] := 0;
+
+  if teo.Orientation = 0 then begin
+    case lScanDirection of
+      scanColAltDownUp : if odd(colid) then
+                           lScanDirection := scanColBottomToTop
+                         else
+                           lScanDirection := scanColTopToBottom;
+      scanColAltUpDown : if odd(colid) then
+                           lScanDirection := scanColTopToBottom
+                         else
+                           lScanDirection := scanColBottomToTop;
+    end;
+  end
+  else if teo.Orientation = 1 then begin
+    case lScanDirection of
+      scanColAltDownUp : if odd(MatrixMain.MatrixWidth - colid - 1) then
+                           lScanDirection := scanColBottomToTop
+                         else
+                           lScanDirection := scanColTopToBottom;
+      scanColAltUpDown : if odd(MatrixMain.MatrixWidth - colid - 1) then
+                           lScanDirection := scanColTopToBottom
+                         else
+                           lScanDirection := scanColBottomToTop;
+    end;
+  end;
+
+  // ===========================================================================
+
+  if lScanDirection = scanColTopToBottom then begin
+    for y:=0 to MatrixMain.MatrixHeight - 1 do begin
+      if MatrixMain.MatrixDead.Grid[colid, y] = 0 then begin
+        if lMatrixData.Grid[colid, y] = 1 then begin
+          if teo.LSB = 0 then
+            internalnumber[dataindex] := internalnumber[dataindex] + (powers[bitcounter])
+          else
+            internalnumber[dataindex] := internalnumber[dataindex] + (powers[nsbits - bitcounter]);
+        end;
+
+        if bitcounter = nsbits then begin
+          bitcounter := 0;
+          inc(dataindex);
+
+          if (y <> MatrixMain.MatrixHeight - 1) then
+            internalnumber[dataindex] := 0;
+
+          inc(Result.Count);
+        end
+        else
+          inc(bitcounter);
+      end;
+    end;
+  end
+  else if lScanDirection = scanColBottomToTop then begin
+    for y:=MatrixMain.MatrixHeight - 1 downto 0 do begin
+      if MatrixMain.MatrixDead.Grid[colid, y] = 0 then begin
+        if lMatrixData.Grid[colid, y] = 1 then begin
+          if teo.LSB = 0 then
+            internalnumber[dataindex] := internalnumber[dataindex] + (powers[bitcounter])
+          else
+            internalnumber[dataindex] := internalnumber[dataindex] + (powers[nsbits - bitcounter]);
+        end;
+
+        if bitcounter = nsbits then begin
+          bitcounter := 0;
+          inc(dataindex);
+
+          if (y <> 0) then
+            internalnumber[dataindex] := 0;
+
+          inc(Result.Count);
+        end
+        else
+          inc(bitcounter);
+      end;
+    end;
+  end;
+
+  // ===========================================================================
+
+  for y:=0 to 7 do begin
+    if internalnumber[y]<>-1 then begin
+      case teo.NumberSize of
+        ns8bitSwap  : begin // swap nybbles
+                        s := IntToHex(internalnumber[y], 2);
+
+                        internalnumber[y] := HexToInt(s[2] + s[1]);
+                      end;
+        ns16bitSwap : begin // swap bytes
+                        s := IntToHex(internalnumber[y], 4);
+
+                        internalnumber[y] := HexToInt(s[3] + s[4] + s[1] + s[2]);
+                      end;
+      end;
+
+      case teo.NumberFormat of
+        nfDecimal : Result.data[y]:=IntToStr(internalnumber[y]);
+        nfBinary  : Result.data[y]:=IntegerToBinary(nsbits, internalnumber[y]);
+        nfHex     : Result.data[y]:=IntToHex(internalnumber[y], nspads);
+      end;
+    end;
+  end;
+end;
+
+function ExportColumnDataRGB(prefix : string; teo : TExportOptions; aFrame, colid : integer; spacingchar : string): TDataOut;
+ var
+  output : string;
+  lScanDirection : integer;
+  y : integer;
+  lMatrixData : TMatrix;
+
+ begin
+  Result.count   := 0;
+  lScanDirection := teo.ScanDirection;
+
+  // ===========================================================================
+
+  if teo.ExportMode = 0 then
+    lMatrixData := TMatrix(MatrixMain.Matrix[aFrame])
+  else
+    lMatrixData := TMatrix(MatrixMain.MatrixUser[aFrame]);
+
+  // ===========================================================================
+
+  if teo.Orientation = 0 then begin
+    case lScanDirection of
+      scanColAltDownUp : if odd(colid) then
+                           lScanDirection := scanColBottomToTop
+                         else
+                           lScanDirection := scanColTopToBottom;
+      scanColAltUpDown : if odd(colid) then
+                           lScanDirection := scanColTopToBottom
+                         else
+                           lScanDirection := scanColBottomToTop;
+    end;
+  end
+  else if teo.Orientation = 1 then begin
+    case lScanDirection of
+      scanColAltDownUp : if odd(MatrixMain.MatrixWidth - colid - 1) then
+                           lScanDirection := scanColBottomToTop
+                         else
+                           lScanDirection := scanColTopToBottom;
+      scanColAltUpDown : if odd(MatrixMain.MatrixWidth - colid - 1) then
+                           lScanDirection := scanColTopToBottom
+                         else
+                           lScanDirection := scanColBottomToTop;
+    end;
+  end;
+
+  // ===========================================================================
+
+  if lScanDirection = scanColTopToBottom then begin             // top to bottom
+    for y:=0 to MatrixMain.MatrixHeight - 1 do begin
+      if MatrixMain.MatrixDead.Grid[colid, y] = 0 then begin
+        if (teo.RGBChangePixels) and (lMatrixData.Grid[colid, y] = MatrixMain.RGBBackground) then
+          output := output + prefix + IntToHex(RGBConvertTo(teo.RGBChangeColour, teo.RGBMode, teo.LSB), 8)
+        else
+          output := output + prefix + IntToHex(RGBConvertTo(lMatrixData.Grid[colid, y], teo.RGBMode, teo.LSB), 8);
+
+        output := output + spacingchar;
+
+        inc(Result.Count);
+      end;
+    end;
+  end
+  else if lScanDirection = scanColBottomToTop then begin        // bottom to top
+    for y:=MatrixMain.MatrixHeight - 1 downto 0 do begin
+      if MatrixMain.MatrixDead.Grid[colid, y] = 0 then begin
+        if (teo.RGBChangePixels) and (lMatrixData.Grid[colid, y] = MatrixMain.RGBBackground) then
+          output := output + prefix + IntToHex(RGBConvertTo(teo.RGBChangeColour, teo.RGBMode, teo.LSB), 8)
+        else
+          output := output + prefix + IntToHex(RGBConvertTo(lMatrixData.Grid[colid, y], teo.RGBMode, teo.LSB), 8);
+
+        output := output + spacingchar;
+
+        inc(Result.Count);
+      end;
+    end;
+  end;
+
+  // ===========================================================================
+
+  Result.data[0] := output;
+end;
+
+procedure AddContentByFrame(teo : TExportOptions; s : string; frame : integer; var aOutput : TStringList);
+ var
+  m : string;
+
+ begin
+  m := Copy(s, 1, length(s) - 2);
+
+  if teo.FontMode then begin
+    case teo.Language of
+      langCSV          : aOutput.Add(AppSettings.OpenBracket + m + AppSettings.CloseBracket + ';  // ' + Chr(frame + teo.StartFrame - 1) + ' ASCII ' + IntToStr(frame + teo.StartFrame-1));
+      langPICAXE       : aOutput.Add('EEPROM (' + m + ')  ; ' + Chr(frame + teo.StartFrame - 1) + ' ASCII ' + IntToStr(frame + teo.StartFrame - 1));
+      langCOneDim      : aOutput.Add(teo.DataPadding + s + '  // ' + Chr(frame + teo.StartFrame - 1) + ' ASCII ' + IntToStr(frame + teo.StartFrame - 1));
+      langCTwoDim      : aOutput.Add(teo.DataPadding + '{' + m + '},  // ' + Chr(frame + teo.StartFrame - 1) + ' ASCII ' + IntToStr(frame + teo.StartFrame - 1));
+      langPythonOneDim : aOutput.Add(teo.DataPadding + s + '  # ' + Chr(frame + teo.StartFrame - 1) + ' ASCII ' + IntToStr(frame + teo.StartFrame - 1));
+      langPythonTwoDim : aOutput.Add(teo.DataPadding + '[' + m + '],  # ' + Chr(frame + teo.StartFrame - 1) + ' ASCII ' + IntToStr(frame + teo.StartFrame - 1));
+      langMicrochip    : aOutput.Add('dt ' + m + ' ; ' + Chr(frame + teo.StartFrame - 1) + ' ASCII ' + IntToStr(frame + teo.StartFrame - 1));
+      langSpecial      : aOutput.Add(s);
+    end;
+  end
+  else begin
+    case teo.Language of
+      langCSV          : aOutput.Add(AppSettings.OpenBracket + m + AppSettings.CloseBracket + ';  // ' + teo.cdescription + ' ' + IntToStr(frame));
+      langPICAXE       : aOutput.Add('EEPROM (' + m + ')  ; ' + teo.cdescription + ' ' + IntToStr(frame));
+      langCOneDim      : aOutput.Add(teo.DataPadding + s + '  // ' + teo.cdescription + ' ' + IntToStr(frame));
+      langCTwoDim      : aOutput.Add(teo.DataPadding + '{' + m + '},  // ' + teo.cdescription + ' ' + IntToStr(frame));
+      langPythonOneDim : aOutput.Add(teo.DataPadding + s + '  # ' + teo.cdescription + ' ' + IntToStr(frame));
+      langPythonTwoDim : aOutput.Add(teo.DataPadding + '[' + m + '],  # ' + teo.cdescription + ' ' + IntToStr(frame));
+      langMicrochip    : aOutput.Add('dt ' + m + ' ; ' + teo.cdescription + ' ' + IntToStr(frame));
+      langSpecial      : aOutput.Add(s);
+    end;
+  end;
+end;
+
+procedure AddContentByRowCol(teo : TExportOptions; s : string; var aOutput : TStringList);
+ var
+  m : string;
+
+ begin
+  m := Copy(s, 1, length(s) - 2);
+
+  case teo.Language of
+    langCSV          : aOutput.Add(AppSettings.OpenBracket + m + AppSettings.CloseBracket + ';');
+    langPICAXE       : aOutput.Add('EEPROM (' + m + ')');
+    langCOneDim      : aOutput.Add(teo.DataPadding + s);
+    langCTwoDim      : aOutput.Add(teo.DataPadding + '{' + m + '},');
+    langPythonOneDim : aOutput.Add(teo.DataPadding + s);
+    langPythonTwoDim : aOutput.Add(teo.DataPadding + '[' + m + '],');
+    langMicrochip    : aOutput.Add('dt ' + m);
+    langSpecial      : aOutput.Add(s);
+  end;
+end;
+
+function CreateExportAnimation(teo : TExportOptions; var aOutput : TStringList; var entrycount : integer; var aUniqueItems : TStringList): boolean;
+ var
+  vartype, spacingstring : string;
+  x,y,t,i,lc,rc,z : integer;
+  prefix, op, cdescription : string;
+  tdo : TDataOut;
+  matrixdata : array[0.._MaxHeight] of TStringList;
+  zStart, zInc : integer;
+
+  procedure AddContentBySize(s : string; frame, rowcount : integer);
+   var
+    m : string;
+
+   begin
+    m := Copy(s, 1, length(s) - 2);
+
+    case teo.Language of
+      langCSV          : aOutput.Add(AppSettings.OpenBracket + m + AppSettings.CloseBracket + ';');
+      langPICAXE       : aOutput.Add('EEPROM (' + m + ')');
+      langCOneDim      : aOutput.Add(teo.DataPadding + s);
+      langCTwoDim      : if (rowcount = 0) then
+                           aOutput.Add(teo.DataPadding + '{' + m + ',  // ' + cdescription + ' ' + IntToStr(frame))
+                         else if (rowcount = -1) then
+                           aOutput.Add(teo.DataPadding + ' ' + m + '},')
+                         else
+                           aOutput.Add(teo.DataPadding + ' ' + s);
+      langPythonOneDim : aOutput.Add(teo.DataPadding + s + '');
+      langPythonTwoDim : if (rowcount = 0) then
+                           aOutput.Add(teo.DataPadding + '[' + s + '  # ' + cdescription + ' ' + IntToStr(frame))
+                         else if (rowcount = -1) then
+                           aOutput.Add(teo.DataPadding + ' ' + m + '],')
+                         else
+                           aOutput.Add(' ' + s);
+      langMicrochip    : aOutput.Add('dt ' + m);
+      langSpecial      : aOutput.Add(s);
+    end;
+  end;
+
+  function ProcessUnique(s : string): string;
+   var
+    t : integer;
+
+   begin
+    if aUniqueItems.Count = 0 then
+      Result := s
+    else begin
+      for t:= 0 to aUniqueItems.Count - 1 do begin
+        s := StringReplace(s, aUniqueItems[t], IntToStr(t), [rfReplaceAll]);
+      end;
+
+      Result := s;
+    end;
+  end;
+
+
+ begin
+  Result := True;
+
+  for t:=0 to _MaxHeight do
+    matrixdata[t] := TStringList.Create;
+
+  entrycount := 0; // total of all entries added to data variable in output    
+
+  // ===========================================================================
+
+  prefix := GetNumberFormat(teo.Language, teo.NumberFormat);
+
+  if teo.CleanMode then begin
+    spacingstring := ' ';
+
+    teo.Language  := langSpecial;
+  end
+  else
+    spacingstring := ', ';
+
+  // ===========================================================================
+
+  if teo.IncludePreamble then begin
+
+    if teo.ExportMode = 0 then
+      cdescription := 'frame'
+    else
+      cdescription := 'memory';
+
+    // =========================================================================
+
+    GetPreamble(teo, aOutput);
+
+    GetSpacerLine(teo.Language, aOutput);
+    aOutput.Add('');
+  end;
+
+  // =========================================================================
+  // =========================================================================
+  // =========================================================================
+
+  op := '';
+  lc := 0;
+  rc := 0;
+
+  vartype := GetVariableType(teo.Language, teo.NumberSize) +
+             GetVariableID(teo.Language);
+
+  if vartype <> '' then begin
+    aOutput.Add(vartype);
+  end;
+
+  teo.DataPadding := PadString(' ', length(vartype));
+
+  entrycount := 0; // total of all entries added to data variable in output
+
+  // =========================================================================
+  // =========================================================================
+
+  for t:=teo.StartFrame to teo.EndFrame do begin
+    for i:=0 to _MaxHeight do
+      matrixdata[i].Clear;
+
+
+    if teo.Source = SaveTypeRows then begin
+      for y:=0 to MatrixMain.MatrixHeight - 1 do begin
+        tdo := ExportRowData(teo, t, y, spacingstring);
+
+        for i:=0 to 7 do begin
+          if tdo.data[i] <> '' then begin
+            matrixdata[y].Add(ProcessUnique(prefix + tdo.data[i]) + spacingstring)
+          end;
+        end;
+
+        inc(entrycount, tdo.count);
+      end;
+    end;
+
+    if teo.Source = SaveTypeColumns then begin
+      for x := 0 to MatrixMain.MatrixWidth - 1 do begin
+        tdo := ExportColumnData(teo, t, x, spacingstring);
+
+        for i:=0 to 7 do begin
+          if tdo.data[i] <> '' then begin
+            matrixdata[x].Add(ProcessUnique(prefix + tdo.data[i]) + spacingstring)
+          end;
+        end;
+
+        inc(entrycount, tdo.count);        
+      end;
+    end;
+
+    // ===========================================================================
+    // ===========================================================================
+    // row data
+    // ===========================================================================
+    // ===========================================================================
+
+    if (teo.LineContent) <> 2 then // maintain data when saving in blocks
+      op := '';
+
+    if teo.Source = SaveTypeRows then begin
+      if teo.orientation = RowsTopToBottom then begin
+        zStart := 0;
+        zInc   := 1;
+      end
+      else begin
+        zStart := MatrixMain.MatrixHeight - 1;
+        zInc   := -1;
+      end;
+
+      y := zStart;
+
+      while y <> 99 do begin
+        if teo.LineContent = 0 then
+          op := '';
+
+        for z:=0 to matrixdata[y].Count - 1 do begin
+          op := op + matrixdata[y][z];
+
+          if teo.LineContent=2 then begin
+            inc(lc);
+
+            if lc = teo.LineCount then begin
+              AddContentBySize(op, t, rc);
+
+              lc := 0;
+              op := '';
+              inc(rc);
+            end;
+          end;
+        end;
+
+        if teo.LineContent = 0 then begin
+          AddContentByRowCol(teo, op, aOutput);
+        end;
+
+        inc(y, zInc);
+
+        if (y > MatrixMain.MatrixHeight - 1) or (y < 0) then
+          y := 99;
+      end;
+
+      case teo.LineContent of
+        lineFrame : AddContentByFrame(teo, op, t, aOutput);
+        lineBytes : begin
+                      case teo.Language of
+                        langCTwoDim,
+                        langPythonTwoDim : begin
+                                             AddContentBySize(op, t, -1);
+
+                                             op := '';
+                                             lc := 0;
+                                             rc := 0;
+                                           end;
+                      end;
+                    end;
+      end;
+    end;
+
+    // ===========================================================================
+    // col data
+    // ===========================================================================
+
+    if teo.Source = SaveTypeColumns then begin
+      case teo.orientation of
+        0,1 : begin
+                if teo.orientation = RowsTopToBottom then begin
+                  zStart:= 0;
+                  zInc  := 1;
+                end
+                else begin
+                  zStart := MatrixMain.MatrixWidth - 1;
+                  zInc   := -1;
+                end;
+
+                y := zStart;
+
+                while y <> 99 do begin
+                  if teo.LineContent = 0 then
+                    op := '';
+
+                  for z:=0 to matrixdata[y].Count - 1 do begin
+                    op := op + matrixdata[y][z];
+
+                    if teo.LineContent=2 then begin
+                      inc(lc);
+
+                      if lc = teo.LineCount then begin
+                        AddContentBySize(op, t, rc);
+
+                        lc := 0;
+                        op := '';
+                        inc(rc);
+                      end;
+                    end;
+                  end;
+
+                  if teo.LineContent = 0 then begin
+                    AddContentByRowCol(teo, op, aOutput);
+                  end;
+
+                  inc(y, zInc);
+
+                  if (y > MatrixMain.MatrixWidth - 1) or (y < 0) then
+                    y := 99;
+                end;
+              end;
+        2 : begin
+              for y := 7 downto 0 do begin
+                for z:=0 to matrixdata[y].Count - 1 do
+                  op := op + matrixdata[y][z] + spacingstring;
+              end;
+
+              for y := 15 downto 8 do begin
+                for z:=0 to matrixdata[y].Count - 1 do
+                  op := op + matrixdata[y][z] + spacingstring;
+              end;
+
+              for y := 23 downto 16 do begin
+                for z:=0 to matrixdata[y].Count - 1 do
+                  op := op + matrixdata[y][z] + spacingstring;
+              end;
+            end;
+      end;
+
+      case teo.LineContent of
+        lineFrame : AddContentByFrame(teo, op, t, aOutput);
+        lineBytes : begin
+                      case teo.Language of
+                        langCTwoDim,
+                        langPythonTwoDim : begin
+                                             AddContentBySize(op, t, -1);
+
+                                             op := '';
+                                             lc := 0;
+                                             rc := 0;
+                                           end;
+                      end;
+                    end;
+      end;
+    end;
+  end;
+
+  case teo.LineContent of
+    lineBytes : if op <> '' then AddContentBySize(op, 0, rc);
+  end;
+
+  case teo.language of
+    langCOneDim,
+    langCTwoDim       : aOutput.Add(teo.DataPadding + '};');
+    langPythonOneDim,
+    langPythonTwoDim  : aOutput.Add(teo.DataPadding + ']');
+  end;
+
+  for t:=0 to _MaxHeight do
+    matrixdata[t].Free;
+
+  if teo.IncludePreamble then begin
+    GetSpacerLine(teo.Language, aOutput);
+  end;
+end;
+
+function CreateExportAnimationRGB(teo : TExportOptions; var aOutput : TStringList; var entrycount : integer; var aUniqueItems : TStringList): boolean;
+ var
+  s, vartype, spacingstring  : string;
+  x, y, t, i : integer;
+  prefix, cdescription : string;
+  tdo : TDataOut;
+  matrixdata : array[0.._MaxHeight] of string;
+
+  procedure AddContentByRowCol(s : string);
+   var
+    m : string;
+
+   begin
+    m := Copy(s, 1, length(s) - 2);
+
+    case teo.Language of
+      langCSV          : aOutput.Add(AppSettings.OpenBracket + m + AppSettings.CloseBracket + ';');
+      langPICAXE       : aOutput.Add('EEPROM (' + m + ')');
+      langCOneDim      : aOutput.Add(teo.DataPadding + s);
+      langCTwoDim      : aOutput.Add(teo.DataPadding + '{' + m + '},');
+      langPythonOneDim : aOutput.Add(teo.DataPadding + s);
+      langPythonTwoDim : aOutput.Add(teo.DataPadding + '[' + m + '],');
+      langMicrochip    : aOutput.Add('dt ' + m);
+      langSpecial      : aOutput.Add(s);
+    end;
+  end;
+
+  function ProcessUnique(s : string): string;
+   var
+    t : integer;
+
+   begin
+    if aUniqueItems.Count = 0 then
+      Result := s
+    else begin
+      for t:= 0 to aUniqueItems.Count - 1 do begin
+        s := StringReplace(s, aUniqueItems[t], IntToStr(t), [rfReplaceAll]);
+      end;
+
+      Result := s;
+    end;
+  end;
+
+
+ begin
+  Result := True;
+
+  for t:=0 to _MaxHeight do
+    matrixdata[t] := '';
+
+  entrycount := 0; // total of all entries added to data variable in output
+
+  // ===========================================================================
+
+  prefix := GetNumberFormat(teo.Language, teo.NumberFormat);
+
+  if teo.CleanMode then begin
+    spacingstring := ' ';
+
+    teo.Language  := langSpecial;
+  end
+  else
+    spacingstring := ', ';
+
+  // ===========================================================================
+
+  if teo.IncludePreamble then begin
+
+    if teo.ExportMode = 0 then
+      cdescription := 'frame'
+    else
+      cdescription := 'memory';
+
+    // =========================================================================
+
+    GetPreamble(teo, aOutput);
+
+    GetSpacerLine(teo.Language, aOutput);
+    aOutput.Add('');
+  end;
+
+  // =========================================================================
+  // =========================================================================
+  // =========================================================================
+
+  vartype := GetVariableType(teo.Language, teo.NumberSize) +
+             GetVariableID(teo.Language);
+
+  if vartype <> '' then begin
+    aOutput.Add(vartype);
+  end;
+
+  teo.DataPadding := PadString(' ', length(vartype));
+
+  // =========================================================================
+  // =========================================================================
+
+  for t:=teo.StartFrame to teo.EndFrame do begin
+    for i:=0 to _MaxHeight do
+      matrixdata[i] := '';
+
+    if teo.Source = SaveTypeRows then begin
+      for y:=0 to MatrixMain.MatrixHeight - 1 do begin
+        tdo := ExportRowDataRGB(prefix, teo, t, y, spacingstring);
+
+        matrixdata[y] := ProcessUnique(tdo.data[0]);
+
+        inc(entrycount, tdo.count);
+      end;
+    end;
+
+    if teo.Source = SaveTypeColumns then begin
+      for x := 0 to MatrixMain.MatrixWidth - 1 do begin
+        tdo := ExportColumnDataRGB(prefix, teo, t, x, spacingstring);
+
+        matrixdata[x] := ProcessUnique(tdo.data[0]);
+
+        inc(entrycount, tdo.count);
+      end;
+    end;
+
+    // ===========================================================================
+    // ===========================================================================
+    // row data
+    // ===========================================================================
+    // ===========================================================================
+
+    if teo.Source = SaveTypeRows then begin
+      if teo.orientation = RowsTopToBottom then begin
+        s := '';
+
+        for y := 0 to MatrixMain.MatrixHeight - 1 do begin
+          case teo.LineContent of
+            LineContentRowCol : AddContentByRowCol(matrixdata[y]);
+            LineContentFrame  : s := s + matrixdata[y] + spacingstring;
+          end;
+        end;
+
+        if teo.LineContent = LineContentFrame then
+           AddContentByFrame(teo, s, t, aOutput);
+         end
+      else begin
+        s := '';
+
+        for y := MatrixMain.MatrixHeight - 1 to 0 do begin
+          case teo.LineContent of
+            LineContentRowCol : AddContentByRowCol(matrixdata[y]);
+            LineContentFrame  : s := s + matrixdata[y] + spacingstring;
+          end;
+        end;
+
+        if teo.LineContent = LineContentFrame then
+           AddContentByFrame(teo, s, t, aOutput);
+      end;
+    end;
+
+    // ===========================================================================
+    // col data
+    // ===========================================================================
+
+    if teo.Source = SaveTypeColumns then begin
+      case teo.orientation of
+        0,1 : begin
+                if teo.orientation = ColsLeftToRight then begin
+                  s := '';
+
+                  for x := 0 to MatrixMain.MatrixWidth - 1 do begin
+                    case teo.LineContent of
+                      LineContentRowCol : AddContentByRowCol(matrixdata[x]);
+                      LineContentFrame  : s := s + matrixdata[x] + spacingstring;
+                    end;
+                  end;
+
+                  if teo.LineContent = LineContentFrame then
+                    AddContentByFrame(teo, s, t, aOutput);
+                end
+                else begin
+                  for x := MatrixMain.MatrixWidth - 1 to 0 do begin
+                    s := '';
+
+                    case teo.LineContent of
+                       LineContentRowCol : AddContentByRowCol(matrixdata[x]);
+                       LineContentFrame  : s := s + matrixdata[x] + spacingstring;
+                    end;
+                  end;
+
+                  if teo.LineContent = LineContentFrame then
+                    AddContentByFrame(teo, s, t, aOutput);
+                end;
+              end;
+        2 : begin
+              // sure 2416 not available in RGB!!
+            end;
+      end;
+    end;
+  end;
+
+  case teo.language of
+    langCOneDim,
+    langCTwoDim       : aOutput.Add(teo.DataPadding + '};');
+    langPythonOneDim,
+    langPythonTwoDim  : aOutput.Add(teo.DataPadding + ']');
+  end;
+
+  if teo.IncludePreamble then begin
+    GetSpacerLine(teo.Language, aOutput);
+  end;
+end;
+
+function GetVariableType(aLanguage, aNumberSize : integer): string;
+ begin
+  case aLanguage of
+    langCSV,
+    langPICAXE        : Result := '';
+    langCOneDim,
+    langCTwoDim       : case aNumberSize of
+                          1 : Result := 'byte ';
+                          2 : Result := 'word ';
+                          4 : Result := 'uint32_t ';
+                          8 : Result := 'uint64_t ';
+                        end;
+    langPythonOneDim,
+    langPythonTwoDim  : Result := '';
+    langMicrochip     : Result := '';
+    langSpecial       : Result := '';
+  else
+    Result := '';
+  end;
+end;
+
+function GetVariableID(aLanguage : integer): string;
+ begin
+  case aLanguage of
+    langCSV,
+    langPICAXE       : Result := '';
+    langCOneDim      : Result := 'ledarray[] = {';
+    langCTwoDim      : Result := 'ledarray[][] = {';
+    langPythonOneDim : Result := 'ledarray[] = [';
+    langPythonTwoDim : Result := 'ledarray[][] = [';
+    langSpecial      : Result := '';
+  else
+    Result := '';
+  end
+end;
+
+function GetLineContent(aLanguage : integer; aLineContent : integer): string;
+ var
+  cc : string;
+
+ begin
+  cc := GetCommentCharacter(aLanguage) + 'Line   : ';
+
+  case aLineContent of
+    lineRowOrCol : Result := cc + 'Column/Row';
+    lineFrame    : Result := cc + 'Anim Frame';
+    lineBytes    : Result := cc + IntToStr(aLineContent) + ' bytes';
+  else
+    Result := '';
+  end;
+end;
+
+function GetLSB(aLanguage : integer; aLSB : integer): string;
+ var
+  cc : string;
+
+ begin
+  cc := GetCommentCharacter(aLanguage) + 'Bits   : ';
+
+  case aLSB of
+    lsbLeft  : Result := cc + 'LSB at top';
+    lsbRight : Result := cc + 'MSB at top';
+  else
+    Result := '';
+  end;
+end;
+
+function GetOrientation(teo : TExportOptions): string;
+ var
+  cc : string;
+
+ begin
+  cc := GetCommentCharacter(teo.Language) + 'Order  : ';
+
+  case teo.Source of
+    SaveTypeColumns : case teo.Orientation of
+                        0 : Result := cc + 'Left to right';
+                        1 : Result := cc + 'Right to left';
+                        2 : Result := cc + 'Sure 24x16';
+                      else
+                        Result := '';
+                      end;
+    SaveTypeRows    : case teo.Orientation of
+                        0 : Result := cc + 'Top to bottom';
+                        1 : Result := cc + 'Bottom to top';
+                      else
+                        Result := '';
+                      end;
+  end;
+end;
+
+function GetScanDirection(teo : TExportOptions): string;
+ var
+  cc : string;
+
+ begin
+  cc := GetCommentCharacter(teo.Language) + 'Scan   : ';
+
+  case teo.Source of
+    SaveTypeColumns : case teo.ScanDirection of
+                        scanColTopToBottom : Result := cc + 'Top to bottom';
+                        scanColBottomToTop : Result := cc + 'Bottom to top';
+                        scanColAltDownUp   : Result := cc + 'Alternate (Down/Up)';
+                        scanColAltUpDown   : Result := cc + 'Alternate (Up/Down)';
+                      else
+                        Result := '';
+                      end;
+    SaveTypeRows    : case teo.ScanDirection of
+                        scanRowLeftToRight  : Result := cc + 'Left to right';
+                        scanRowRightToLeft  : Result := cc + 'Right to left';
+                        scanRowAltLeftRight : Result := cc + 'Alternate (Left/Right)';
+                        scanRowAltRightLeft : Result := cc + 'Alternate (Right/Left)';
+                      else
+                        Result := '';
+                      end;
+  end;
+end;
+
+function GetNumberSize(aLanguage : integer; aNumberSize : integer): string;
+ var
+  cc : string;
+
+ begin
+  cc := GetCommentCharacter(aLanguage) + 'Size   : ';
+
+  case aNumberSize of
+    ns8Bit      : Result := cc + '8 bits';
+    ns16bit     : Result := cc + '16 bits';
+    ns32bit     : Result := cc + '32 bits';
+    ns8bitSwap  : Result := cc + '8 bits (nibbles swapped)';
+    ns16bitSwap : Result := cc + '16 bits (bytes swapped)';
+  else
+    Result := '';
+  end;
+end;
+
+function GetNumberFormat(aLanguage, aNumberFormat: integer): string;
+ begin
+  case aLanguage of
+    langCSV          : case aNumberFormat of
+                         nfBinary : Result := '%';
+                         nfHex    : Result := '$';
+                       end;
+    langPICAXE       : case aNumberFormat of
+                         nfBinary : Result := '%';
+                         nfHex    : Result := '$';
+                       end;
+    langCOneDim,
+    langCTwoDim      : case aNumberFormat of
+                         nfBinary : Result := 'B';
+                         nfHex    : Result := '0x';
+                       end;
+    langPythonOneDim,
+    langPythonTwoDim : case aNumberFormat of
+                         nfBinary : Result := '0B';
+                         nfHex    : Result := '0x';
+                       end;
+    langMicrochip    : case aNumberFormat of
+                         nfBinary : Result := '%';
+                         nfHex    : Result := '0x';
+                       end;
+  else
+    Result := '';
+  end;
+end;
+
+function GetSource(aLanguage : integer; aSaveType : integer): string;
+ var
+  cc : string;
+
+ begin
+  cc := GetCommentCharacter(aLanguage) + 'Source : ';
+
+  case aSaveType of
+    SaveTypeColumns : Result := cc + 'Columns';
+    SaveTypeRows    : Result := cc + 'Rows';
+  end;
+end;
+
+function GetCommentCharacter(aLanguage : integer): string;
+ begin
+  case aLanguage of
+    langCSV          : Result := '// ';
+    langPICAXE       : Result := '; ';
+    langCOneDim,
+    langCTwoDim      : Result := '// ';
+    langPythonOneDim,
+    langPythonTwoDim : Result := '# ';
+    langMicrochip    : Result := '; ';
+  else
+    Result := '';
+  end;
+end;
+
+function GetRGBMode(aLanguage : integer; aRGBMode : integer): string;
+ begin
+  Result := GetCommentCharacter(aLanguage) + 'Colour Format: ';
+
+  case aRGBMode of
+    rgbConvertToRGB : Result := Result + 'RGB';
+    rgbConvertToBGR : Result := Result + 'BGR';
+    rgbConvertToGRB : Result := Result + 'GRB';
+  end;
+end;
+
+procedure GetSpacerLine(aLanguage : integer; var aOutput : TStringList);
+ var
+  cc : string;
+ begin
+  cc := GetCommentCharacter(aLanguage);
+
+  aOutput.Add(cc);
+  aOutput.Add(cc + '=================================================================');
+  aOutput.Add(cc);
+end;
+
+procedure GetPreamble(teo : TExportOptions; var aOutput : TStringList);
+ var
+  cc : string;
+
+ begin
+  cc := GetCommentCharacter(teo.Language);
+
+  aOutput.Add(cc + '=================================================================');
+  aOutput.Add(cc + 'LED Matrix Studio - (c) Paul A Freshney 2015');
+  aOutput.Add(cc);
+  aOutput.Add(cc + 'www.MaximumOctopus.com');
+  aOutput.Add(cc + 'www.MaximumOctopus.com/electronics/builder.htm');
+  aOutput.Add(cc);
+  aOutput.Add(cc + CreatedDate);
+  if MatrixMain.MatrixComment <> '' then begin
+    aOutput.Add(cc);
+    aOutput.Add(cc + '-----------------------------------------------------------------');
+    aOutput.Add(cc + 'Comment:');
+    aOutput.Add(cc + ' ' + MatrixMain.MatrixComment);
+  end;
+  if AppSettings.DataFilename <> '' then begin
+    aOutput.Add(cc);
+    aOutput.Add(cc + '-----------------------------------------------------------------');
+    aOutput.Add(cc + 'Original file:');
+    aOutput.Add(cc + ' ' + AppSettings.DataFilename);
+  end;
+  aOutput.Add(cc);
+  aOutput.Add(cc + '=================================================================');
+  aOutput.Add(cc);
+
+  if teo.ExportMode=0 then begin
+    if teo.FontMode then
+      aOutput.Add(cc + 'Font Characters ' + IntToStr(teo.StartFrame) + ' to ' + IntToStr(teo.StartFrame + 95))
+    else begin
+      if teo.StartFrame=teo.EndFrame then
+        aOutput.Add(cc + 'Animation Frame #' + IntToStr(teo.StartFrame))
+      else
+        aOutput.Add(cc + 'Animation Frames #' + IntToStr(teo.StartFrame) + ' to #' + IntToStr(teo.EndFrame));
+    end;
+  end
+  else begin
+    aOutput.Add(cc + 'Memory Buffers #' + IntToStr(teo.StartFrame + 1) + ' to #' + IntToStr(teo.EndFrame + 1));
+  end;
+
+  aOutput.Add(cc);
+  aOutput.Add(cc + '=================================================================');
+  aOutput.Add(cc);
+
+  aOutput.Add(GetSource(teo.Language, teo.Source));
+  aOutput.Add(GetLineContent(teo.Language, teo.LineContent));
+  aOutput.Add(GetLSB(teo.Language, teo.LSB));
+  aOutput.Add(GetOrientation(teo));
+  aOutput.Add(GetScanDirection(teo));
+  
+  if teo.RGBEnabled then  
+    aOutput.Add(GetRGBMode(teo.Language, teo.RGBMode))
+  else
+    aOutput.Add(GetNumberSize(teo.Language, teo.NumberSize));
+end;
+
+end.

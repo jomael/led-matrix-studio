@@ -1,0 +1,3894 @@
+// ===================================================================
+//
+// (c) Paul Alan Freshney 2015
+// www.freshney.org :: paul@freshney.org :: maximumoctopus.com
+//
+// www.MaximumOctopus.com/electronics/builder.htm
+//
+// Please do not redistribute the source code!
+//
+//   Started: October 26th 2014
+//  Modified: June 6th 2015
+//
+// ===================================================================
+
+unit thematrix;
+
+interface
+
+uses ExtCtrls, classes, controls, types, sysutils, graphics, math, xglobal;
+
+const
+  _MaxWidth           = 63; // 0-127 soon! :)
+  _MaxHeight          = 63; // 0-127
+  _MaxAnimBufferFrame = 1000;
+
+  modeFlipAll         = 0;
+  modeMirrorAll       = 1;
+  modeInvertAll       = 2;
+  modeGradientAll     = 3;
+
+  modeFlip            = 0;
+  modeMirror          = 1;
+  modeInvert          = 2;
+
+  modeScrollLeft      = 0;
+  modeScrollRight     = 1;
+  modeScrollUp        = 2;
+  modeScrollDown      = 3;
+
+  modeRotateCW        = 0;
+  modeRotateACW       = 1;
+
+  drawModeNone        = 0;
+  drawModeFilledBox   = 1;
+  drawModeEmptyBox    = 2;
+  drawModeLine        = 3;
+  drawModeFont        = 4;
+  drawModeEmptyCircle = 5;
+  drawModeRandom      = 7;
+  drawModeMulti       = 8;
+  drawModePicker      = 9;
+  drawModeCopy        = 10; // active when user is selecting point 1 and point 2 of the capture square
+  drawModePaste       = 11; // active when user is pasting copied section
+
+type
+  TImportData = record
+                  Source          : integer;
+                  SourceLSB       : integer;
+                  SourceDirection : integer;
+                  PadMode         : integer;
+                  HexFormat       : integer;
+                  HexOutput       : integer;
+                  Brackets        : integer;
+                  MatrixType      : integer;
+                  NewWidth        : integer;
+                  NewHeight       : integer;
+                  NewFrames       : integer;
+                  MaxFrames       : integer;
+                  ASCIIIndex      : integer;
+                  FontMode        : boolean;
+                  RGBImport       : boolean;
+                end;
+
+  TUndoStructure = record
+                     mode : integer; // 0 replace current frame, 1 = undo rotate
+                     param1, param2 : integer;
+                   end;
+
+  TMouseOverEvent = procedure(const x,y : integer) of object;
+
+  TTheMatrix = class
+  private
+    PaintBox         : TPaintBox;
+    FOnChange        : TNotifyEvent;
+    FOnColourChange  : TNotifyEvent;    
+    FOnMouseOver     : TMouseOverEvent;
+
+    fFrameCount      : integer;
+    fCurrentFrame    : integer;
+    fLightBox        : integer;
+    fRGBBackground   : integer;
+    fRandomCoeff     : integer;
+    fDeadPixelsMode  : boolean;
+    fMatrixReadOnly  : boolean;
+
+    function  LoadDataParameterType(s : string; headermode, matrixmode, deadpixelmode : boolean): integer;
+    procedure ClickPixel(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure Shape1MouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+    procedure Shape1MouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+
+    procedure Shape1MouseUpBiColour(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ClickPixelBiColour(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure Shape1MouseMoveBiColour(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+
+    procedure ClickPixelRGB(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure Shape1MouseMoveRGB(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+    procedure Shape1MouseUpRGB(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+
+    procedure ClickPixelDeadPixel(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure Shape1MouseMoveDeadPixel(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+    procedure Shape1MouseUpDeadPixel(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+
+  public
+    UndoData         : TUndoStructure;
+
+    HaveMatrix       : boolean;
+    SoftwareMode     : integer; // 0 - normal, 1 = font
+
+    MatrixComment    : string;
+
+    MatrixWidth      : integer; // actual width of matrix in pixels
+    MatrixHeight     : integer; // actual height of matrix in pixels
+    MatrixType       : integer;
+    MatrixGradient   : integer; // 0 = off, 1 = on
+    MatrixGrid       : boolean;
+    MatrixPixelSize  : integer;
+    MatrixPixelSizeZ : integer;
+    MatrixPixelShape : integer; // 0 = square, 1 = cirle
+    MatrixBrushSize  : integer; // 0 = 1 pixel, 1 = 2x2;
+    LastX, LastY     : integer;
+
+    AnimPlaying      : boolean;
+
+    MatrixCopyX      : byte;
+    MatrixCopyY      : byte;
+
+    SelectionLMB     : integer;
+    SelectionMMB     : integer;
+    SelectionRMB     : integer;
+
+    DrawMode         : integer;
+    DrawPoint        : integer;
+    DrawColour       : integer;
+    DrawCoords       : array[0..1] of TPoint;
+    DrawSpecial      : integer;
+
+    LEDColoursSingle : array[0..5] of integer;
+    LEDColoursBi     : array[0..5] of integer;
+    LEDColours       : array[0..5] of integer; // currently being displayed
+    LEDFont          : array[0..189] of string;
+    LEDFontSize      : integer;
+    LEDRGBColours    : array[0..3] of integer; // background, rmb, mmb, lmb
+
+    Matrix           : array[0.._MaxAnimBufferFrame + 11, 0.._MaxWidth, 0.._MaxHeight] of integer;
+    MatrixBackup     : array[0.._MaxWidth, 0.._MaxHeight] of integer;
+    MatrixCopy       : array[0.._MaxWidth, 0.._MaxHeight] of integer;
+    MatrixDead       : array[0.._MaxWidth, 0.._MaxHeight] of boolean;
+
+    MatrixGradientIY : array[0.._MaxHeight] of integer;
+    MatrixGradientIX : array[0.._MaxWidth] of integer;
+
+    constructor Create(AOwner: TComponent; Zig : TWinControl);
+    destructor  Destroy; Override;
+    procedure   NewMatrix(mtype, framecount, top, left, width, height, pixelsize, pixelshape : integer; grid, readonly, clearall : boolean);
+
+    procedure   ConfigurePaintboxDrawing;
+    
+    procedure   PaintBoxUpdate(Sender: TObject);
+    procedure   PaintBoxUpdateRGB(Sender: TObject);
+    procedure   PaintBoxUpdateDeadPixel(Sender: TObject);
+
+    procedure   ChangePixelSize(newpixelsize : integer);
+    procedure   ChangePixelShape(newpixelshape : integer);
+    procedure   ChangePixelBrush(newbrushsize : integer);
+    procedure   ChangeMatrixType(newmatrixtype : integer);
+    procedure   SetMouseButtonColours(lmb, mmb, rmb : integer);
+
+    procedure   BackupMatrix(matrixindex : integer);
+    procedure   SetDeadPixels(deadness : boolean);
+    procedure   ClearCurrentFrame;
+    procedure   ClearFrame(frame : integer);
+    procedure   ClearAllFrames;
+    procedure   ClearAllFramesGradient;
+    procedure   PerformEffectOnCurrentFrame(mode : integer);
+    procedure   PerformEffectOnAllFrames(mode : integer);
+    procedure   PerformScrollOnCurrentFrame(mode : integer);
+    procedure   RotateCurrentFrame(mode : integer);
+    procedure   RotateFrame(newangle : real; toframe : integer);
+
+    procedure   DrawWithBrush(index, x, y : integer);
+    procedure   DrawWithBrushMulti(index, x, y : integer);
+
+    procedure   CopyCurrentFrame;
+
+    procedure   InsertBlankFrameAt(frameinsert, maxframes : integer);
+    procedure   InsertCopyFrameAt(frameinsert, maxframes : integer);
+    procedure   AddFrameMultiple(framecount, framecurrent, framemax : integer);
+
+    procedure   DeleteFrame(frame, framemax : integer);
+
+    procedure   ChangeCurrentFrame(frame : integer);
+    procedure   ChangeLightBox(lb : integer);
+    procedure   ChangeGrid(grid : boolean);
+    procedure   ChangeDeadPixelsMode(mode : boolean);
+    procedure   ChangeMatrixReadOnly(mode : boolean);
+
+    procedure   FadeFirstToLast;
+
+    procedure   CopyShape;
+    procedure   UpdateDrawTool(setx, sety, setcolour : integer);
+    procedure   DrawShape(realtime : boolean; colour : integer);
+
+    procedure   DrawFontCharacter(asciicode, frameid : integer);
+    procedure   DeleteFontCharacter(frameid : integer);
+    procedure   LoadFont(filename : string);
+
+    procedure   ImportRowData(imhex : boolean; sourcedirection, sourcelsb : integer; s : string);
+    procedure   ImportColumnData(imhex : boolean; sourcedirection, sourcelsb : integer; s : string);
+    function    ImportLEDMatrixDataSingleFrame(fn : string): TImportData;
+    function    ImportFromBMP(fn : string; fcount, fwidth, fheight : integer; rgbimport, createnew : boolean): TImportData;
+    function    ExportToBitmap(fn : string): boolean;
+
+    procedure   SaveAnimation(filename : string; ted : TImportData; eeo : TExportOptions);
+    procedure   SaveFont(filename : string; ted : TImportData; eeo : TExportOptions);
+    procedure   SaveAsFont(filename : string);
+    procedure   SaveSingleFrame(filename : string; ted : TImportData; frame : integer);
+
+    procedure   LoadGradient(filename : string);
+
+    function    LoadLEDMatrixData(fn : widestring; var eeo : TExportOptions): TImportData;
+    function    MergeLEDMatrixData(fn : widestring; startframe : integer): TImportData;
+
+    procedure   CopyToUserBuffer(slot : integer);
+    procedure   RestoreFromUserBuffer(slot : integer);
+    procedure   CopyFromPrevious(toframe : integer);
+
+    procedure   Undo;
+
+    procedure   ChangePixels(aFrom, aTo : integer);
+    function    HexToInt(const s : string): Int64;
+    function    BrightenRGB(rgb : integer): integer;
+    function    RandomColour(rgb : integer): integer;
+
+    procedure   CopyLEDColours;
+    procedure   ChangeSelectionColour(aSelectionLMB, aSelectionMMB, aSelectionRMB : integer);
+
+    function    CalculateMemoryUsage: integer;
+    function    DataSizeBytes: integer;
+  published
+    Property    FrameCount     : integer Read fFrameCount     Write fFrameCount;
+    Property    CurrentFrame   : integer Read fCurrentFrame   Write ChangeCurrentFrame;
+    Property    LightBox       : integer Read fLightBox       Write ChangeLightBox;
+    Property    RGBBackground  : integer Read fRGBBackground  Write fRGBBackground;
+    Property    RandomCoeff    : integer Read fRandomCoeff    Write fRandomCoeff;
+    Property    DeadPixelsMode : boolean Read fDeadPixelsMode Write ChangeDeadPixelsMode;
+    Property    MatrixReadOnly : boolean Read fMatrixReadOnly Write ChangeMatrixReadOnly;
+
+    property    OnChange       : TNotifyEvent read FOnChange write FOnChange;
+    property    OnMouseOver    : TMouseOverEvent read FOnMouseOver write FOnMouseOver;
+    property    OnColourChange : TNotifyEvent read FOnColourChange write FOnColourChange;
+  protected
+    procedure   MatrixChange; dynamic;
+    procedure   ColourChange; dynamic;    
+    procedure   MouseOver; dynamic;
+  end;
+
+implementation
+
+uses dialogs;
+
+constructor TTheMatrix.Create(AOwner: TComponent; Zig : TWinControl);
+ begin
+  PaintBox         := TPaintBox.Create(AOwner);
+  PaintBox.Parent  := Zig;
+  PaintBox.OnPaint := PaintBoxUpdate;
+
+  HaveMatrix       := False;
+
+  fFrameCount      := 1;
+  fCurrentFrame    := 1;
+  fLightBox        := 0;
+  fDeadPixelsMode  := False;
+
+  DrawMode         := drawModeNone;
+  DrawPoint        := 0;
+  DrawColour       := 0;
+  DrawCoords[0].X  := -1;
+  DrawCoords[0].Y  := -1;
+
+  fRandomCoeff     := 30;
+
+  MatrixGradient   := 0;
+
+  MatrixBrushSize  := 0;
+  MatrixPixelSize  := 1;
+
+  UndoData.mode    := -1;
+
+  MatrixComment    := '';
+
+  // ===========================================================================
+
+  with PaintBox do begin
+    OnMouseDown := ClickPixel;
+    OnMouseMove := Shape1MouseMove;
+    OnMouseUp   := Shape1MouseUp;
+  end;
+
+  // ===========================================================================
+
+  ClearAllFrames;
+end;
+
+destructor TTheMatrix.Destroy;
+ begin
+  PaintBox.Free;
+
+  inherited Destroy;
+end;
+
+procedure TTheMatrix.MatrixChange;
+ begin
+  if (Assigned(FOnChange)) and (HaveMatrix) then
+    FOnChange(Self);
+end;
+
+procedure TTheMatrix.ColourChange;
+ begin
+  if (Assigned(FOnColourChange)) and (HaveMatrix) then
+    FOnColourChange(Self);
+end;
+
+procedure TTheMatrix.MouseOver;
+ begin
+//  if Assigned(FOnMouseOver) then
+//    FOnMouseOver();
+end;
+
+procedure TTheMatrix.PaintBoxUpdate(Sender: TObject);
+ var
+  x, y : integer;
+
+ begin
+  for x:=0 to MatrixWidth - 1 do begin
+    for y:=0 to MatrixHeight - 1 do begin
+      if not MatrixDead[x, y] then begin
+        case Matrix[fCurrentFrame, x, y] of
+          0 : begin
+                if (fLightbox = 1) and (fCurrentFrame<>1) then begin
+                  if Matrix[fCurrentFrame - 1, x, y] = 1 then
+                    PaintBox.Canvas.Brush.Color := LEDColours[5]
+                  else
+                    PaintBox.Canvas.Brush.Color := LEDColours[0];
+                end
+                else begin
+                  PaintBox.Canvas.Brush.Color := LEDColours[0];
+                end;
+              end;
+          1 : PaintBox.Canvas.Brush.Color := LEDColours[1];
+          2 : PaintBox.Canvas.Brush.Color := LEDColours[2];
+          3 : PaintBox.Canvas.Brush.Color := LEDColours[3];
+        end;
+      end
+      else
+        PaintBox.Canvas.Brush.Color := clBtnFace;
+
+      case MatrixPixelShape of
+        pixelSquare : PaintBox.Canvas.FillRect(Rect(x * MatrixPixelSize,
+                                                    y * MatrixPixelSize,
+                                                    (x * MatrixPixelSize) + MatrixPixelSizeZ,
+                                                    (y * MatrixPixelSize) + MatrixPixelSizeZ));
+        pixelCircle : PaintBox.Canvas.Ellipse(x * MatrixPixelSize,
+                                              y * MatrixPixelSize,
+                                              (x * MatrixPixelSize) + MatrixPixelSizeZ,
+                                              (y * MatrixPixelSize) + MatrixPixelSizeZ);
+      end;
+    end
+  end;
+
+  // ===========================================================================
+  // ===========================================================================
+
+  if DrawMode <> drawModeNone then begin
+    if DrawCoords[0].X <> - 1 then begin
+      PaintBox.Canvas.Brush.Color := LEDColours[DrawColour];
+      DrawShape(True, 1);
+
+      // =======================================================================
+
+      PaintBox.Canvas.Brush.Color := LEDColours[4];
+
+      case MatrixPixelShape of
+        pixelSquare : PaintBox.Canvas.FillRect(Rect(DrawCoords[0].X * MatrixPixelSize,
+                                                    DrawCoords[0].Y * MatrixPixelSize,
+                                                    (DrawCoords[0].X * MatrixPixelSize) + MatrixPixelSizeZ,
+                                                    (DrawCoords[0].Y * MatrixPixelSize) + MatrixPixelSizeZ));
+        pixelCircle : PaintBox.Canvas.Ellipse(DrawCoords[0].X * MatrixPixelSize,
+                                              DrawCoords[0].Y * MatrixPixelSize,
+                                              (DrawCoords[0].X * MatrixPixelSize) + MatrixPixelSizeZ,
+                                              (DrawCoords[0].Y * MatrixPixelSize) + MatrixPixelSizeZ);
+      end;
+    end;
+  end;
+
+  // ===========================================================================
+  // ===========================================================================
+
+  if MatrixCopyX<>0 then begin
+    for x:=0 to MatrixCopyX do begin
+      for y:=0 to MatrixCopyY do begin
+        if (x + lastx >= 0) and (x + lastx <= MatrixWidth - 1) and
+          (y + lasty >= 0) and (y + lasty <= MatrixHeight - 1) then begin
+
+           if not MatrixDead[x + lastx, y + lasty] then
+             PaintBox.Canvas.Brush.Color := LEDColours[MatrixCopy[x, y]]
+           else
+             PaintBox.Canvas.Brush.Color := clBtnFace;
+
+
+           case MatrixPixelShape of
+             pixelSquare : PaintBox.Canvas.FillRect(Rect((x + lastx) * MatrixPixelSize,
+                                                         (y + lasty) * MatrixPixelSize,
+                                                         ((x + lastx) * MatrixPixelSize) + MatrixPixelSizeZ,
+                                                         ((y + lasty) * MatrixPixelSize) + MatrixPixelSizeZ));
+             pixelCircle : PaintBox.Canvas.Ellipse((x + lastx) * MatrixPixelSize,
+                                                   (y + lasty) * MatrixPixelSize,
+                                                   ((x + lastx) * MatrixPixelSize) + MatrixPixelSizeZ,
+                                                   ((y + lasty) * MatrixPixelSize) + MatrixPixelSizeZ);
+           end;
+        end;
+      end;
+    end;
+  end;
+end;
+
+procedure TTheMatrix.PaintBoxUpdateRGB(Sender: TObject);
+ var
+  x, y : integer;
+
+ begin
+  for x := 0 to MatrixWidth - 1 do begin
+    for y := 0 to MatrixHeight - 1 do begin
+      if not MatrixDead[x, y] then begin
+        if (fLightbox = 1) and (fCurrentFrame <> 1) then begin
+          if (Matrix[fCurrentFrame, x, y] = RGBBackground) then begin
+            if (Matrix[fCurrentFrame - 1, x, y] <> RGBBackground) then begin
+              PaintBox.Canvas.Brush.Color := BrightenRGB(Matrix[fCurrentFrame - 1, x, y])
+            end
+            else
+              PaintBox.Canvas.Brush.Color := RGBBackground;
+          end
+          else
+            PaintBox.Canvas.Brush.Color := Matrix[fCurrentFrame, x, y];
+        end
+        else
+          PaintBox.Canvas.Brush.Color := Matrix[fCurrentFrame, x, y];
+      end
+      else
+        PaintBox.Canvas.Brush.Color := clBtnFace;
+
+      case MatrixPixelShape of
+        pixelSquare : PaintBox.Canvas.FillRect(Rect(x * MatrixPixelSize,
+                                                    y * MatrixPixelSize,
+                                                    (x * MatrixPixelSize) + MatrixPixelSizeZ,
+                                                    (y * MatrixPixelSize) + MatrixPixelSizeZ));
+        pixelCircle : PaintBox.Canvas.Ellipse(x * MatrixPixelSize,
+                                              y * MatrixPixelSize,
+                                              (x * MatrixPixelSize) + MatrixPixelSizeZ,
+                                              (y * MatrixPixelSize) + MatrixPixelSizeZ);
+      end;
+    end;
+  end;
+
+  // ===========================================================================
+  // ===========================================================================
+
+  if DrawMode <> drawModeNone then begin
+    if DrawCoords[0].X <> - 1 then begin
+      PaintBox.Canvas.Brush.Color := DrawColour;
+      DrawShape(True, 1);
+
+      // =======================================================================
+
+      PaintBox.Canvas.Brush.Color := LEDColours[4];
+
+      case MatrixPixelShape of
+        pixelSquare : PaintBox.Canvas.FillRect(Rect(DrawCoords[0].X * MatrixPixelSize,
+                                                    DrawCoords[0].Y * MatrixPixelSize,
+                                                    (DrawCoords[0].X * MatrixPixelSize) + MatrixPixelSizeZ,
+                                                    (DrawCoords[0].Y * MatrixPixelSize) + MatrixPixelSizeZ));
+        pixelCircle : PaintBox.Canvas.Ellipse(DrawCoords[0].X * MatrixPixelSize,
+                                              DrawCoords[0].Y * MatrixPixelSize,
+                                              (DrawCoords[0].X * MatrixPixelSize) + MatrixPixelSizeZ,
+                                              (DrawCoords[0].Y * MatrixPixelSize) + MatrixPixelSizeZ);
+      end;
+    end;
+  end;
+
+  // ===========================================================================
+  // ===========================================================================
+
+  if MatrixCopyX <> 0 then begin
+    for x:=0 to MatrixCopyX do begin
+      for y:=0 to MatrixCopyY do begin
+        if (x + lastx >= 0) and (x + lastx <= MatrixWidth - 1) and
+          (y + lasty >= 0) and (y + lasty <= MatrixHeight - 1) then begin
+
+           if not MatrixDead[x + lastx, y + lasty] then
+             PaintBox.Canvas.Brush.Color := MatrixCopy[x, y]
+           else
+             PaintBox.Canvas.Brush.Color := clBtnFace;
+
+           case MatrixPixelShape of
+             pixelSquare : PaintBox.Canvas.FillRect(Rect((x + lastx) * MatrixPixelSize,
+                                                         (y + lasty) * MatrixPixelSize,
+                                                         ((x + lastx) * MatrixPixelSize) + MatrixPixelSizeZ,
+                                                         ((y + lasty) * MatrixPixelSize) + MatrixPixelSizeZ));
+             pixelCircle : PaintBox.Canvas.Ellipse((x + lastx) * MatrixPixelSize,
+                                                   (y + lasty) * MatrixPixelSize,
+                                                   ((x + lastx) * MatrixPixelSize) + MatrixPixelSizeZ,
+                                                   ((y + lasty) * MatrixPixelSize) + MatrixPixelSizeZ);
+           end;
+        end;
+      end;
+    end;
+  end;
+end;
+
+procedure TTheMatrix.PaintBoxUpdateDeadPixel(Sender: TObject);
+ var
+  x, y : integer;
+
+ begin
+  for x:=0 to MatrixWidth - 1 do begin
+    for y:=0 to MatrixHeight - 1 do begin
+      if MatrixDead[x, y] then
+        PaintBox.Canvas.Brush.Color := $00000000
+      else
+        PaintBox.Canvas.Brush.Color := $00FFFFFF;
+
+      case MatrixPixelShape of
+        pixelSquare : PaintBox.Canvas.FillRect(Rect(x * MatrixPixelSize,
+                                                    y * MatrixPixelSize,
+                                                    (x * MatrixPixelSize) + MatrixPixelSizeZ,
+                                                    (y * MatrixPixelSize) + MatrixPixelSizeZ));
+        pixelCircle : PaintBox.Canvas.Ellipse(x * MatrixPixelSize,
+                                              y * MatrixPixelSize,
+                                              (x * MatrixPixelSize) + MatrixPixelSizeZ,
+                                              (y * MatrixPixelSize) + MatrixPixelSizeZ);
+      end;
+    end;
+  end;
+end;
+
+// =============================================================================
+// =============================================================================
+
+procedure TTheMatrix.SetDeadPixels(deadness : boolean);
+ var
+  x, y : integer;
+
+ begin
+  for x:=0 to _MaxWidth do begin
+    for y:=0 to _MaxHeight do begin
+      MatrixDead[x, y] := deadness;
+    end;
+  end;
+end;
+
+// =============================================================================
+// =============================================================================
+
+procedure TTheMatrix.ClearAllFrames;
+ var
+  x,y,z : integer;
+
+ begin
+  for z:=0 to _MaxAnimBufferFrame do begin
+    for x:=0 to _MaxWidth do begin
+      for y:=0 to _MaxHeight do begin
+        if MatrixType = psTypeRGB then
+          Matrix[fCurrentFrame, x, y] := FRGBBackground
+        else
+          Matrix[fCurrentFrame, x, y] := 0;
+      end;
+    end;
+  end;
+
+  MatrixChange;
+
+  PaintBox.Repaint;
+end;
+
+procedure TTheMatrix.ClearAllFramesGradient;
+ var
+  x,y,z : integer;
+
+ begin
+  for z:=0 to _MaxAnimBufferFrame do begin
+    for x:=0 to _MaxWidth do begin
+      for y:=0 to _MaxHeight do begin
+        if MatrixType = psTypeRGB then
+          Matrix[x, x, y] := MatrixGradientIY[y]
+        else
+          Matrix[x, x, y] := LEDColours[MatrixGradientIY[y]];
+      end;
+    end;
+  end;
+
+  MatrixChange;
+
+  PaintBox.Repaint;
+end;
+
+procedure TTheMatrix.SetMouseButtonColours(lmb, mmb, rmb : integer);
+ begin
+  SelectionLMB := lmb;
+  SelectionMMB := mmb;
+  SelectionRMB := rmb;
+end;
+
+procedure TTheMatrix.ChangePixels(aFrom, aTo : integer);
+ var
+  x,y,z : integer;
+
+ begin
+  for z:=0 to _MaxAnimBufferFrame do begin
+    for x:=0 to _MaxWidth do begin
+      for y:=0 to _MaxHeight do begin
+        if Matrix[z, x, y] = aFrom then
+          Matrix[z, x, y] := aTo;
+      end;
+    end;
+  end;
+
+  PaintBox.Repaint;
+end;
+
+function TTheMatrix.HexToInt(const s : string): Int64;
+ var
+  i : integer;
+  digit : integer;
+
+ begin
+  Result := 0;
+
+  for i:=1 to length(s) do begin
+    case Ord(s[i]) of
+      48..57 : digit := StrToInt(s[i]);
+      65..70 : digit := Ord(s[i]) - 55;
+    else
+      showmessage('ERROR: ' + s[i]);
+      digit := 0;
+    end;
+
+    Result := Result + (digit * powers16[length(s) - i]);
+  end;
+end;
+
+function TTheMatrix.BrightenRGB(rgb : integer): integer;
+ var
+  xR : integer;
+  xG : integer;
+  xB : integer;
+ begin
+  xR := (rgb and $0000ff);         // Windows colour structure = BGR
+  xB := (rgb and $ff0000) shr 16;
+  xG := (rgb and $00ff00) shr 8;
+
+  xR := Round(xR * 0.8);
+  xG := Round(xG * 0.8);
+  xB := Round(xB * 0.8);
+
+{  if xR > 255 then
+    xR := 255;
+  if xG > 255 then
+    xG := 255;
+  if xB > 255 then
+    xB := 255;}
+
+  Result := (xB shl 16) + (xG shl 8) + xR;
+end;
+
+function TTheMatrix.RandomColour(rgb : integer): integer;
+ var
+  xR : integer;
+  xG : integer;
+  xB : integer;
+ begin
+  xR := (rgb and $0000ff);         // Windows colour structure = BGR
+  xB := (rgb and $ff0000) shr 16;
+  xG := (rgb and $00ff00) shr 8;
+
+  xR := (xR - RandomCoeff) + (random(2 * RandomCoeff));
+  xG := (xG - RandomCoeff) + (random(2 * RandomCoeff));
+  xB := (xB - RandomCoeff) + (random(2 * RandomCoeff));
+
+  if xR > 255 then xR := 255;
+  if xG > 255 then xG := 255;
+  if xB > 255 then xB := 255;
+
+  if xR < 0 then xR := 0;
+  if xG < 0 then xG := 0;
+  if xB < 0 then xB := 0;
+
+  Result := (xB shl 16) + (xG shl 8) + xR;
+end;
+
+procedure TTheMatrix.NewMatrix(mtype, framecount, top, left, width, height, pixelsize, pixelshape : integer; grid, readonly, clearall : boolean);
+ var
+  t : integer;
+ begin
+  fCurrentFrame    := 1;
+  fLightBox        := 0;
+  fDeadPixelsMode  := False;
+  fFrameCount      := framecount;
+
+  AnimPlaying      := False;
+
+  MatrixCopyX      := 0;
+  MatrixCopyY      := 0;
+
+  DrawMode         := drawModeNone;
+  DrawPoint        := 0;
+  DrawColour       := 0;  
+  DrawCoords[0].X  := -1;
+  DrawCoords[0].Y  := -1;
+
+  LastX            := -1;
+  LastY            := -1;
+
+  PaintBox.Top     := Top;
+  PaintBox.Left    := Left;
+  PaintBox.Width   := Width * pixelsize;
+  PaintBox.Height  := Height * pixelsize;
+
+  MatrixWidth      := Width;
+  MatrixHeight     := Height;
+  MatrixType       := mtype;
+  MatrixGradient   := 0;
+  MatrixPixelShape := pixelshape;
+  MatrixPixelSize := PixelSize;
+  fMatrixReadOnly  := readonly;
+
+  MatrixGrid       := grid;
+
+  if grid then
+    MatrixPixelSizeZ := MatrixPixelSize - 1
+  else
+    MatrixPixelSizeZ := MatrixPixelSize;
+
+  UndoData.mode    := -1;
+
+  // ===========================================================================
+
+  SetDeadPixels(False);
+
+  // ===========================================================================
+
+  for t := 0 to _MaxHeight do begin
+    if MatrixType = psTypeRGB then    
+      MatrixGradientIY[t] := RGBBackground
+    else
+      MatrixGradientIY[t] := 0;
+  end;                         
+
+  // ===========================================================================
+
+  ConfigurePaintboxDrawing;
+
+  // ===========================================================================
+
+  if clearall then begin
+    ClearAllFrames;
+
+    MatrixComment := '';
+  end;
+
+  HaveMatrix := True;
+
+  MatrixChange;
+end;
+
+procedure TTheMatrix.ChangePixelSize(newpixelsize : integer);
+ begin
+  MatrixPixelSize := newpixelsize;
+
+  PaintBox.Width  := MatrixWidth * MatrixPixelSize;
+  PaintBox.Height := MatrixHeight * MatrixPixelSize;
+
+  if MatrixGrid then
+    MatrixPixelSizeZ := MatrixPixelSize - 1
+  else
+    MatrixPixelSizeZ := MatrixPixelSize;  
+
+  PaintBox.Repaint;
+end;
+
+procedure TTheMatrix.ChangePixelShape(newpixelshape : integer);
+ begin
+  MatrixPixelShape := newpixelshape;
+
+  PaintBox.Repaint;
+end;
+
+procedure TTheMatrix.ChangePixelBrush(newbrushsize : integer);
+ begin
+  MatrixBrushSize := newbrushsize;
+end;
+
+procedure TTheMatrix.ChangeMatrixType(newmatrixtype : integer);
+ var
+  MemSlot, x, y : integer;
+  
+ begin
+  if MatrixWidth <> -1 then begin
+
+    MatrixType := newmatrixtype;
+
+    ConfigurePaintboxDrawing;
+  end;
+
+  // if we're moving to single colour matrix
+  // make sure the matrix data fits!
+  if newmatrixtype = 0 then begin
+    for MemSlot:=1 to _MaxAnimBufferFrame + 11 do begin
+      for x:=0 to MatrixWidth - 1 do begin
+        for y:=0 to MatrixHeight - 1 do begin
+          if Matrix[MemSlot, x, y] > 0 then // TO DO
+            Matrix[MemSlot, x, y] := 1;
+        end;
+      end;
+    end;
+  end;
+
+  // ===========================================================================
+
+  for x := 0 to _MaxHeight do begin
+    if MatrixType = psTypeRGB then
+      MatrixGradientIY[x] := RGBBackground
+    else
+      MatrixGradientIY[x] := 0;
+  end;
+
+  // ===========================================================================  
+
+  PaintBox.Repaint;
+end;
+
+procedure TTheMatrix.DrawWithBrush(index, x, y : integer);
+ var
+  a,b : integer;
+
+ begin
+  case MatrixBrushSize of
+    0 : Matrix[fCurrentFrame, x, y] := index;
+    1 : begin
+          Matrix[fCurrentFrame, x, y]         := index;
+          Matrix[fCurrentFrame, x + 1, y]     := index;
+          Matrix[fCurrentFrame, x, y + 1]     := index;
+          Matrix[fCurrentFrame, x + 1, y + 1] := index;
+        end;
+    2 : begin
+          for a:=0 to 2 do begin
+            for b:=0 to 2 do begin
+              Matrix[fCurrentFrame, x + a, y + b] := index;
+            end;
+          end;
+        end;
+  end;
+end;
+
+procedure TTheMatrix.DrawWithBrushMulti(index, x, y : integer);
+ var
+  a,b,frame : integer;
+
+ begin
+  for frame:=0 to DrawSpecial do begin
+    case MatrixBrushSize of
+      0 : Matrix[frame, x, y] := index;
+      1 : begin
+            Matrix[frame, x, y]         := index;
+            Matrix[frame, x + 1, y]     := index;
+            Matrix[frame, x, y + 1]     := index;
+            Matrix[frame, x + 1, y + 1] := index;
+          end;
+      2 : begin
+            for a:=0 to 2 do begin
+              for b:=0 to 2 do begin
+                Matrix[frame, x + a, y + b] := index;
+              end;
+            end;
+          end;
+    end;
+  end;
+end;
+
+procedure TTheMatrix.ClickPixel(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+ var
+  x1, y1, x2, y2 : integer;
+
+ begin
+  x1 := Floor(x / MatrixPixelSize);
+  y1 := Floor(y / MatrixPixelSize);
+
+  if (x1 < 0) or (y1 < 0) then exit;
+
+  // ===========================================================================
+
+  if ssleft in shift then begin
+    case DrawMode of
+      drawModeNone  : begin
+                        DrawWithBrush(1, x1, y1);
+
+                        LastX := x1;
+                        LastY := y1;
+
+                        MatrixChange;
+                      end;
+      drawModeMulti : begin
+                        DrawWithBrushMulti(1, x1, y1);
+
+                        LastX := x1;
+                        LastY := y1;
+
+                        MatrixChange;
+                      end;
+      drawModePaste : begin
+                        for x2:=0 to MatrixCopyX do begin
+                          for y2:=0 to MatrixCopyY do begin
+                            if (x2 + x1 >= 0) and (x2 + x1 <= MatrixWidth - 1) and
+                               (y2 + y1 >= 0) and (y2 + y1 <= MatrixHeight - 1) then begin
+
+                              if MatrixCopy[x2, y2] = 1 then begin
+                                Matrix[fCurrentFrame, x2 + x1, y2 + y1] := 1;
+                              end
+                              else
+                                if not(ssShift in shift) then
+                                  Matrix[fCurrentFrame, x2 + x1, y2 + y1] := 0;
+                            end;
+                          end;
+                        end;
+
+                        MatrixChange;
+                      end;
+    else
+      UpdateDrawTool(x1, y1, 1);
+    end;
+  end
+  else if ssRight in Shift then begin
+    case DrawMode of
+      drawModeNone  : begin
+                        DrawWithBrush(0, x1, y1);
+
+                        LastX := x1;
+                        LastY := y1;
+
+                        MatrixChange;
+                      end;
+      drawModeMulti : begin
+                        DrawWithBrushMulti(0, x1, y1);
+
+                        LastX := x1;
+                        LastY := y1;
+
+                        MatrixChange;
+                      end;
+    else
+      UpdateDrawTool(x1, y1, 0);
+    end;
+  end;
+
+  PaintBox.Repaint;
+end;
+
+procedure TTheMatrix.Shape1MouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+ var
+  x1, y1 : integer;
+
+ begin
+  x1 := Floor(x / MatrixPixelSize);
+  y1 := Floor(y / MatrixPixelSize);
+
+  if (x1 < 0) or (y1 < 0) then exit;
+
+  // ===========================================================================
+
+  if Assigned(FOnMouseOver) then
+    FOnMouseOver(x1, y1);
+
+  // ===========================================================================
+  // ===========================================================================
+
+  if ssLeft in Shift then begin
+    case drawmode of
+      drawModeNone  : begin
+                        if not((LastX =x1) and (LastY = y1)) then begin
+                          DrawWithBrush(1, x1, y1);
+                        end;
+
+                        LastX := x1;
+                        LastY := y1;
+
+                        MatrixChange;
+                      end;
+      drawModeMulti : begin
+                        if not((LastX = x1) and (LastY = y1)) then begin
+                          DrawWithBrushMulti(1, x1, y1);
+                        end;
+
+                        LastX := x1;
+                        LastY := y1;
+
+                        MatrixChange;
+                      end;
+    end;
+  end
+  else if ssRight in Shift then begin
+    case drawmode of
+      drawModeNone  : begin
+                        if not((LastX = x1) and (LastY = y1)) then begin
+                          DrawWithBrush(0, x1, y1);
+                        end;
+
+                        LastX := x1;
+                        LastY := y1;
+
+                        MatrixChange;
+                      end;
+      drawModeMulti : begin
+                        if not((LastX = x1) and (LastY = y1)) then begin
+                          DrawWithBrushMulti(0, x1, y1);
+                        end;
+
+                        LastX := x1;
+                        LastY := y1;
+
+                        MatrixChange;
+                      end;
+    end;
+  end;
+
+  LastX := x1;
+  LastY := y1;
+
+  PaintBox.Repaint;
+end;
+
+procedure TTheMatrix.Shape1MouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+ begin
+  {}
+end;
+
+procedure TTheMatrix.Shape1MouseUpBiColour(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+ begin
+  {}
+end;
+
+procedure TTheMatrix.ClickPixelBiColour(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+ var
+  x1, y1, x2, y2,i : integer;
+
+ begin
+  x1 := Floor(x / MatrixPixelSize);
+  y1 := Floor(y / MatrixPixelSize);
+
+  if (x1 < 0) or (y1 < 0) then exit;  
+
+  // ===========================================================================
+
+  if ssleft in shift then begin
+    case DrawMode of
+      drawModeNone   : begin
+                         DrawWithBrush(SelectionLMB, x1, y1);
+
+                         LastX := x1;
+                         LastY := y1;
+
+                         MatrixChange;
+                       end;
+      drawModeMulti : begin
+                        DrawWithBrushMulti(SelectionLMB, x1, y1);
+
+                        LastX := x1;
+                        LastY := y1;
+
+                        MatrixChange;
+                      end;
+      drawModePaste  : begin
+                         for x2:=0 to MatrixCopyX do begin
+                           for y2:=0 to MatrixCopyY do begin
+                             if (x2 + x1 >= 0) and (x2 + x1 <= MatrixWidth - 1) and
+                                (y2 + y1 >= 0) and (y2 + y1 <= MatrixHeight - 1) then begin
+
+                               if MatrixCopy[x2, y2]=1 then begin
+                                 Matrix[fCurrentFrame, x2 + x1, y2 + y1] := 1;
+                               end
+                               else
+                                 if not(ssShift in shift) then
+                                   Matrix[fCurrentFrame, x2 + x1, y2 + y1] := 0;
+                             end;
+                           end;
+                         end;
+
+                         MatrixChange;
+                       end;
+      drawModeRandom : begin
+                         i:=1+random(3);
+
+                         DrawWithBrush(i, x1, y1);
+                       end
+    else
+      UpdateDrawTool(x1, y1, SelectionLMB);
+    end;
+  end
+  else if ssMiddle in Shift then begin
+    case DrawMode of
+      drawModeNone  : begin
+                        DrawWithBrush(SelectionMMB, x1, y1);
+
+                        LastX := x1;
+                        LastY := y1;
+
+                        MatrixChange;
+                      end;
+      drawModeMulti : begin
+                        DrawWithBrushMulti(SelectionMMB, x1, y1);
+
+                        LastX := x1;
+                        LastY := y1;
+
+                        MatrixChange;
+                      end;
+    else
+      UpdateDrawTool(x1, y1, SelectionMMB);
+    end;
+  end
+  else if ssRight in Shift then begin
+    case DrawMode of
+      drawModeNone  : begin
+                        DrawWithBrush(SelectionRMB, x1, y1);
+
+                        LastX := x1;
+                        LastY := y1;
+
+                        MatrixChange;
+                      end;
+      drawModeMulti : begin
+                        DrawWithBrushMulti(SelectionRMB, x1, y1);
+
+                        LastX := x1;
+                        LastY := y1;
+
+                        MatrixChange;
+                      end;
+    else
+      UpdateDrawTool(x1, y1, SelectionRMB);
+    end;
+  end;
+
+  PaintBox.Repaint;
+end;
+
+procedure TTheMatrix.Shape1MouseMoveBiColour(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+ var
+  x1, y1{, x2, y2} : integer;
+
+ begin
+  x1 := Floor(x / MatrixPixelSize);
+  y1 := Floor(y / MatrixPixelSize);
+
+  if (x1 < 0) or (y1 < 0) then exit;
+
+  // ===========================================================================
+
+  if Assigned(FOnMouseOver) then
+    FOnMouseOver(x1, y1);
+
+  // ===========================================================================
+  // ===========================================================================
+
+  if ssLeft in Shift then begin
+    case drawmode of
+      drawModeNone  : begin
+                        if (MatrixGradient = 1) and (MatrixGradientIY[y1] <> 0) and (SelectionLMB <> 0) then begin
+                          DrawWithBrush(MatrixGradientIY[y1], x1, y1);
+                        end
+                        else begin
+                          DrawWithBrush(SelectionLMB, x1, y1);
+                        end;
+
+                        LastX := x1;
+                        LastY := y1;
+
+                        MatrixChange;
+                      end;
+      drawModeMulti : begin
+                        DrawWithBrushMulti(SelectionLMB, x1, y1);
+
+                        LastX := x1;
+                        LastY := y1;
+
+                        MatrixChange;
+                      end;
+    end;
+  end
+  else if ssMiddle in Shift then begin
+    case drawmode of
+      drawModeNone  : begin
+                        if (MatrixGradient = 1) and (MatrixGradientIY[y1]<>0) and (SelectionMMB<>0) then begin
+                          DrawWithBrush(MatrixGradientIY[y1], x1, y1);
+                        end
+                        else begin
+                          DrawWithBrush(SelectionMMB, x1, y1);
+                        end;
+
+                        LastX := x1;
+                        LastY := y1;
+
+                        MatrixChange;
+                      end;
+      drawModeMulti : begin
+                        DrawWithBrushMulti(SelectionMMB, x1, y1);
+
+                        LastX := x1;
+                        LastY := y1;
+
+                        MatrixChange;
+                      end;
+    end;
+  end
+  else if ssRight in Shift then begin
+    case drawmode of
+      drawModeNone  : begin
+                        if (MatrixGradient = 1) and (MatrixGradientIY[y1] <> 0) and (SelectionRMB <> 0) then begin
+                          DrawWithBrush(MatrixGradientIY[y1], x1, y1);
+                        end
+                        else begin
+                          DrawWithBrush(SelectionRMB, x1, y1);
+                        end;
+
+                        LastX := x1;
+                        LastY := y1;
+
+                        MatrixChange;
+                      end;
+      drawModeMulti : begin
+                        DrawWithBrushMulti(SelectionRMB, x1, y1);
+
+                        LastX := x1;
+                        LastY := y1;
+
+                        MatrixChange;
+                      end;
+    end;
+  end;
+
+  LastX := x1;
+  LastY := y1;
+
+  PaintBox.Repaint;
+end;
+
+procedure TTheMatrix.ClickPixelRGB(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+ var
+  x1, y1, x2, y2 : integer;
+
+ begin
+  x1 := Floor(x / MatrixPixelSize);
+  y1 := Floor(y / MatrixPixelSize);
+
+  if (x1 < 0) or (y1 < 0) then exit;
+
+  // ===========================================================================
+
+  if ssleft in shift then begin
+    case DrawMode of
+      drawModeNone   : begin
+                         DrawWithBrush(SelectionLMB, x1, y1);
+
+                         LastX := x1;
+                         LastY := y1;
+
+                         MatrixChange;
+                       end;
+      drawModeRandom : begin
+                         DrawWithBrush(RandomColour(SelectionLMB), x1, y1);
+                       end;
+      drawModeMulti  : begin
+                         DrawWithBrushMulti(SelectionLMB, x1, y1);
+
+                         LastX := x1;
+                         LastY := y1;
+
+                         MatrixChange;
+                       end;
+      drawModePicker : ChangeSelectionColour(Matrix[fCurrentFrame, x1, y1], SelectionMMB, SelectionRMB);
+      drawModePaste  : begin
+                         for x2:=0 to MatrixCopyX do begin
+                           for y2:=0 to MatrixCopyY do begin
+                             if (x2 + x1 >= 0) and (x2 + x1 <= MatrixWidth - 1) and
+                                (y2 + y1 >= 0) and (y2 + y1 <= MatrixHeight - 1) then begin
+
+                               if MatrixCopy[x2, y2] <> RGBBackground then begin
+                                 Matrix[fCurrentFrame, x2 + x1, y2 + y1] := MatrixCopy[x2, y2];
+                               end
+                               else
+                                 if not(ssShift in shift) then
+                                   Matrix[fCurrentFrame, x2 + x1, y2 + y1] := RGBBackground;
+                             end;
+                           end;
+                         end;
+
+                         MatrixChange;
+                       end;
+    else
+      UpdateDrawTool(x1, y1, SelectionLMB);
+    end;
+  end
+  else if ssMiddle in Shift then begin
+    case DrawMode of
+      drawModeNone   : begin
+                         DrawWithBrush(SelectionMMB, x1, y1);
+
+                         LastX := x1;
+                         LastY := y1;
+
+                         MatrixChange;
+                       end;
+      drawModeRandom : begin
+                         DrawWithBrush(RandomColour(SelectionMMB), x1, y1);
+                       end;
+      drawModeMulti  : begin
+                         DrawWithBrushMulti(SelectionMMB, x1, y1);
+
+                         LastX := x1;
+                         LastY := y1;
+
+                         MatrixChange;
+                       end;
+      drawModePicker : ChangeSelectionColour(SelectionLMB, Matrix[fCurrentFrame, x1, y1], SelectionRMB);
+    else
+      UpdateDrawTool(x1, y1, SelectionMMB);
+    end;
+  end  
+  else if ssRight in Shift then begin
+    case DrawMode of
+      drawModeNone   : begin
+                         DrawWithBrush(SelectionRMB, x1, y1);
+
+                         LastX := x1;
+                         LastY := y1;
+
+                         MatrixChange;
+                       end;
+      drawModeRandom : begin
+                         DrawWithBrush(RandomColour(SelectionRMB), x1, y1);
+                       end;
+      drawModeMulti  : begin
+                        DrawWithBrushMulti(SelectionRMB, x1, y1);
+
+                         LastX := x1;
+                         LastY := y1;
+
+                         MatrixChange;
+                       end;                       
+      drawModePicker : ChangeSelectionColour(SelectionLMB, SelectionMMB, Matrix[fCurrentFrame, x1, y1]);
+    else
+      UpdateDrawTool(x1, y1, SelectionRMB);
+    end;
+  end;
+
+  PaintBox.Repaint;
+end;
+
+procedure TTheMatrix.Shape1MouseMoveRGB(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+ var
+  x1, y1{, x2, y2} : integer;
+
+ begin
+  x1 := Floor(x / MatrixPixelSize);
+  y1 := Floor(y / MatrixPixelSize);
+
+  if (x1 < 0) or (y1 < 0) then exit;
+
+  // ===========================================================================
+
+  if Assigned(FOnMouseOver) then
+    FOnMouseOver(x1, y1);
+
+  // ===========================================================================
+  // ===========================================================================
+
+  if ssLeft in Shift then begin
+    case drawmode of
+      drawModeNone   : begin
+                         if not((LastX = x1) and (LastY = y1)) then begin
+                           DrawWithBrush(SelectionLMB, x1, y1);
+                         end;
+
+                         LastX := x1;
+                         LastY := y1;
+
+                         MatrixChange;
+                       end;
+      drawModeMulti  : begin
+                         if not((LastX = x1) and (LastY = y1)) then begin
+                           DrawWithBrushMulti(SelectionLMB, x1, y1);
+                         end;
+
+                         LastX := x1;
+                         LastY := y1;
+
+                         MatrixChange;
+                       end;
+      drawModeRandom : begin
+                         DrawWithBrush(RandomColour(SelectionLMB), x1, y1);
+                       end
+    end;
+  end
+  else if ssMiddle in Shift then begin
+    case drawmode of
+      drawModeNone   : begin
+                         if (MatrixGradient = 1) and (MatrixGradientIY[y1] <> 0) and (SelectionMMB <> 0) then begin
+                           DrawWithBrush(MatrixGradientIY[y1], x1, y1);
+                         end
+                         else begin
+                           DrawWithBrush(SelectionMMB, x1, y1);
+                         end;
+
+                         LastX := x1;
+                         LastY := y1;
+
+                         MatrixChange;
+                       end;
+      drawModeMulti  : begin
+                         DrawWithBrushMulti(SelectionMMB, x1, y1);
+
+                         LastX := x1;
+                         LastY := y1;
+
+                         MatrixChange;
+                       end;
+      drawModeRandom : begin
+                         DrawWithBrush(RandomColour(SelectionMMB), x1, y1);
+                       end
+    end;
+  end
+  else if ssRight in Shift then begin
+    case drawmode of
+      drawModeNone   : begin
+                         if not((LastX = x1) and (LastY = y1)) then begin
+                           DrawWithBrush(SelectionRMB, x1, y1);
+                         end;
+
+                         LastX := x1;
+                         LastY := y1;
+
+                         MatrixChange;
+                       end;
+      drawModeMulti  : begin
+                         if not((LastX = x1) and (LastY = y1)) then begin
+                           DrawWithBrushMulti(SelectionRMB, x1, y1);
+                         end;
+
+                         LastX := x1;
+                         LastY := y1;
+
+                         MatrixChange;
+                       end;
+      drawModeRandom : begin
+                         DrawWithBrush(RandomColour(SelectionRMB), x1, y1);
+                       end
+    end;
+  end;
+
+  LastX := x1;
+  LastY := y1;
+
+  PaintBox.Repaint;
+end;
+
+procedure TTheMatrix.Shape1MouseUpRGB(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+ begin
+  {}
+end;
+
+procedure TTheMatrix.ClickPixelDeadPixel(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+ var
+  x1, y1 : integer;
+
+ begin
+  x1 := Floor(x / MatrixPixelSize);
+  y1 := Floor(y / MatrixPixelSize);
+
+  if (x1 < 0) or (y1 < 0) then exit;
+
+  // ===========================================================================
+
+  if ssleft in shift then begin
+    MatrixDead[x1, y1] := not MatrixDead[x1, y1];
+
+    LastX := x1;
+    LastY := y1;
+  end;
+
+  PaintBox.Repaint;
+end;
+
+procedure TTheMatrix.Shape1MouseMoveDeadPixel(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+ var
+  x1, y1 : integer;
+
+ begin
+  x1 := Floor(x / MatrixPixelSize);
+  y1 := Floor(y / MatrixPixelSize);
+
+  if (x1 < 0) or (y1 < 0) then exit;
+
+  // ===========================================================================
+
+  if Assigned(FOnMouseOver) then
+    FOnMouseOver(x1, y1);
+
+  // ===========================================================================
+  // ===========================================================================
+
+  if ssLeft in Shift then begin
+    if not((LastX = x1) and (LastY = y1)) then
+      MatrixDead[x1, y1] := not MatrixDead[x1, y1];
+  end;
+
+  LastX := x1;
+  LastY := y1;
+
+  PaintBox.Repaint;
+end;
+
+procedure TTheMatrix.Shape1MouseUpDeadPixel(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+ begin
+  {}
+end;
+
+// =============================================================================
+// =============================================================================
+// =============================================================================
+
+procedure TTheMatrix.BackupMatrix(matrixindex : integer);
+ var
+  x,y : integer;
+
+ begin
+  for y := 0 to MatrixHeight - 1 do begin
+    for x := 0 to MatrixWidth - 1 do begin
+      MatrixBackup[x, y] := Matrix[matrixindex, x, y];
+    end;
+  end;
+
+  UndoData.mode := 0;
+end;
+
+procedure TTheMatrix.ClearCurrentFrame;
+ var
+  x,y : integer;
+
+ begin
+  BackupMatrix(fCurrentFrame);
+
+  for x := 0 to MatrixWidth - 1 do begin
+    for y := 0 to MatrixHeight - 1 do begin
+
+      if MatrixType = psTypeRGB then
+        Matrix[fCurrentFrame, x, y] := FRGBBackground
+      else
+        Matrix[fCurrentFrame, x, y] := 0;
+    end;
+  end;
+
+  PaintBox.Repaint;
+
+  MatrixChange;
+end;
+
+procedure TTheMatrix.ClearFrame(frame : integer);
+ var
+  x,y : integer;
+
+ begin
+  for x := 0 to MatrixWidth - 1 do begin
+    for y := 0 to MatrixHeight - 1 do begin
+      if MatrixType = psTypeRGB then
+        Matrix[fCurrentFrame, x, y] := FRGBBackground
+      else
+        Matrix[fCurrentFrame, x, y] := 0;
+    end;
+  end;
+
+  PaintBox.Repaint;
+end;
+
+procedure TTheMatrix.PerformEffectOnCurrentFrame(mode : integer);
+ var
+  x,y : integer;
+
+ begin
+  BackupMatrix(fCurrentFrame);
+
+  case mode of
+    modeFlip      : begin
+                      for x := 0 to MatrixWidth - 1 do begin
+                        for y := 0 to MatrixHeight - 1 do begin
+                          Matrix[fCurrentFrame, x, y] := MatrixBackup[MatrixWidth - x - 1, y];
+                        end;
+                      end;
+                    end;
+    modeMirror    : begin
+                      for y:=0 to MatrixHeight - 1 do begin
+                        for x:=0 to MatrixWidth - 1 do begin
+                          Matrix[fCurrentFrame, x, y] := MatrixBackup[x, MatrixHeight - y - 1];
+                        end;
+                      end;
+                    end;
+    modeInvert    : begin
+                      for x:=0 to MatrixWidth - 1 do begin
+                        for y:=0 to MatrixHeight - 1 do begin
+                          case MatrixType of
+                            psTypeMono         : Matrix[fCurrentFrame, x, y] := 1 - Matrix[fCurrentFrame, x, y];
+                            psTypeBiSequential,
+                            psTypeBiBitPlanes  : Matrix[fCurrentFrame, x, y] := 3 - Matrix[fCurrentFrame, x, y];
+                            psTypeRGB          : Matrix[fCurrentFrame, x, y] := $FFFFFF - Matrix[fCurrentFrame, x, y];
+                          end;
+                        end;
+                      end;
+                    end;
+  end;
+
+  MatrixChange;
+
+  PaintBox.Repaint;
+end;
+
+procedure TTheMatrix.PerformEffectOnAllFrames(mode : integer);
+ var
+  x,y, slot : integer;
+
+ begin
+  case mode of
+    modeFlip        : begin
+                        for slot:=1 to _MaxAnimBufferFrame do begin
+                          BackupMatrix(slot);
+
+                          for x:=0 to MatrixWidth - 1 do begin
+                            for y:=0 to MatrixHeight - 1 do begin
+                              Matrix[slot, x, y] := MatrixBackup[MatrixWidth - x - 1, y];
+                            end;
+                          end;
+                        end;
+                      end;
+    modeMirror      : begin
+                        for slot:=1 to _MaxAnimBufferFrame do begin
+                          BackupMatrix(slot);
+
+                          for y:=0 to MatrixHeight - 1 do begin
+                            for x:=0 to MatrixWidth - 1 do begin
+                              Matrix[slot, x, y] := MatrixBackup[x, MatrixHeight - y - 1];
+                            end;
+                          end;
+                        end;
+                      end;
+    modeInvert      : begin
+                        for slot:=1 to _MaxAnimBufferFrame do begin
+                          BackupMatrix(slot);
+
+                          for x:=0 to MatrixWidth - 1 do begin
+                            for y:=0 to MatrixHeight - 1 do begin
+                              case MatrixType of
+                                psTypeMono         : Matrix[slot, x, y] := 1 - MatrixBackup[x, y];
+                                psTypeBiSequential,
+                                psTypeBiBitPlanes  : Matrix[slot, x, y] := 3 - MatrixBackup[x, y];
+                                psTypeRGB          : Matrix[slot, x, y] := $00ffffff - MatrixBackup[x, y];
+                              end;
+                            end;
+                          end;
+                        end;
+                      end;
+    modeGradientAll : begin
+                        for slot:=1 to _MaxAnimBufferFrame do begin
+                          for x:=0 to MatrixWidth - 1 do begin
+                            for y:=0 to MatrixHeight - 1 do begin
+                              if (MatrixGradient = 1) and (MatrixGradientIY[y] <> 0) then begin
+                                if Matrix[slot, x, y] <> 0 then
+                                  Matrix[slot, x, y] := MatrixGradientIY[y];
+                              end;
+                            end;
+                          end;
+                        end;
+                      end;
+  end;
+
+  MatrixChange;
+
+  PaintBox.Repaint;
+end;
+
+procedure TTheMatrix.PerformScrollOnCurrentFrame(mode : integer);
+ var
+  x,y : integer;
+
+ begin
+  BackupMatrix(fCurrentFrame);
+
+  case mode of
+     modeScrollLeft  : begin
+                         for x:=0 to MatrixWidth - 2 do begin
+                           for y:=0 to MatrixHeight - 1 do begin
+                             Matrix[fCurrentFrame, x, y] := MatrixBackup[x + 1, y];
+                           end;
+                         end;
+
+                         for y:=0 to MatrixHeight - 1 do begin
+                           Matrix[fCurrentFrame, MatrixWidth - 1, y] := MatrixBackup[0, y];
+                         end;
+                       end;
+     modeScrollRight : begin
+                         for x:=1 to MatrixWidth - 1 do begin
+                           for y:=0 to MatrixHeight - 1 do begin
+                             Matrix[fCurrentFrame, x, y] := MatrixBackup[x - 1, y];
+                           end;
+                         end;
+
+                         for y:=0 to MatrixHeight - 1 do begin
+                           Matrix[fCurrentFrame, 0, y] := MatrixBackup[MatrixWidth - 1, y];
+                         end;
+                       end;
+     modeScrollUp    : begin
+                         for y:=0 to MatrixHeight - 2 do begin
+                           for x:=0 to MatrixWidth - 1 do begin
+                             Matrix[fCurrentFrame, x, y] := MatrixBackup[x, y + 1];
+                           end;
+                         end;
+
+                         for x:=0 to MatrixWidth - 1 do begin
+                           Matrix[fCurrentFrame, x, MatrixHeight - 1] := MatrixBackup[x, 0];
+                         end;
+                       end;
+     modeScrollDown  : begin
+                         for y:=1 to MatrixHeight - 1 do begin
+                           for x:=0 to MatrixWidth - 1 do begin
+                             Matrix[fCurrentFrame, x, y] := MatrixBackup[x, y - 1];
+                           end;
+                         end;
+
+                         for x:=0 to MatrixWidth - 1 do begin
+                           Matrix[fCurrentFrame, x, 0] := MatrixBackup[x, MatrixHeight - 1];
+                         end;
+                       end;
+  end;
+
+  MatrixChange;
+
+  PaintBox.Repaint;
+end;
+
+procedure TTheMatrix.RotateCurrentFrame(mode : integer);
+ var
+  x,y : integer;
+
+ begin
+  BackupMatrix(fCurrentFrame);
+
+  case mode of
+    modeRotateCW  : begin
+                      for x:=0 to MatrixWidth - 1 do begin
+                        for y:=0 to MatrixHeight - 1 do begin
+                          Matrix[fCurrentFrame, x, y] := MatrixBackup[y, MatrixWidth - x - 1];
+                        end;
+                      end;
+                    end;
+    modeRotateACW : begin
+                      for x:=0 to MatrixWidth - 1 do begin
+                        for y:=0 to MatrixHeight - 1 do begin
+                          Matrix[fCurrentFrame, x, y] := MatrixBackup[MatrixHeight - y - 1, x];
+                        end;
+                      end;
+                    end;
+  end;
+
+  MatrixChange;
+
+  PaintBox.Repaint;
+end;
+
+procedure TTheMatrix.RotateFrame(newangle : real; toframe : integer);
+ var
+  newx, newy, x, y, ox, oy, hx, hy: integer;
+  myangle : real;
+
+ begin
+  ClearFrame(toframe);
+
+  myangle := (pi * newangle) / 180;
+  hx      := Round((MatrixWidth - 1) / 2);
+  hy      := Round((MatrixHeight - 1) / 2);
+
+  for x:=0 to MatrixWidth - 1 do begin
+    for y:=0 to MatrixHeight - 1 do begin
+      if MatrixBackup[x, y] > 0 then begin
+        ox   := x - hx;
+        oy   := y - hy;
+
+        newx := hx + Round((ox * cos(myangle)) - (oy * sin(myangle)));
+        newy := hy + Round((ox * sin(myangle)) + (oy * cos(myangle)));
+
+        if ((newx >= 0) and (newx <= MatrixWidth - 1) and (newy >= 0) and (newy <= MatrixHeight - 1)) then
+          Matrix[toframe, newx, newy] := MatrixBackup[x, y];
+      end;
+    end;
+  end;
+
+  MatrixChange;
+end;
+
+// =============================================================================
+
+procedure TTheMatrix.ChangeCurrentFrame(frame : integer);
+ begin
+  fCurrentFrame := frame;
+
+  MatrixChange;
+
+  PaintBox.Repaint;
+end;
+
+procedure TTheMatrix.ChangeLightBox(lb : integer);
+ begin
+  fLightBox := lb;
+
+  PaintBox.Repaint;
+end;
+
+procedure TTheMatrix.ChangeGrid(grid : boolean);
+ begin
+  MatrixGrid:=grid;
+
+ if MatrixGrid then
+    MatrixPixelSizeZ := MatrixPixelSize - 1
+  else
+    MatrixPixelSizeZ := MatrixPixelSize;
+end;
+
+procedure TTheMatrix.ChangeDeadPixelsMode(mode : boolean);
+ begin
+  fDeadPixelsMode := mode;
+
+  ConfigurePaintboxDrawing;
+end;
+
+procedure TTheMatrix.ChangeMatrixReadOnly(mode : boolean);
+ begin
+  fMatrixReadOnly := mode;
+
+  ConfigurePaintboxDrawing;
+end;
+
+// =============================================================================
+
+procedure TTheMatrix.CopyCurrentFrame;
+ var
+  x,y : integer;
+
+ begin
+  for y:=0 to MatrixHeight - 1 do begin
+    for x:=0 to MatrixWidth - 1 do begin
+      MatrixCopy[x, y] := Matrix[fCurrentFrame, x, y];
+    end;
+  end;
+end;
+
+procedure TTheMatrix.InsertBlankFrameAt(frameinsert, maxframes : integer);
+var
+  x, y, slot : integer;
+
+ begin
+  if frameinsert <> maxframes then begin
+    for slot:=maxframes downto frameinsert + 1 do begin
+      for x:=0 to MatrixWidth - 1 do begin
+        for y:=0 to MatrixHeight - 1 do begin
+           Matrix[slot, x, y] := Matrix[slot - 1, x, y];
+        end;
+      end;
+    end; 
+  end;
+
+  for x:=0 to MatrixWidth - 1 do begin
+    for y:=0 to MatrixHeight - 1 do begin
+      if MatrixType = psTypeRGB then
+        Matrix[frameinsert + 1, x, y] := FRGBBackground
+      else
+        Matrix[frameinsert + 1, x, y] := 0;
+    end;
+  end;
+
+  fFrameCount := MaxFrames;
+end;
+
+procedure TTheMatrix.InsertCopyFrameAt(frameinsert, maxframes : integer);
+ var
+  x, y, slot : integer;
+
+ begin
+  if frameinsert <> maxframes then begin
+    for slot:=maxframes downto frameinsert + 1 do begin
+      for x:=0 to MatrixWidth - 1 do begin
+        for y:=0 to MatrixHeight - 1 do begin
+           Matrix[slot, x, y] := Matrix[slot - 1, x, y];
+        end;
+      end;
+    end;
+  end;
+
+  //for x:=0 to MatrixWidth do begin
+//    for y:=0 to MatrixHeight do begin
+//      Matrix[frameinsert+1, x, y] := Matrix[frameinsert, x, y];
+//    end;
+//  end;
+
+  fFrameCount := MaxFrames;
+end;
+
+procedure TTheMatrix.AddFrameMultiple(framecount, framecurrent, framemax : integer);
+ var
+  oldframe, slot : integer;
+
+ begin
+  oldframe := framecurrent;
+
+  for slot:=1 to framecount do begin
+    InsertBlankFrameAt(oldframe, framemax);
+
+    inc(oldframe);
+    inc(framemax);
+  end;
+end;
+
+procedure TTheMatrix.CopyShape;
+ var
+  x,y, tc : integer;
+
+ begin
+  for x:=0 to _MaxWidth do begin
+    for y:=0 to _MaxHeight do begin
+      if MatrixType = psTypeRGB then
+        MatrixCopy[x, y] := RGBBackground      
+      else
+        MatrixCopy[x, y] := 0;
+    end;
+  end;
+
+  if (DrawCoords[0].X > DrawCoords[1].X) then begin
+    tc := DrawCoords[0].X;
+
+    DrawCoords[0].X := DrawCoords[1].X;
+    DrawCoords[1].X := tc;
+  end;
+
+  if (DrawCoords[0].Y > DrawCoords[1].Y) then begin
+    tc := DrawCoords[0].Y;
+
+    DrawCoords[0].Y := DrawCoords[1].Y;
+    DrawCoords[1].Y := tc;
+  end;
+
+  MatrixCopyX := DrawCoords[1].X - DrawCoords[0].X;
+  MatrixCopyY := DrawCoords[1].Y - DrawCoords[0].Y;
+
+  for x:=DrawCoords[0].X to DrawCoords[1].X do begin
+    for y:=DrawCoords[0].Y to DrawCoords[1].Y do begin
+      MatrixCopy[x - DrawCoords[0].X, y - DrawCoords[0].Y] := Matrix[fCurrentFrame, x, y];
+    end;
+  end;
+
+  DrawPoint       := 0;
+  DrawMode        := drawModePaste;
+  DrawCoords[0].X := -1;
+  DrawCoords[0].Y := -1;
+end;
+
+procedure TTheMatrix.UpdateDrawTool(setx, sety, setcolour : integer);
+ begin
+  DrawCoords[DrawPoint].X := setx;
+  DrawCoords[DrawPoint].Y := sety;
+
+  if DrawPoint = 0 then
+    DrawColour := setcolour;
+
+  BackupMatrix(fCurrentFrame);
+
+  case DrawMode of
+    drawModeFilledBox,
+    drawModeEmptyBox,
+    drawModeLine,
+    drawModeEmptyCircle : begin
+                            inc(DrawPoint);
+
+                            if DrawPoint = 2  then
+                              DrawShape(False, DrawColour);
+                            end;
+    drawModeCopy        : begin
+                            inc(DrawPoint);
+
+                            if DrawPoint = 2  then
+                              CopyShape;
+                          end;
+  end;
+end;
+
+procedure TTheMatrix.DrawShape(realtime : boolean; colour : integer);
+ var
+  x,y, tc     : integer;
+  a,b         : integer;  // displacements in x and y
+  d           : integer;  // decision variable
+  diag_inc    : integer;  // d's increment for diagonal steps
+  dx_diag     : integer;  // diagonal x step for next pixel
+  dx_nondiag  : integer;  // nondiagonal x step for next pixel
+  dy_diag     : integer;  // diagonal y step for next pixel
+  dy_nondiag  : integer;  // nondiagonal y step for next pixel
+  i           : integer;  // loop index
+  nondiag_inc : integer;  // d's increment for nondiagonal steps
+  x1,y1,x2,y2 : integer;
+
+ begin
+  if not(realtime) then
+    BackupMatrix(fCurrentFrame)
+  else begin
+    DrawCoords[1].X := lastx;
+    DrawCoords[1].Y := lasty;
+  end;
+
+  x1 := DrawCoords[0].X;
+  y1 := DrawCoords[0].Y;
+  x2 := DrawCoords[1].X;
+  y2 := DrawCoords[1].Y;
+
+  // ===========================================================================
+
+  case DrawMode of
+    // =========================================================================
+    // == Filled Box ===========================================================
+    // =========================================================================
+    drawModeFilledBox   : begin
+                            if (x1 > x2) then begin
+                              tc := x1;
+                              x1 := x2;
+                              x2 := tc;
+                            end;
+
+                            if (y1 > y2) then begin
+                              tc := y1;
+                              y1 := y2;
+                              y2 := tc;
+                            end;
+
+                            for x:=x1 to x2 do begin
+                              for y:=y1 to y2 do begin
+                                if realtime then begin
+                                  case MatrixPixelShape of
+                                    pixelSquare : PaintBox.Canvas.FillRect(Rect(x*MatrixPixelSize, y*MatrixPixelSize,
+                                                                               (x*MatrixPixelSize)+MatrixPixelSizeZ, (y*MatrixPixelSize)+MatrixPixelSizeZ));
+                                    pixelCircle : PaintBox.Canvas.Ellipse(x*MatrixPixelSize, y*MatrixPixelSize,
+                                                                         (x*MatrixPixelSize)+MatrixPixelSizeZ, (y*MatrixPixelSize)+MatrixPixelSizeZ);
+                                  end;
+                                end
+                                else
+                                  Matrix[fCurrentFrame, x, y] := colour
+                              end;
+                            end;
+                          end;
+    // =========================================================================
+    // == Empty Box ============================================================
+    // =========================================================================
+    drawModeEmptyBox    : begin
+                            if (x1>x2) then begin
+                              tc:=x1;
+                              x1:=x2;
+                              x2:=tc;
+                            end;
+
+                            if (y1>y2) then begin
+                              tc:=y1;
+
+                              y1:=y2;
+                              y2:=tc;
+                            end;
+
+                            for x:= x1 to x2 do begin
+                              for y:=y1 to y2 do begin
+                                if ((x = x1) or (x = x2)) or ((y = y1) or (y = y2))  then begin
+
+                                  if realtime then begin
+                                    case MatrixPixelShape of
+                                      pixelSquare : PaintBox.Canvas.FillRect(Rect(x*MatrixPixelSize, y*MatrixPixelSize,
+                                                                                 (x*MatrixPixelSize)+MatrixPixelSizeZ, (y*MatrixPixelSize)+MatrixPixelSizeZ));
+                                      pixelCircle : PaintBox.Canvas.Ellipse(x*MatrixPixelSize, y*MatrixPixelSize,
+                                                                           (x*MatrixPixelSize)+MatrixPixelSizeZ, (y*MatrixPixelSize)+MatrixPixelSizeZ);
+                                    end;
+                                  end
+                                  else
+                                    Matrix[fCurrentFrame, x, y] := colour
+                                end;
+                              end;
+                            end;
+                          end;
+    // =========================================================================
+    // == Straight Line ========================================================
+    // =========================================================================
+    drawModeLine        : begin
+                            x := x1;              // line starting point
+                            y := y1;
+
+                            // Determine drawing direction and step to the next pixel.
+                            a := x2 - x1;       // difference in x dimension
+                            b := y2 - y1;       // difference in y dimension
+
+                            // Determine whether end point lies to right or left of start point.
+                            if   a < 0  then begin
+                              a := -a;                // make 'a' positive
+                              dx_diag := -1
+                            end
+                            else
+                              dx_diag := 1;
+
+                            // Determine whether end point lies above or below start point.
+                            if   b < 0 then begin
+                              b := -b;                // make 'a' positive
+                              dy_diag := -1
+                            end
+                            else
+                              dy_diag := 1;
+
+                            // Identify octant containing end point.
+                            if   a < b then begin
+                              tc := a;
+                              a := b;
+                              b := tc;
+                              dx_nondiag := 0;
+                              dy_nondiag := dy_diag
+                            end
+                            else begin
+                              dx_nondiag := dx_diag;
+                              dy_nondiag := 0
+                            end;
+
+                            d := b + b - a;            // initial value for d is 2*b - a
+                            nondiag_inc := b + b;      // set initial d increment values
+                            diag_inc    := b + b - a - a;
+
+                            for i := 0 to a do begin   // draw the a+1 pixels
+
+                              if realtime then begin
+                                case MatrixPixelShape of
+                                  pixelSquare : PaintBox.Canvas.FillRect(Rect(x*MatrixPixelSize, y*MatrixPixelSize,
+                                                                             (x*MatrixPixelSize)+MatrixPixelSizeZ, (y*MatrixPixelSize)+MatrixPixelSizeZ));
+                                  pixelCircle : PaintBox.Canvas.Ellipse(x*MatrixPixelSize, y*MatrixPixelSize,
+                                                                       (x*MatrixPixelSize)+MatrixPixelSizeZ, (y*MatrixPixelSize)+MatrixPixelSizeZ);
+                                end;
+                               end
+                               else
+                                 Matrix[fCurrentFrame, x, y] :=colour;
+
+                              if d < 0 then begin               // step nondiagonally
+                                x := x + dx_nondiag;
+                                y := y + dy_nondiag;
+                                d := d + nondiag_inc   // update decision variable
+                              end
+                              else begin               // midpoint is above the line; step diagonally
+                                x := x + dx_diag;
+                                y := y + dy_diag;
+                                d := d + diag_inc
+                              end
+                            end
+                          end;
+    // =========================================================================
+    // == Empty Circle =========================================================
+    // =========================================================================
+    drawModeEmptyCircle : begin
+                            // c^2 = a^2 + b^2
+                            tc := round(sqrt(sqr(abs(x1 - x2)) + sqr(abs(y1 - y2)))); // radius of circle
+
+                            // midpoint algorithm: http://en.wikipedia.org/wiki/Midpoint_circle_algorithm
+                            a:=0;
+                            b:=1-tc;
+                            while(tc >= a) do begin
+                              if realtime then begin
+                                case MatrixPixelShape of
+                                  pixelSquare : begin
+                                                  PaintBox.Canvas.FillRect(Rect( (tc + x1)*MatrixPixelSize,   (a + y1)*MatrixPixelSize,  ((tc + x1)*MatrixPixelSize)+MatrixPixelSizeZ,   ((a + y1)*MatrixPixelSize)+MatrixPixelSizeZ));
+                                                  PaintBox.Canvas.FillRect(Rect(  (a + x1)*MatrixPixelSize,  (tc + y1)*MatrixPixelSize,   ((a + x1)*MatrixPixelSize)+MatrixPixelSizeZ,  ((tc + y1)*MatrixPixelSize)+MatrixPixelSizeZ));
+                                                  PaintBox.Canvas.FillRect(Rect((-tc + x1)*MatrixPixelSize,   (a + y1)*MatrixPixelSize, ((-tc + x1)*MatrixPixelSize)+MatrixPixelSizeZ,   ((a + y1)*MatrixPixelSize)+MatrixPixelSizeZ));
+                                                  PaintBox.Canvas.FillRect(Rect( (-a + x1)*MatrixPixelSize,  (tc + y1)*MatrixPixelSize,  ((-a + x1)*MatrixPixelSize)+MatrixPixelSizeZ,  ((tc + y1)*MatrixPixelSize)+MatrixPixelSizeZ));
+                                                  PaintBox.Canvas.FillRect(Rect((-tc + x1)*MatrixPixelSize,  (-a + y1)*MatrixPixelSize, ((-tc + x1)*MatrixPixelSize)+MatrixPixelSizeZ,  ((-a + y1)*MatrixPixelSize)+MatrixPixelSizeZ));
+                                                  PaintBox.Canvas.FillRect(Rect( (-a + x1)*MatrixPixelSize, (-tc + y1)*MatrixPixelSize,  ((-a + x1)*MatrixPixelSize)+MatrixPixelSizeZ, ((-tc + y1)*MatrixPixelSize)+MatrixPixelSizeZ));
+                                                  PaintBox.Canvas.FillRect(Rect( (tc + x1)*MatrixPixelSize,  (-a + y1)*MatrixPixelSize,  ((tc + x1)*MatrixPixelSize)+MatrixPixelSizeZ,  ((-a + y1)*MatrixPixelSize)+MatrixPixelSizeZ));
+                                                  PaintBox.Canvas.FillRect(Rect(  (a + x1)*MatrixPixelSize, (-tc + y1)*MatrixPixelSize,   ((a + x1)*MatrixPixelSize)+MatrixPixelSizeZ, ((-tc + y1)*MatrixPixelSize)+MatrixPixelSizeZ));
+                                                end;
+                                  pixelCircle : begin
+                                                  PaintBox.Canvas.Ellipse(Rect( (tc + x1)*MatrixPixelSize,   (a + y1)*MatrixPixelSize,  ((tc + x1)*MatrixPixelSize)+MatrixPixelSizeZ,   ((a + y1)*MatrixPixelSize)+MatrixPixelSizeZ));
+                                                  PaintBox.Canvas.Ellipse(Rect(  (a + x1)*MatrixPixelSize,  (tc + y1)*MatrixPixelSize,   ((a + x1)*MatrixPixelSize)+MatrixPixelSizeZ,  ((tc + y1)*MatrixPixelSize)+MatrixPixelSizeZ));
+                                                  PaintBox.Canvas.Ellipse(Rect((-tc + x1)*MatrixPixelSize,   (a + y1)*MatrixPixelSize, ((-tc + x1)*MatrixPixelSize)+MatrixPixelSizeZ,   ((a + y1)*MatrixPixelSize)+MatrixPixelSizeZ));
+                                                  PaintBox.Canvas.Ellipse(Rect( (-a + x1)*MatrixPixelSize,  (tc + y1)*MatrixPixelSize,  ((-a + x1)*MatrixPixelSize)+MatrixPixelSizeZ,  ((tc + y1)*MatrixPixelSize)+MatrixPixelSizeZ));
+                                                  PaintBox.Canvas.Ellipse(Rect((-tc + x1)*MatrixPixelSize,  (-a + y1)*MatrixPixelSize, ((-tc + x1)*MatrixPixelSize)+MatrixPixelSizeZ,  ((-a + y1)*MatrixPixelSize)+MatrixPixelSizeZ));
+                                                  PaintBox.Canvas.Ellipse(Rect( (-a + x1)*MatrixPixelSize, (-tc + y1)*MatrixPixelSize,  ((-a + x1)*MatrixPixelSize)+MatrixPixelSizeZ, ((-tc + y1)*MatrixPixelSize)+MatrixPixelSizeZ));
+                                                  PaintBox.Canvas.Ellipse(Rect( (tc + x1)*MatrixPixelSize,  (-a + y1)*MatrixPixelSize,  ((tc + x1)*MatrixPixelSize)+MatrixPixelSizeZ,  ((-a + y1)*MatrixPixelSize)+MatrixPixelSizeZ));
+                                                  PaintBox.Canvas.Ellipse(Rect(  (a + x1)*MatrixPixelSize, (-tc + y1)*MatrixPixelSize,   ((a + x1)*MatrixPixelSize)+MatrixPixelSizeZ, ((-tc + y1)*MatrixPixelSize)+MatrixPixelSizeZ));
+                                                end;
+                                end;
+                              end
+                              else begin
+                                Matrix[fCurrentFrame,  tc + x1,   a + y1] := colour;
+                                Matrix[fCurrentFrame,   a + x1,  tc + y1] := colour;
+                                Matrix[fCurrentFrame, -tc + x1,   a + y1] := colour;
+                                Matrix[fCurrentFrame,  -a + x1,  tc + y1] := colour;
+                                Matrix[fCurrentFrame, -tc + x1,  -a + y1] := colour;
+                                Matrix[fCurrentFrame,  -a + x1, -tc + y1] := colour;
+                                Matrix[fCurrentFrame,  tc + x1,  -a + y1] := colour;
+                                Matrix[fCurrentFrame,   a + x1, -tc + y1] := colour;
+                              end;
+
+                              inc(a);
+
+                              if (b<0) then
+                                b := b+ 2 * a + 1
+                              else begin
+                                dec(tc);
+                                b := b+ 2 * (a - tc + 1);
+                              end;
+                            end;
+
+                            { Old algorithm, not as good
+                            for d:=1 to 512 do begin                          // higher number = more accurate circle at larger matrix sizes  (512 is good for 64x64)
+                              x := Round(x1 + (tc*Cos(((2*pi)*d)/512)));
+                              y := Round(y1 - (tc*Sin(((2*pi)*d)/512)));
+
+                              if realtime then begin
+                                case MatrixPixelShape of
+                                  0 : PaintBox.Canvas.FillRect(Rect(x*MatrixPixelSize, y*MatrixPixelSize,
+                                                                   (x*MatrixPixelSize)+MatrixPixelSizeZ, (y*MatrixPixelSize)+MatrixPixelSizeZ));
+                                  1 : PaintBox.Canvas.Ellipse(x*MatrixPixelSize, y*MatrixPixelSize,
+                                                             (x*MatrixPixelSize)+MatrixPixelSizeZ, (y*MatrixPixelSize)+MatrixPixelSizeZ);
+                                end;
+                              end
+                              else
+                                Matrix[fCurrentFrame, x, y] :=1;
+                            end;}
+                          end;
+    // =========================================================================
+    // == Copy Lasso thing =====================================================
+    // =========================================================================
+    drawModeCopy    : begin
+                        if not(realtime) then exit;
+
+                        if (x1 > x2) then begin
+                          tc := x1;
+                          x1 := x2;
+                          x2 := tc;
+                         end;
+
+                         if (y1 > y2) then begin
+                           tc := y1;
+
+                           y1 := y2;
+                           y2 := tc;
+                         end;
+
+                         PaintBox.Canvas.Brush.Color := LEDColours[4];
+
+                         for x:=x1 to x2 do begin
+                           for y:=y1 to y2 do begin
+                             if (((x = x1) or (x = x2)) or ((y = y1) or (y = y2))) then begin
+                               case MatrixPixelShape of
+                                 pixelSquare : PaintBox.Canvas.FillRect(Rect(x*MatrixPixelSize, y*MatrixPixelSize,
+                                                                            (x*MatrixPixelSize)+MatrixPixelSizeZ, (y*MatrixPixelSize)+MatrixPixelSizeZ));
+                                 pixelCircle : PaintBox.Canvas.Ellipse(x*MatrixPixelSize, y*MatrixPixelSize,
+                                                                      (x*MatrixPixelSize)+MatrixPixelSizeZ, (y*MatrixPixelSize)+MatrixPixelSizeZ);
+                               end;
+                             end;
+                           end;
+                         end;
+                       end;
+  end;
+
+  if not(realtime) then begin
+    MatrixChange;
+
+    DrawPoint       := 0;
+    DrawCoords[0].X := -1;
+    DrawCoords[0].Y := -1;
+
+    PaintBox.Repaint;
+  end;
+end;
+
+procedure TTheMatrix.DrawFontCharacter(asciicode, frameid : integer);
+ var
+  t,xbyte,b,zig,startY,y : integer;
+  ts : string;
+
+ begin
+  startY := DrawCoords[0].Y;
+  ts     := '';
+
+  for t:=1 to length(LEDFont[asciicode]) do begin
+    if LEDFont[asciicode][t] = ' ' then begin
+      if ts <> '' then begin
+        xbyte := StrToInt(ts);
+        ts    := '';
+        y     := startY;
+
+        for b:=0 to 7 do begin
+          zig := xbyte and powers[b];
+
+          if zig = powers[b] then begin
+            if (DrawCoords[0].X >= 0) and (DrawCoords[0].X <= MatrixWidth - 1) and
+               (y >= 0) and (y <= MatrixHeight - 1) then begin
+
+              Matrix[frameid, DrawCoords[0].X, y] := DrawColour;
+            end;
+          end;
+
+          dec(y);
+        end;
+
+        inc(DrawCoords[0].X);
+      end;
+    end
+    else
+      ts := ts + LEDFont[asciicode][t];
+  end;
+
+  inc(DrawCoords[0].X); // adds single column spacing between chars
+
+  MatrixChange;
+
+  PaintBox.Repaint;
+end;
+
+procedure TTheMatrix.DeleteFontCharacter(frameid : integer);
+ var
+  y : integer;
+
+ begin
+  dec(DrawCoords[0].X);
+
+  for y:=DrawCoords[0].Y downto DrawCoords[0].Y - 7 do begin
+    if (DrawCoords[0].X >= 0) and (DrawCoords[0].X <= MatrixWidth - 1) and
+       (y >= 0) and (y <= MatrixHeight - 1) then begin
+
+      Matrix[frameid, DrawCoords[0].X, y] := 0;
+    end;
+  end;
+
+  MatrixChange;
+
+  PaintBox.Repaint;  
+end;
+
+procedure TTheMatrix.LoadFont(filename : string);
+ var
+  tf : TextFile;
+  s,temp : string;
+  t,i : integer;
+
+ begin
+  AssignFile(tf, filename);
+  Reset(tf);
+
+  i:=0;
+
+  while not(eof(tf)) do begin
+    Readln(tf, s);
+
+    if s[1] <> '/' then begin
+      temp := '';
+      t    := 1;
+
+      while (s[t] <> '/') and (t <= length(s)) do begin
+        if (ord(s[t]) = 32) or ((ord(s[t]) >= 48) and (ord(s[t]) <= 57)) then
+          temp := temp + s[t];
+
+        inc(t);
+      end;
+
+      LEDFont[i] := temp;
+      inc(i);
+    end;
+  end;
+
+  LEDFontSize := i - 1;
+
+  CloseFile(tf);
+end;
+
+// =============================================================================
+
+procedure TTheMatrix.DeleteFrame(frame, framemax : integer);
+ var
+  x,y,t : integer;
+
+ begin
+  for t:=frame to framemax - 1 do begin
+    for y := 0 to MatrixHeight - 1 do begin
+      for x:=0 to MatrixWidth - 1 do begin
+        Matrix[t, x, y] := Matrix[t + 1, x, y];
+      end;
+    end;
+  end;
+
+  if frame = framemax then
+    fCurrentFrame := frame - 1;
+
+  fFrameCount := FrameMax - 1;
+
+  MatrixChange;
+
+  PaintBox.Repaint;
+end;
+
+// =============================================================================
+// =============================================================================
+// == Saving / Loading =========================================================
+// =============================================================================
+// =============================================================================
+
+procedure TTheMatrix.ImportRowData(imhex : boolean; sourcedirection, sourcelsb : integer; s : string);
+ var
+  t, x, rowindex : integer;
+  zig, rowvalue : int64;
+  temp : string;
+
+ begin
+  if sourcedirection = 0 then
+    rowindex := 0
+  else
+    rowindex := MatrixHeight - 1;
+
+  temp     := '';
+
+  s := UpperCase(s);
+  s := StringReplace(s, '0X', '$', [rfReplaceAll]);
+  s := StringReplace(s, ',', ' ', [rfReplaceAll]);
+  s := StringReplace(s, '[', '', [rfReplaceAll]);
+  s := StringReplace(s, ']', '', [rfReplaceAll]);
+  s := StringReplace(s, '{', '', [rfReplaceAll]);
+  s := StringReplace(s, '}', '', [rfReplaceAll]);
+  s := StringReplace(s, '(', '', [rfReplaceAll]);
+  s := StringReplace(s, ')', '', [rfReplaceAll]);
+  s := s + ' ';
+
+  for t:=1 to length(s) do begin
+    if s[t] = ' ' then begin
+      if temp <> '' then begin
+
+        if imhex then
+          rowvalue := StrToInt64('$' + temp)
+        else
+          rowvalue := StrToInt64(temp);
+
+        if (rowindex >= 0) and (rowindex <= MatrixHeight - 1) then begin
+          for x:=0 to MatrixWidth - 1 do begin
+            case sourcelsb of
+              lsbLeft  : begin
+                           zig := (rowvalue and Powers[x]);
+
+                           if zig = Powers[x] then begin
+                             Matrix[fCurrentFrame, x, rowindex] := 1;
+                           end
+                           else begin
+                             Matrix[fCurrentFrame, x, rowindex] := 0;
+                           end;
+                         end;
+              lsbRight : begin
+                           zig:=(rowvalue and Powers[x]);
+
+                           if zig = Powers[x] then begin
+                             Matrix[fCurrentFrame, MatrixWidth - x - 1, rowindex] := 1;
+                           end
+                           else begin
+                             Matrix[fCurrentFrame, MatrixWidth - x - 1, rowindex] := 0;
+                           end;
+                         end;
+            end;
+          end;
+        end;
+
+        temp := '';
+
+        if sourcedirection = 0 then
+          inc(rowindex)
+        else
+          dec(rowindex);
+      end;
+    end
+    else if (ord(s[t]) >= 48) and (ord(s[t]) <= 57) then begin
+      temp := temp + s[t];
+    end
+    else if (ord(s[t]) >= 65) and (ord(s[t]) <= 90) then begin
+      temp := temp + s[t];
+    end
+    else if (s[t] = '$') then begin
+      imhex := True;
+    end;
+
+    MatrixChange;
+  end;
+
+  PaintBox.Repaint;
+end;
+
+procedure TTheMatrix.ImportColumnData(imhex : boolean; sourcedirection, sourcelsb : integer; s : string);
+ var
+  t, y, colindex  : integer;
+  zig, colvalue : int64;
+  temp : string;
+
+ begin
+  if sourcedirection = 0 then
+    colindex := 0
+  else
+    colindex := MatrixWidth - 1;
+
+  temp := '';
+
+  s := UpperCase(s);
+  s := StringReplace(s, '0X', '$', [rfReplaceAll]);
+  s := StringReplace(s, ',', ' ', [rfReplaceAll]);
+  s := StringReplace(s, '[', '', [rfReplaceAll]);
+  s := StringReplace(s, ']', '', [rfReplaceAll]);
+  s := StringReplace(s, '{', '', [rfReplaceAll]);
+  s := StringReplace(s, '}', '', [rfReplaceAll]);
+  s := StringReplace(s, '(', '', [rfReplaceAll]);
+  s := StringReplace(s, ')', '', [rfReplaceAll]);
+  s := s + ' ';
+
+  for t:=1 to length(s) do begin
+    if s[t] = ' ' then begin
+      if temp <> '' then begin
+
+        if imhex then
+          colvalue := StrToInt64('$' + temp)
+        else
+          colvalue := StrToInt64(temp);
+
+        if (colindex >= 0) and (colindex <= MatrixWidth - 1) then begin
+          for y:=0 to MatrixHeight - 1 do begin
+            case sourcelsb of
+              lsbLeft  : begin
+                           zig := (colvalue and Powers[y]);
+
+                          if zig = Powers[y] then begin
+                             Matrix[fCurrentFrame, colindex, y] := 1;
+                           end
+                           else begin
+                             Matrix[fCurrentFrame, colindex, y] := 0;
+                           end;
+                         end;
+              lsbRight : begin
+                           zig := (colvalue and Powers[y]);
+
+                           if zig = Powers[y] then begin
+                             Matrix[fCurrentFrame, colindex, MatrixHeight - y] := 1;
+                           end
+                           else begin
+                             Matrix[fCurrentFrame, colindex, MatrixHeight - y] := 0;
+                           end;
+                         end;
+            end;
+          end;
+        end;
+
+        temp := '';
+
+        if sourcedirection = 0 then
+          inc(colindex)
+        else
+          dec(colindex);
+      end;
+    end
+    else if (ord(s[t]) >= 48) and (ord(s[t]) <= 57) then begin
+      temp := temp + s[t];
+    end
+    else if (ord(s[t]) >= 65) and (ord(s[t]) <= 90) then begin
+      temp := temp + s[t];
+    end
+    else if (s[t] = '$') then begin
+      imhex := True;
+    end;
+
+    MatrixChange;
+  end;
+
+  PaintBox.Repaint;  
+end;
+
+function TTheMatrix.LoadDataParameterType(s : string; headermode, matrixmode, deadpixelmode : boolean): integer;
+ begin
+  Result := -1;
+
+  if Pos('header', s) <> 0 then
+    Result := 0
+  else if Pos('deadpixel', s) <> 0 then
+    Result := 1
+  else if s[1] = '{' then
+    Result := 2
+  else if s[1] = '}' then
+    Result := 3
+  else begin
+    if headermode then begin
+      case s[1] of
+        'a' : Result := 10;
+        'b' : Result := 11;
+        'c' : Result := 12;
+        '1' : Result := 13;
+        '2' : Result := 14;
+        '3' : Result := 15;
+        '4' : Result := 16;
+        'd' : Result := 17;
+        'e' : Result := 18;
+        'f' : Result := 19;
+        'g' : Result := 20;
+        'h' : Result := 21;
+        'i' : Result := 22;
+        'j' : Result := 23;
+        'k' : Result := 24;
+        'l' : Result := 25;
+        'm' : Result := 26;
+        'n' : Result := 27;
+        'o' : Result := 28;
+        'p' : Result := 29;
+        'x' : Result := 30;
+        'z' : Result := 31;
+        'y' : Result := 32;
+        '}' : Result := 33;
+      end;
+    end
+    else if deadpixelmode then begin
+      case s[1] of
+        'p' : Result := 70;
+      end;
+    end
+    else if matrixmode then begin
+      case s[1] of
+        'w' : Result := 50;
+        'h' : Result := 51;
+        'r' : Result := 52;
+      end
+    end;
+  end;
+end;
+
+function TTheMatrix.ImportFromBMP(fn : string; fcount, fwidth, fheight : integer; rgbimport, createnew : boolean): TImportData;
+ var
+  ibmp : TBitmap;
+  i, w, h, wo : integer;
+  lFrameStart, lFrameEnd : integer;
+
+ begin
+  ibmp := TBitmap.Create;
+  ibmp.LoadFromFile(fn);
+
+  if CreateNew then begin
+    lFrameStart := 1;
+    lFrameEnd   := fcount;
+
+    fFrameCount := fcount;
+  end
+  else begin
+    lFrameStart := fCurrentFrame;
+    lFrameEnd   := fCurrentFrame + fcount - 1;
+
+    if lFrameEnd > fFrameCount then
+      fFrameCount := lFrameEnd;
+  end;
+
+  // ===========================================================================
+
+  for i:=lFrameStart to lFrameEnd do begin
+    wo := (i - lFrameStart) * fwidth;
+
+    for w:=0 to fwidth - 1 do begin
+
+      for h:=0 to fheight - 1 do begin
+        if not rgbimport then begin
+          if ibmp.Canvas.Pixels[wo + w, h] = clWhite then
+            Matrix[i, w, h] := 0
+          else
+            Matrix[i, w, h] := 1;
+        end
+        else begin
+          Matrix[i, w, h] := ibmp.Canvas.Pixels[wo + w, h];
+        end;
+      end;
+
+    end;
+  end;
+
+  // ===========================================================================
+
+  Result.NewWidth    := fwidth;
+  Result.NewHeight   := fheight;
+  Result.NewFrames   := fFrameCount;
+  Result.RGBImport   := rgbimport;
+
+  PaintBox.Invalidate;
+
+  MatrixChange;
+
+  // ===========================================================================
+
+  ibmp.Free;
+end;
+
+procedure TTheMatrix.SaveAnimation(filename : string; ted : TImportData; eeo : TExportOptions);
+ var
+  s : string;
+  tf : TextFile;
+  x,y,i : integer;
+
+ begin
+  AssignFile(tf, filename);
+
+  Rewrite(tf);
+
+  // ===========================================================================
+
+  writeln(tf, '{header');
+  writeln(tf, 'a:' + IntToStr(ted.Source));
+  writeln(tf, 'b:' + IntToStr(ted.SourceLSB));
+  writeln(tf, 'c:' + IntToStr(ted.SourceDirection));
+  writeln(tf, '1:' + IntToStr(ted.PadMode));
+  writeln(tf, '2:' + IntToStr(ted.HexFormat));
+  writeln(tf, '3:' + IntToStr(ted.HexOutput));
+  writeln(tf, '4:' + IntToStr(ted.Brackets));
+
+  if eeo.ExportMode <> -1 then begin // export options haven't been modified
+    writeln(tf, 'd:' + IntToStr(eeo.Source));
+    writeln(tf, 'e:' + IntToStr(eeo.Orientation));
+    writeln(tf, 'f:' + IntToStr(eeo.ScanDirection));
+    writeln(tf, 'g:' + IntToStr(eeo.LSB));
+    writeln(tf, 'h:' + IntToStr(eeo.Language));
+    writeln(tf, 'i:' + IntToStr(eeo.NumberFormat));
+    writeln(tf, 'j:' + IntToStr(eeo.NumberSize));
+    writeln(tf, 'k:' + IntToStr(eeo.LineContent));
+    writeln(tf, 'l:' + IntToStr(eeo.LineCount));
+
+    writeln(tf, 'm:' + IntToStr(eeo.RGBMode));
+    writeln(tf, 'n:' + BoolToStr(eeo.RGBChangePixels));
+    writeln(tf, 'o:' + IntToStr(eeo.RGBChangeColour));
+
+    writeln(tf, 'p:' + BoolToStr(eeo.Optimise));
+  end;
+
+  writeln(tf, 'x:' + MatrixComment);
+  writeln(tf, 'z:' + IntToStr(RGBBackground));
+  writeln(tf, '}');
+
+  // ===========================================================================
+
+  for i:=1 to ted.MaxFrames do begin
+    case ted.MatrixType of
+      psTypeMono         : writeln(tf, '{anim');
+      psTypeBiSequential : writeln(tf, '{anim2');
+      psTypeBiBitPlanes  : writeln(tf, '{anim3');
+      psTypeRGB          : writeln(tf, '{anim4');
+    end;
+
+    writeln(tf, 'w:' + IntToStr(MatrixWidth));
+    writeln(tf, 'h:' + IntToStr(MatrixHeight));
+
+    for y := 0 to MatrixHeight - 1 do begin
+      s := '';
+
+      for x := 0 to MatrixWidth - 1 do begin
+        s := s + IntToHex(Matrix[i, x, y], 6) + ' ';
+      end;
+
+      writeln(tf, 'r:' + s);
+    end;
+
+    writeln(tf, '}');
+  end;
+
+  // ===========================================================================
+
+  writeln(tf, '{deadpixel');
+
+  for y:=0 to MatrixHeight - 1 do begin
+    s := '';
+
+    for x := 0 to MatrixWidth - 1 do begin
+      s := s + BoolToStr(MatrixDead[x, y]) + ' ';
+    end;
+
+    writeln(tf, 'p:' + s);
+  end;
+
+  writeln(tf, '}');
+
+  // ===========================================================================
+
+  CloseFile(tf);
+end;
+
+procedure TTheMatrix.SaveFont(filename : string; ted : TImportData; eeo : TExportOptions);
+ var
+  s : string;
+  tf : TextFile;
+  x,y,i : integer;
+
+ begin
+  AssignFile(tf, filename);
+
+  Rewrite(tf);
+
+  // ===========================================================================
+
+  writeln(tf, '{fontheader');
+  writeln(tf, 'a:' + IntToStr(ted.Source));
+  writeln(tf, 'b:' + IntToStr(ted.SourceLSB));
+  writeln(tf, 'c:' + IntToStr(ted.SourceDirection));
+
+  if eeo.ExportMode <> -1 then begin // export options haven't been modified
+    writeln(tf, 'd:' + IntToStr(eeo.Source));
+    writeln(tf, 'e:' + IntToStr(eeo.Orientation));
+    writeln(tf, 'f:' + IntToStr(eeo.ScanDirection));
+    writeln(tf, 'g:' + IntToStr(eeo.LSB));
+    writeln(tf, 'h:' + IntToStr(eeo.Language));
+    writeln(tf, 'i:' + IntToStr(eeo.NumberFormat));
+    writeln(tf, 'j:' + IntToStr(eeo.NumberSize));
+    writeln(tf, 'k:' + IntToStr(eeo.LineContent));
+    writeln(tf, 'l:' + IntToStr(eeo.LineCount));
+
+    writeln(tf, 'm:' + IntToStr(eeo.RGBMode));
+    writeln(tf, 'n:' + BoolToStr(eeo.RGBChangePixels));
+    writeln(tf, 'o:' + IntToStr(eeo.RGBChangeColour));
+  end;
+
+  writeln(tf, 'y:' + IntToStr(ted.ASCIIIndex));
+  writeln(tf, 'x:' + MatrixComment);
+  writeln(tf, 'z:' + IntToStr(RGBBackground));
+  writeln(tf, '}');
+
+  // ===========================================================================
+
+  for i := 1 to 96 do begin
+    case ted.MatrixType of
+      psTypeMono         : writeln(tf, '{font');
+      psTypeBiSequential : writeln(tf, '{font2');
+      psTypeBiBitPlanes  : writeln(tf, '{font3');
+      psTypeRGB          : writeln(tf, '{font4');
+    end;
+
+    writeln(tf, 'w:' + IntToStr(MatrixWidth));
+    writeln(tf, 'h:' + IntToStr(MatrixHeight));
+
+    for y := 0 to MatrixHeight - 1 do begin
+      s := '';
+
+      for x := 0 to MatrixWidth - 1 do begin
+        s := s + IntToHex(Matrix[i, x, y], 4) + ' ';
+      end;
+
+      writeln(tf, 'r:' + s);
+    end;
+
+    writeln(tf, '}');
+  end;
+
+  // ===========================================================================
+
+  writeln(tf, '{deadpixel');
+
+  for y:=0 to MatrixHeight - 1 do begin
+    s := '';
+
+    for x := 0 to MatrixWidth - 1 do begin
+      s := s + BoolToStr(MatrixDead[x, y]) + ' ';
+    end;
+
+    writeln(tf, 'p:' + s);
+  end;
+
+  writeln(tf, '}');
+
+  // ===========================================================================
+
+  CloseFile(tf);
+end;
+
+procedure TTheMatrix.SaveSingleFrame(filename : string; ted : TImportData; frame : integer);
+ var
+  s : string;
+  tf : TextFile;
+  x,y : integer;
+
+ begin
+  AssignFile(tf, filename);
+
+  Rewrite(tf);
+
+  case ted.MatrixType of
+    psTypeMono         : writeln(tf, '{frame');
+    psTypeBiSequential : writeln(tf, '{frame2');
+    psTypeBiBitPlanes  : writeln(tf, '{frame3');
+    psTypeRGB          : writeln(tf, '{frame4');
+  end;
+
+  writeln(tf, 'w:' + IntToStr(MatrixWidth));
+  writeln(tf, 'h:' + IntToStr(MatrixHeight));
+  writeln(tf, 'x:' + MatrixComment);
+  writeln(tf, 'z:' + IntToStr(RGBBackground));
+
+  for y:=0 to MatrixHeight - 1 do begin
+    s := '';
+
+    for x := 0 to MatrixWidth - 1 do begin
+      s := s + IntToHex(Matrix[frame, x, y], 6) + ' ';
+    end;
+
+    writeln(tf, 'r:' + s);
+  end;
+
+  writeln(tf, '}');
+
+  // ===========================================================================
+
+  writeln(tf, '{deadpixel');
+
+  for y:=0 to MatrixHeight - 1 do begin
+    s := '';
+
+    for x := 0 to MatrixWidth - 1 do begin
+      s := s + BoolToStr(MatrixDead[x, y]) + ' ';
+    end;
+
+    writeln(tf, 'p:' + s);
+  end;
+
+  writeln(tf, '}');
+
+  // ===========================================================================  
+
+  CloseFile(tf);
+end;
+
+procedure TTheMatrix.SaveAsFont(filename : string);
+ var
+  tf : textfile;
+  t, x, y, mydata : integer;
+  s : string;
+
+ begin
+  AssignFile(tf, filename);
+  Rewrite(tf);
+
+  for t:=1 to 96 do begin
+    s := '';
+
+    for x:=0 to MatrixWidth - 1 do begin
+      mydata := 0;
+
+      for y:=0 to MatrixHeight - 1 do begin
+        if MatrixType = psTypeRGB then begin
+          if Matrix[t, x, y] <> fRGBBackground then
+            mydata := mydata + (powers[MatrixHeight - y - 1]);
+        end
+        else begin
+          if Matrix[t, x, y] = 1 then
+            mydata := mydata + (powers[MatrixHeight - y - 1]);
+        end;
+      end;
+
+      if x <> MatrixWidth - 1 then
+        s := s + IntToStr(mydata) + ', '
+      else
+        s := s + IntToStr(mydata);
+    end;
+
+    Writeln(tf, s + ' // ' + Char(32 + t));
+  end;
+
+  CloseFile(tf);
+end;
+
+// =============================================================================
+// =============================================================================
+
+function TTheMatrix.ExportToBitmap(fn : string): boolean;
+ var
+  ibmp : TBitmap;
+  i, x, y : integer;
+
+ begin
+  ibmp := TBitmap.Create;
+
+  ibmp.Width  := fFrameCount * MatrixWidth;
+  ibmp.Height := MatrixHeight;
+
+  for i := 1 to fFrameCount do begin
+    for x:= 0 to MatrixWidth - 1 do begin
+      for y := 0 to MatrixHeight - 1 do begin
+
+        if MatrixType = psTypeRGB then begin
+          ibmp.Canvas.Pixels[((i * MatrixWidth) - 1) + x, y] := Matrix[i, x, y];
+        end
+        else begin
+          if Matrix[i, x, y] = 0 then
+            ibmp.Canvas.Pixels[((i * MatrixWidth) - 1) + x, y] := $00000000
+          else
+            ibmp.Canvas.Pixels[((i * MatrixWidth) - 1) + x, y] := $00ffffff;
+        end;
+      end;
+    end;
+  end;
+
+  ibmp.SaveToFile(fn);
+
+  ibmp.Free;
+end;
+
+// =============================================================================
+// =============================================================================
+// =============================================================================
+// =============================================================================
+
+function TTheMatrix.LoadLEDMatrixData(fn : widestring; var eeo : TExportOptions): TImportData;
+ var
+  tf : TextFile;
+  pixel : string;
+  x,Row,MemSlot,i,matrixtype, lRGBBackground : integer;
+  tempMaxWidth, tempMaxHeight : integer;
+  s,v : string;
+  headerMode, fontmode, deadpixelmode, matrixMode : boolean;
+
+ begin
+  ClearAllFrames;
+
+  // ===========================================================================
+  // ===========================================================================
+
+  AssignFile(tf, fn);
+  Reset(tf);
+
+  MemSlot                := 1;
+  Row                    := 0;
+  headerMode             := False;
+  fontmode               := False;
+  deadpixelmode          := False;
+  matrixMode             := False;
+  matrixtype             := 0;
+  lRGBBackground         := -1;
+
+  Result.Source          := -1;
+  Result.SourceLSB       := -1;
+  Result.SourceDirection := -1;
+  Result.MatrixType      := -1;
+  Result.RGBImport       := False;
+
+  tempMaxWidth           := -1;
+  tempMaxHeight          := -1;
+
+  SetDeadPixels(False);
+
+  // ===========================================================================
+  // ===========================================================================
+
+  while not(eof(tf)) do begin
+    readln(tf, s);
+
+    if s <> '' then begin
+      v := Copy(s, 3, length(s) - 2);
+
+      case LoadDataParameterType(LowerCase(s), headermode, matrixmode, deadpixelmode) of
+        0 : begin
+              if UpperCase(s) = '{FONTHEADER' then
+                fontmode := True
+              else
+                fontmode := False;
+
+              headerMode := True;
+            end;
+       1 : begin // dead pixel mode
+              deadpixelmode := True;
+              matrixMode    := False;
+
+              Row := 0;
+            end;
+        2 : begin
+              Row := 0;
+
+              case v[length(v)] of
+                '2' : matrixtype := psTypeBiSequential;
+                '3' : matrixtype := psTypeBiBitPlanes;
+                '4' : matrixtype := psTypeRGB;
+              else
+                matrixtype := psTypeMono;
+              end;
+
+              headerMode := False;
+              matrixMode := True;
+            end;
+        3 : begin
+              if matrixmode then
+                inc(MemSlot);
+            end;
+
+       // ======================================================================
+
+       10 : Result.Source          := StrToInt(v);
+       11 : Result.SourceLSB       := StrToInt(v);
+       12 : Result.SourceDirection := StrToInt(v);
+       13 : Result.PadMode         := StrToInt(v);
+       14 : Result.HexFormat       := StrToInt(v);
+       15 : Result.HexOutput       := StrToInt(v);
+       16 : Result.Brackets        := StrToInt(v);
+
+       17 : eeo.Source             := StrToInt(v);
+       18 : eeo.Orientation        := StrToInt(v);
+       19 : eeo.ScanDirection      := StrToInt(v);
+       20 : eeo.LSB                := StrToInt(v);
+       21 : eeo.Language           := StrToInt(v);
+       22 : eeo.NumberFormat       := StrToInt(v);
+       23 : eeo.NumberSize            := StrToInt(v);
+       24 : eeo.LineContent        := StrToInt(v);
+       25 : eeo.LineCount          := StrToInt(v);
+       26 : eeo.RGBMode            := StrToInt(v);
+       27 : eeo.RGBChangePixels    := StrToBool(v);
+       28 : eeo.RGBChangeColour    := StrToInt(v);
+
+       29 : eeo.Optimise           := StrToBool(v);
+
+       30 : MatrixComment          := v;
+       31 : lRGBBackground         := StrToInt(v);
+
+       32 : Result.ASCIIIndex      := StrToInt(v);
+
+       33 : {};
+
+       // ======================================================================
+
+       50 : tempMaxWidth  := StrToInt(v);
+       51 : tempMaxHeight := StrToInt(v);
+       52 : begin
+              x     := 0;
+              pixel := '';
+
+              for i:=1 to length(v) do begin
+                if (v[i] = ' ') or (i = length(v)) then begin
+                  if Result.RGBImport then begin
+                    if lRGBBackground <> -1 then begin
+                      if HexToInt(pixel) = lRGBBackground then
+                        Matrix[MemSlot, x, Row] := RGBBackground;
+                    end;
+                  end
+                  else
+                    Matrix[MemSlot, x, Row] := HexToInt(pixel);
+
+                  inc(x);
+
+                  pixel := '';
+                end
+                else
+                  pixel := pixel + v[i];
+              end;
+
+              inc(Row);
+            end;
+
+       // ======================================================================
+
+       70 : begin
+              x     := 0;
+              pixel := '';
+
+              for i:=1 to length(v) do begin
+                if (v[i] = ' ') or (i = length(v)) then begin
+                  MatrixDead[x, Row] := StrToBool(pixel);
+
+                  inc(x);
+
+                  pixel := '';
+                end
+                else
+                  pixel := pixel + v[i];
+              end;
+
+              inc(Row);
+            end;
+      end;
+    end;
+  end;
+
+  CloseFile(tf);
+
+  Result.MatrixType := matrixtype;
+  Result.NewWidth   := tempMaxWidth;
+  Result.NewHeight  := tempMaxHeight;
+  Result.MaxFrames  := MemSlot - 1;
+  Result.FontMode   := fontmode;
+
+  eeo.ExportMode    := 0;
+
+  fFrameCount       := MemSlot - 1;
+
+  PaintBox.Invalidate;
+end;
+
+function TTheMatrix.ImportLEDMatrixDataSingleFrame(fn : string): TImportData;
+ var
+  tf : TextFile;
+  x, Row, MemSlot, i, matrixtype, lRGBBackground : integer;
+  s, v, pixel : string;
+  addedSingleFrame, headerMode, deadpixelmode, MatrixMode, fontmode : boolean;
+
+ begin
+  BackupMatrix(fCurrentFrame);
+  
+  addedSingleFrame       := False;
+  matrixtype             := 0;
+  headermode             := False;
+  deadpixelmode          := False;
+  fontmode               := False;
+  MatrixMode             := False;
+  lRGBBackground         := -1;
+
+  Result.Source          := -1;
+  Result.SourceLSB       := -1;
+  Result.SourceDirection := -1;
+  Result.MatrixType      := -1;
+  Result.RGBImport       := False;
+
+  // ===========================================================================
+  // ===========================================================================
+
+  AssignFile(tf, fn);
+  Reset(tf);
+
+  MemSlot    := fCurrentFrame;
+  Row        := 0;
+  headerMode := False;
+
+  while not(eof(tf)) and (addedSingleFrame = False) do begin
+    readln(tf, s);
+
+    if s<>'' then begin
+      v  := Copy(s, 3, length(s) - 2);
+
+      case LoadDataParameterType(s, headermode, MatrixMode, deadpixelmode) of
+        0 : begin
+              if UpperCase(s) = '{FONTHEADER' then
+                fontmode := True
+              else
+                fontmode := False;
+
+              headerMode := True;
+            end;
+       1 : begin // dead pixel mode
+              deadpixelmode := True;
+              matrixMode    := False;
+
+              Row := 0;
+            end;
+        2 : begin
+              Row := 0;
+
+              case v[length(v)] of
+                '2' : matrixtype := psTypeBiSequential;
+                '3' : matrixtype := psTypeBiBitPlanes;
+                '4' : matrixtype := psTypeRGB;
+              else
+                matrixtype := psTypeMono;
+              end;
+
+              headerMode := False;
+              matrixMode := True;
+            end;
+        3 : begin
+              if matrixmode then
+                inc(MemSlot);
+            end;
+
+//       20 : Result.ASCIIIndex := StrToInt(v);
+
+       // ======================================================================
+
+       10 : Result.Source          := StrToInt(v);
+       11 : Result.SourceLSB       := StrToInt(v);
+       12 : Result.SourceDirection := StrToInt(v);
+       13 : Result.PadMode         := StrToInt(v);
+       14 : Result.HexFormat       := StrToInt(v);
+       15 : Result.HexOutput       := StrToInt(v);
+       16 : Result.Brackets        := StrToInt(v);
+
+       {17 : eeo.Source := StrToInt(v);
+       18 : eeo.Orientation := StrToInt(v);
+       19 : eeo.ScanDirection := StrToInt(v);
+       20 : eeo.LSB := StrToInt(v);
+       21 : eeo.Language := StrToInt(v);
+       22 : eeo.NumberFormat := StrToInt(v);
+       23 : eeo.NumberSize := StrToInt(v);
+       24 : eeo.LineContent := StrToInt(v);
+       25 : eeo.LineCount := StrToInt(v);
+       26 : eeo.RGBMode := StrToInt(v);
+       27 : eeo.RGBChangePixels := StrToBool(v);
+       28 : eeo.RGBChangeColour := StrToInt(v); }
+
+//       29 : MatrixComment     := v;
+//       30 : lRGBBackground := StrToInt(v);
+
+       32 : {};
+
+       // ======================================================================
+
+//       50 : tempMaxWidth  := StrToInt(v);
+//       51 : tempMaxHeight := StrToInt(v);
+       52 : begin
+              x     := 0;
+              pixel := '';
+
+              for i:=1 to length(v) do begin
+                if (v[i] = ' ') or (i = length(v)) then begin
+                  if Result.RGBImport then begin
+                    if lRGBBackground <> -1 then begin
+                      if HexToInt(pixel) = lRGBBackground then
+                        Matrix[MemSlot, x, Row] := RGBBackground;
+                    end;
+                  end
+                  else
+                    Matrix[MemSlot, x, Row] := HexToInt(pixel);
+
+                  inc(x);
+
+                  pixel := '';
+                end
+                else
+                  pixel := pixel + v[i];
+              end;
+
+              inc(Row);
+            end;
+
+       // ======================================================================
+
+       70 : begin
+              x     := 0;
+              pixel := '';
+
+              for i:=1 to length(v) do begin
+                if (v[i] = ' ') or (i = length(v)) then begin
+                  MatrixDead[x, Row] := StrToBool(pixel);
+
+                  inc(x);
+
+                  pixel := '';
+                end
+                else
+                  pixel := pixel + v[i];
+              end;
+
+              inc(Row);
+            end;
+      end;
+    end;
+  end;
+
+  CloseFile(tf);
+
+  Result.MatrixType := matrixtype;
+
+  MatrixChange;
+
+  PaintBox.Invalidate;
+end;
+
+function TTheMatrix.MergeLEDMatrixData(fn : widestring; startframe : integer): TImportData;
+ var
+  tf : TextFile;
+  pixel : string;
+  x,Row,MemSlot,i,matrixtype, lRGBBackground : integer;
+  tempMaxWidth, tempMaxHeight : integer;
+  s,v : string;
+  headerMode, fontmode, deadpixelmode, matrixmode: boolean;
+
+ begin
+  // ===========================================================================
+  // ===========================================================================
+
+  AssignFile(tf, fn);
+  Reset(tf);
+
+  MemSlot                := startframe;
+  Row                    := 0;
+  headerMode             := False;
+  fontmode               := False;
+  deadpixelmode          := False;
+  matrixmode             := False;
+  matrixtype             := 0;
+  lRGBBackground         := -1;
+
+  Result.Source          := -1;
+  Result.SourceLSB       := -1;
+  Result.SourceDirection := -1;
+  Result.MatrixType      := -1;
+
+  tempMaxWidth           := -1;
+  tempMaxHeight          := -1;
+
+  // ===========================================================================
+  // ===========================================================================
+
+  while not(eof(tf)) do begin
+    readln(tf, s);
+
+    if s <> '' then begin
+      v := Copy(s, 3, length(s) - 2);
+
+      case LoadDataParameterType(LowerCase(s), headermode, matrixmode, deadpixelmode) of
+        0 : begin
+              if UpperCase(s) = '{FONTHEADER' then
+                fontmode := True
+              else
+                fontmode := False;
+
+              headerMode := True;
+            end;
+       1 : begin // dead pixel mode
+              deadpixelmode := True;
+              matrixMode    := False;
+
+              Row := 0;
+            end;
+        2 : begin
+              Row := 0;
+
+              case v[length(v)] of
+                '2' : matrixtype := psTypeBiSequential;
+                '3' : matrixtype := psTypeBiBitPlanes;
+                '4' : matrixtype := psTypeRGB;
+              else
+                matrixtype := psTypeMono;
+              end;
+
+              headerMode := False;
+              matrixMode := True;
+            end;
+        3 : begin
+              if matrixmode then
+                inc(MemSlot);
+            end;
+
+//       20 : Result.ASCIIIndex := StrToInt(v);
+
+       // ======================================================================
+
+       10 : Result.Source  := StrToInt(v);
+       11 : Result.SourceLSB  := StrToInt(v);
+       12 : Result.SourceDirection  := StrToInt(v);
+       13 : Result.PadMode  := StrToInt(v);
+       14 : Result.HexFormat  := StrToInt(v);
+       15 : Result.HexOutput  := StrToInt(v);
+       16 : Result.Brackets  := StrToInt(v);
+
+       {17 : eeo.Source := StrToInt(v);
+       18 : eeo.Orientation := StrToInt(v);
+       19 : eeo.ScanDirection := StrToInt(v);
+       20 : eeo.LSB := StrToInt(v);
+       21 : eeo.Language := StrToInt(v);
+       22 : eeo.NumberFormat := StrToInt(v);
+       23 : eeo.NumberSize := StrToInt(v);
+       24 : eeo.LineContent := StrToInt(v);
+       25 : eeo.LineCount := StrToInt(v);
+       26 : eeo.RGBMode := StrToInt(v);
+       27 : eeo.RGBChangePixels := StrToBool(v);
+       28 : eeo.RGBChangeColour := StrToInt(v); }
+
+       30 : MatrixComment  := MatrixComment + '{Merged with ' + v + ')';
+
+
+       33 : {};
+
+       // ======================================================================
+
+       50 : tempMaxWidth  := StrToInt(v);
+       51 : tempMaxHeight := StrToInt(v);
+       52 : begin
+              x     := 0;
+              pixel := '';
+
+              for i:=1 to length(v) do begin
+                if (v[i] = ' ') or (i = length(v)) then begin
+                  if Result.RGBImport then begin
+                    if lRGBBackground <> -1 then begin
+                      if HexToInt(pixel) = lRGBBackground then
+                        Matrix[MemSlot, x, Row] := RGBBackground;
+                    end;
+                  end
+                  else
+                    Matrix[MemSlot, x, Row] := HexToInt(pixel);
+
+                  inc(x);
+
+                  pixel := '';
+                end
+                else
+                  pixel := pixel + v[i];
+              end;
+
+              inc(Row);
+            end;
+
+       // ======================================================================
+
+       70 : begin
+              x     := 0;
+              pixel := '';
+
+              for i:=1 to length(v) do begin
+                if (v[i] = ' ') or (i = length(v)) then begin
+                  MatrixDead[x, Row] := StrToBool(pixel);
+
+                  inc(x);
+
+                  pixel := '';
+                end
+                else
+                  pixel := pixel + v[i];
+              end;
+
+              inc(Row);
+            end;
+      end;
+    end;
+  end;
+
+  CloseFile(tf);
+
+  Result.MatrixType := matrixtype;
+  Result.NewWidth   := tempMaxWidth;
+  Result.NewHeight  := tempMaxHeight;
+  Result.MaxFrames  := MemSlot - 1;
+  Result.FontMode   := fontmode;
+
+  fFrameCount       := MemSlot - 1;
+end;
+
+// =============================================================================
+// =============================================================================
+// =============================================================================
+// =============================================================================
+// =============================================================================
+
+procedure TTheMatrix.LoadGradient(filename : string);
+ var
+  tf : TextFile;
+  s,v : string;
+  t, idx, x, y, slot : integer;
+
+ function parameterType(s : string): integer;
+  begin
+   if s[1] = '{' then
+     Result := 0
+   else if s[1] = '}' then
+     Result := 1
+   else if s[1] = 'g' then
+     Result := 2
+   else
+     Result := -1;
+ end;
+
+ begin
+  // ===========================================================================
+
+  AssignFile(tf, filename);
+  Reset(tf);
+
+  while not(eof(tf)) do begin
+    readln(tf, s);
+
+    if s <> '' then begin
+      v := Copy(s, 3, length(s) - 2);
+
+      case parameterType(s) of
+        2 : begin
+              idx := 0;
+
+              for t:=1 to length(v) do begin
+                if v[t] <> ' ' then begin
+                  MatrixGradientIY[idx] := StrToInt(v[t]);
+
+                  inc(idx);
+                end;
+              end;
+            end;
+      end;
+    end;
+  end;
+
+  CloseFile(tf);
+
+  // ===========================================================================
+
+  for slot:=1 to _MaxAnimBufferFrame do begin
+    for x:=0 to MatrixWidth - 1 do begin
+      for y:=0 to MatrixHeight - 1 do begin
+        if Matrix[slot, x, y] <> 0 then
+          Matrix[slot, x, y] := MatrixGradientIY[y];
+      end;
+    end;
+  end;
+
+  // ===========================================================================
+
+  PaintBox.Repaint;
+end;
+
+// =============================================================================
+// =============================================================================
+// =============================================================================
+
+procedure TTheMatrix.CopyToUserBuffer(slot : integer);
+ var
+  x, y : integer;
+
+ begin
+  for y := 0 to MatrixHeight - 1 do begin
+    for x:=0 to MatrixWidth - 1 do begin
+      Matrix[_MaxAnimBufferFrame + slot, x, y] := Matrix[fCurrentFrame, x, y];
+    end;
+  end;
+end;
+
+procedure TTheMatrix.RestoreFromUserBuffer(slot : integer);
+ var
+  x, y : integer;
+
+ begin
+  for x := 0 to MatrixWidth - 1 do begin
+    for y:=0 to MatrixHeight - 1 do begin
+      if Matrix[_MaxAnimBufferFrame + slot, x, y] = 1 then begin
+        Matrix[fCurrentFrame, x, y] := 1;
+      end
+      else begin
+        Matrix[fCurrentFrame, x, y] := 0;
+      end;
+    end;
+  end;
+
+  MatrixChange;
+
+  PaintBox.Repaint;
+end;
+
+procedure TTheMatrix.CopyFromPrevious(toframe : integer);
+ var
+  x, y : integer;
+
+ begin
+  BackupMatrix(toframe);
+
+  for y:=0 to MatrixHeight - 1 do begin
+    for x:=0 to MatrixWidth - 1 do begin
+      Matrix[toframe, x, y] := Matrix[toframe - 1, x, y];
+    end;
+  end;
+
+  MatrixChange;
+
+  PaintBox.Repaint;
+end;
+
+procedure TTheMatrix.Undo;
+ var
+  x, y : integer;
+
+ begin
+  case (UndoData.mode) of
+    0 : begin
+          for x:=0 to MatrixWidth - 1 do begin
+            for y:=0 to MatrixHeight - 1 do begin
+              if MatrixType = psTypeRGB then begin
+                Matrix[fCurrentFrame, x, y] := MatrixBackup[x, y];
+              end
+              else begin
+                if MatrixBackup[x, y] = 1 then begin
+                  Matrix[fCurrentFrame, x, y] := 1;
+                end
+                else begin
+                  Matrix[fCurrentFrame, x, y] := 0;
+                end;
+              end;
+            end;
+          end;
+        end;
+    1 : begin
+          {tbFrames.Position:=UndoData.param1+1;
+          tbFramesChange(nil);
+
+          for i:=0 to UndoData.param2-1 do begin
+            bDeleteFrameClick(Nil);
+          end;     }
+        end;
+  end;
+
+  UndoData.mode := -1;
+
+  MatrixChange;
+
+  PaintBox.Repaint;
+end;
+
+procedure TTheMatrix.ConfigurePaintboxDrawing;
+ begin
+  if fMatrixReadOnly then begin
+    PaintBox.OnMouseDown := Nil;
+    PaintBox.OnMouseMove := Nil;
+    PaintBox.OnMouseUp   := Nil;
+  end
+  else begin
+    if fDeadPixelsMode then begin
+      PaintBox.OnMouseDown := ClickPixelDeadPixel;
+      PaintBox.OnMouseMove := Shape1MouseMoveDeadPixel;
+      PaintBox.OnMouseUp   := Shape1MouseUpDeadPixel;
+
+      PaintBox.OnPaint     := PaintBoxUpdateDeadPixel;
+    end
+    else begin
+      case MatrixType of
+        psTypeMono         : begin
+                               PaintBox.OnMouseDown := ClickPixel;
+                               PaintBox.OnMouseMove := Shape1MouseMove;
+                               PaintBox.OnMouseUp   := Shape1MouseUp;
+
+                               PaintBox.OnPaint     := PaintBoxUpdate;
+                             end;
+        psTypeBiSequential : begin
+                               PaintBox.OnMouseDown := ClickPixelBiColour;
+                               PaintBox.OnMouseMove := Shape1MouseMoveBiColour;
+                               PaintBox.OnMouseUp   := Shape1MouseUpBiColour;
+
+                               PaintBox.OnPaint     := PaintBoxUpdate;
+                             end;
+        psTypeBiBitPlanes  : begin
+                               PaintBox.OnMouseDown := ClickPixelBiColour;
+                               PaintBox.OnMouseMove := Shape1MouseMoveBiColour;
+                               PaintBox.OnMouseUp   := Shape1MouseUpBiColour;
+
+                               PaintBox.OnPaint     := PaintBoxUpdate;
+                             end;
+        psTypeRGB          : begin
+                               PaintBox.OnMouseDown := ClickPixelRGB;
+                               PaintBox.OnMouseMove := Shape1MouseMoveRGB;
+                               PaintBox.OnMouseUp   := Shape1MouseUpRGB;
+
+                               PaintBox.OnPaint     := PaintBoxUpdateRGB;
+                             end;
+      end;
+    end;
+  end;
+end;
+
+procedure TTheMatrix.CopyLEDColours;
+ var
+  t : integer;
+ begin
+  for t := 0 to 5 do begin
+    case MatrixType of
+      psTypeMono         : LEDColoursSingle[t] := LEDColours[t];
+      psTypeBiSequential,
+      psTypeBiBitPlanes  : LEDColoursBi[t]     := LEDColours[t];
+    end;
+  end;
+end;
+
+procedure TTheMatrix.ChangeSelectionColour(aSelectionLMB, aSelectionMMB, aSelectionRMB : integer);
+ begin
+  SetMouseButtonColours(aSelectionLMB, aSelectionMMB, aSelectionRMB);
+
+  LEDRGBColours[1] := aSelectionLMB;
+  LEDRGBColours[2] := aSelectionMMB;
+  LEDRGBColours[3] := aSelectionRMB;
+
+  ColourChange;
+end; 
+
+function TTheMatrix.CalculateMemoryUsage: integer;
+ begin
+  if MatrixType = psTypeRGB then begin
+    Result := MatrixWidth * MatrixHeight * 4 * FrameCount;
+  end
+  else begin
+    case MatrixHeight - 1 of
+       0..7  : Result := 1;
+       8..15 : Result := 2;
+      16..23 : Result := 4;
+      24..31 : Result := 4;
+      32..39 : Result := 8;
+      40..47 : Result := 8;
+      48..55 : Result := 8;
+      56..63 : Result := 8;
+    else
+      Result := 0;
+    end;
+
+    if SoftwareMode = 1 then begin
+      Result := (Result * (MatrixWidth)) * (96);
+    end
+    else begin
+      Result := (Result * (MatrixWidth)) * (FrameCount);
+    end;
+
+    // if using any of the bicolour modes then double requirements
+    if (MatrixType > 0) then
+      Result := Result * 2;
+  end;
+end;
+
+function TTheMatrix.DataSizeBytes: integer;
+ begin
+  if MatrixType = psTypeRGB then begin
+    Result := 4;
+  end
+  else begin
+    case MatrixHeight - 1 of
+       0..7  : Result := 1;
+       8..15 : Result := 2;
+      16..23 : Result := 4;
+      24..31 : Result := 4;
+      32..39 : Result := 8;
+      40..47 : Result := 8;
+      48..55 : Result := 8;
+      56..63 : Result := 8;
+    else
+      Result := 0;
+    end;
+  end;
+end;
+
+procedure TTheMatrix.FadeFirstToLast;
+ var
+  x, y, f : integer;
+  rdy, gdy, bdy : integer;
+  rdx, gdx, bdx : double;
+  newr, newg, newb : double;
+  colstart, colend : integer;
+  gradheight : integer;
+  newri, newgi, newbi : integer;
+
+ begin
+  for y := 0 to MatrixHeight - 1 do begin
+    for x:= 0 to MatrixWidth - 1 do begin
+
+      colstart   := Matrix[1, x, y];
+      colend     := Matrix[FrameCount, x, y];
+
+      gradheight := FrameCount;
+
+      rdy  := (colend and $0000FF) - (colstart and $0000FF);
+      gdy  := ((colend and $00FF00) shr 8) - ((colstart and $00FF00) shr 8);
+      bdy  := ((colend and $FF0000) shr 16) - ((colstart and $FF0000) shr 16);
+
+      newr := (colstart and $0000FF);
+      newg := (colstart and $00FF00) shr 8;
+      newb := (colstart and $FF0000) shr 16;
+
+      rdx  := rdy / gradheight;
+      gdx  := gdy / gradheight;
+      bdx  := bdy / gradheight;
+
+      for f := 2 to FrameCount do begin
+        newr  := newr + rdx;
+        newg  := newg + gdx;
+        newb  := newb + bdx;
+
+        newri := Floor(newr);
+        newgi := Floor(newg);
+        newbi := Floor(newb);
+
+        Matrix[f, x, y] := (newbi shl 16) + (newgi shl 8) + newri;
+      end;
+    end;
+  end;
+
+  PaintBox.Repaint;
+end;
+
+end.

@@ -10,6 +10,7 @@ object Form1: TForm1
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
+  GlassFrame.Enabled = True
   KeyPreview = True
   Menu = MenuMain
   OldCreateOrder = False
@@ -26,7 +27,6 @@ object Form1: TForm1
   OnResize = FormResize
   PixelsPerInch = 96
   TextHeight = 13
-  GlassFrame.Enabled = True
   object CoolBar1: TCoolBar
     Left = 0
     Top = 0
@@ -427,7 +427,6 @@ object Form1: TForm1
         Hint = 'Rotation angle'
         Style = csDropDownList
         Enabled = False
-        ItemHeight = 0
         TabOrder = 0
       end
       object cbRotateCount: TComboBox
@@ -438,7 +437,6 @@ object Form1: TForm1
         Hint = 'Number of frames'
         Style = csDropDownList
         Enabled = False
-        ItemHeight = 0
         TabOrder = 1
       end
     end
@@ -510,9 +508,6 @@ object Form1: TForm1
       Height = 25
       Hint = 'Play animation (right mouse button for speed options)'
       Enabled = False
-      PopupMenu = puAnimationSpeed
-      TabOrder = 0
-      OnClick = bPlayAnimationClick
       Glyph.Data = {
         36060000424D3606000000000000360000002800000020000000100000000100
         18000000000000060000C21E0000C21E00000000000000000000FFFFFFFFFFFF
@@ -565,6 +560,9 @@ object Form1: TForm1
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
       NumGlyphs = 2
+      PopupMenu = puAnimationSpeed
+      TabOrder = 0
+      OnClick = bPlayAnimationClick
     end
     object bStopAnimation: TBitBtn
       Left = 43
@@ -573,8 +571,6 @@ object Form1: TForm1
       Height = 25
       Hint = 'Stop animation'
       Enabled = False
-      TabOrder = 1
-      OnClick = bStopAnimationClick
       Glyph.Data = {
         36060000424D3606000000000000360000002800000020000000100000000100
         18000000000000060000C21E0000C21E00000000000000000000FF00FFFF00FF
@@ -627,6 +623,8 @@ object Form1: TForm1
         FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF
         00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FF}
       NumGlyphs = 2
+      TabOrder = 1
+      OnClick = bStopAnimationClick
     end
     object bPreviousFrame: TBitBtn
       Left = 128
@@ -635,8 +633,6 @@ object Form1: TForm1
       Height = 25
       Hint = 'Show previous frame'
       Enabled = False
-      TabOrder = 2
-      OnClick = bPreviousFrameClick
       Glyph.Data = {
         36060000424D3606000000000000360000002800000020000000100000000100
         18000000000000060000C21E0000C21E00000000000000000000FFFFFFFFFFFF
@@ -689,6 +685,8 @@ object Form1: TForm1
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
       NumGlyphs = 2
+      TabOrder = 2
+      OnClick = bPreviousFrameClick
     end
     object bNextFrame: TBitBtn
       Left = 215
@@ -697,8 +695,6 @@ object Form1: TForm1
       Height = 25
       Hint = 'Show next frame'
       Enabled = False
-      TabOrder = 3
-      OnClick = bNextFrameClick
       Glyph.Data = {
         36060000424D3606000000000000360000002800000020000000100000000100
         18000000000000060000C21E0000C21E00000000000000000000FFFFFFFFFFFF
@@ -751,6 +747,8 @@ object Form1: TForm1
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
       NumGlyphs = 2
+      TabOrder = 3
+      OnClick = bNextFrameClick
     end
     object bAddFrame: TBitBtn
       Left = 300
@@ -759,8 +757,6 @@ object Form1: TForm1
       Height = 25
       Hint = 'Insert a new empty frame'
       Enabled = False
-      TabOrder = 4
-      OnClick = bAddFrameClick
       Glyph.Data = {
         36060000424D3606000000000000360000002800000020000000100000000100
         18000000000000060000C21E0000C21E00000000000000000000FFFFFFFFFFFF
@@ -813,6 +809,8 @@ object Form1: TForm1
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
       NumGlyphs = 2
+      TabOrder = 4
+      OnClick = bAddFrameClick
     end
     object bLightbox: TBitBtn
       Left = 469
@@ -831,8 +829,6 @@ object Form1: TForm1
       Height = 25
       Hint = 'Delete current frame'
       Enabled = False
-      TabOrder = 6
-      OnClick = bDeleteFrameClick
       Glyph.Data = {
         36060000424D3606000000000000360000002800000020000000100000000100
         18000000000000060000C21E0000C21E00000000000000000000FFFFFFFFFFFF
@@ -885,6 +881,8 @@ object Form1: TForm1
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
       NumGlyphs = 2
+      TabOrder = 6
+      OnClick = bDeleteFrameClick
     end
     object bAddFrameCopy: TBitBtn
       Left = 339
@@ -893,8 +891,6 @@ object Form1: TForm1
       Height = 25
       Hint = 'Add new frame as a copy of the current frame'
       Enabled = False
-      TabOrder = 7
-      OnClick = bAddFrameCopyClick
       Glyph.Data = {
         36060000424D3606000000000000360000002800000020000000100000000100
         18000000000000060000C21E0000C21E00000000000000000000FFFFFFFFFFFF
@@ -947,6 +943,8 @@ object Form1: TForm1
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
       NumGlyphs = 2
+      TabOrder = 7
+      OnClick = bAddFrameCopyClick
     end
     object tbFrames: TTrackBar
       Left = 513
@@ -970,8 +968,6 @@ object Form1: TForm1
       Height = 25
       Hint = 'Show the first frame'
       Enabled = False
-      TabOrder = 9
-      OnClick = bStartFrameClick
       Glyph.Data = {
         36060000424D3606000000000000360000002800000020000000100000000100
         18000000000000060000C21E0000C21E00000000000000000000FFFFFFFFFFFF
@@ -1024,6 +1020,8 @@ object Form1: TForm1
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
       NumGlyphs = 2
+      TabOrder = 9
+      OnClick = bStartFrameClick
     end
     object bEndFrame: TBitBtn
       Left = 254
@@ -1032,8 +1030,6 @@ object Form1: TForm1
       Height = 25
       Hint = 'Show the last frame'
       Enabled = False
-      TabOrder = 10
-      OnClick = bEndFrameClick
       Glyph.Data = {
         36060000424D3606000000000000360000002800000020000000100000000100
         18000000000000060000C21E0000C21E00000000000000000000FFFFFFFFFFFF
@@ -1086,6 +1082,8 @@ object Form1: TForm1
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
       NumGlyphs = 2
+      TabOrder = 10
+      OnClick = bEndFrameClick
     end
     object bAddFrameMultiple: TBitBtn
       Left = 378
@@ -1094,8 +1092,6 @@ object Form1: TForm1
       Height = 25
       Hint = 'Add a number of blank frames'
       Enabled = False
-      TabOrder = 11
-      OnClick = bAddFrameMultipleClick
       Glyph.Data = {
         36060000424D3606000000000000360000002800000020000000100000000100
         18000000000000060000C21E0000C21E00000000000000000000FF00FFFF00FF
@@ -1148,6 +1144,8 @@ object Form1: TForm1
         FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF
         00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FF}
       NumGlyphs = 2
+      TabOrder = 11
+      OnClick = bAddFrameMultipleClick
     end
   end
   object statusMain: TStatusBar
@@ -2223,7 +2221,6 @@ object Form1: TForm1
       Width = 90
       Height = 21
       Style = csDropDownList
-      ItemHeight = 13
       TabOrder = 0
       OnChange = cbRowsLSBChange
     end
@@ -2233,7 +2230,6 @@ object Form1: TForm1
       Width = 104
       Height = 21
       Style = csDropDownList
-      ItemHeight = 0
       TabOrder = 1
       OnChange = cbRowsLSBChange
     end
@@ -2243,8 +2239,6 @@ object Form1: TForm1
       Width = 34
       Height = 24
       Hint = 'Copy row data to clipboard'
-      TabOrder = 2
-      OnClick = bCopySourceDataClick
       Glyph.Data = {
         36030000424D3603000000000000360000002800000010000000100000000100
         18000000000000030000C21E0000C21E00000000000000000000FF00FFFF00FF
@@ -2272,6 +2266,8 @@ object Form1: TForm1
         2063983775A4B6EFFE80DBF380DBF3B6EFFE2E6EA12063986F9ABCFF00FFFF00
         FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FF20639820639820639820639820
         63982D6C9EFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FF}
+      TabOrder = 2
+      OnClick = bCopySourceDataClick
     end
     object eSourceData: TEdit
       Left = 401
@@ -2292,7 +2288,6 @@ object Form1: TForm1
       Width = 65
       Height = 21
       Style = csDropDownList
-      ItemHeight = 0
       TabOrder = 4
       OnChange = cbSourceChange
     end
@@ -3073,7 +3068,7 @@ object Form1: TForm1
     BkColor = clFuchsia
     Left = 656
     Bitmap = {
-      494C010106000800480410001000FF00FF00FF10FFFFFFFFFFFFFFFF424D3600
+      494C010106000900040010001000FF00FF00FF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000002000000001002000000000000020
       000000000000000000000000000000000000FF00FF00FF00FF00FF00FF00FF00
       FF00FF00FF00FF00FF00CA8A6100C3845800D38B6800E18F7000DC8D6C00DA8B
@@ -3361,7 +3356,7 @@ object Form1: TForm1
   object ilMenu: TImageList
     Left = 680
     Bitmap = {
-      494C01010800B0014C0410001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010108000D00040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000003000000001002000000000000030
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

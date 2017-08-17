@@ -1,0 +1,138 @@
+// ===================================================================
+//
+// (c) Paul Alan Freshney 2014
+// www.freshney.org :: paul@freshney.org :: maximumoctopus.com
+//
+// Please do not redistribute the source code!
+//
+//   Started: October 31st 2014
+//  Modified: November 2nd 2014
+//
+// ===================================================================
+
+unit fontviewer;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, thematrix, StdCtrls, ComCtrls, ExtCtrls;
+
+type
+  TfrmFontViewer = class(TForm)
+    Panel1: TPanel;
+    Panel2: TPanel;
+    tbFont: TTrackBar;
+    cbFonts: TComboBox;
+    Label1: TLabel;
+    Label2: TLabel;
+    Label3: TLabel;
+    procedure FormCreate(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure BuildFontList;
+    procedure FormShow(Sender: TObject);
+    procedure cbFontsChange(Sender: TObject);
+    procedure tbFontChange(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+ frmFontViewer: TfrmFontViewer;
+ FontMatrix : TTheMatrix;
+
+function ShowFontViewer: word;
+
+implementation
+
+{$R *.dfm}
+
+uses utility;
+
+function ShowFontViewer: word;
+ begin
+  with TfrmFontViewer.Create(Application) do
+    Show;
+end;
+
+procedure TfrmFontViewer.FormCreate(Sender: TObject);
+ begin
+  DoubleBuffered:=True;
+
+  FontMatrix:=TTheMatrix.Create(Self, Self);
+
+  FontMatrix.NewMatrix(0, 6, 150, 8, 8, 25, 0, True, True, True);
+
+  FontMatrix.LEDColours[0] := $00ffffff;
+  FontMatrix.LEDColours[1] := $00000000;
+
+  FontMatrix.DrawColour    := 1;
+end;
+
+procedure TfrmFontViewer.FormShow(Sender: TObject);
+ begin
+  BuildFontList;
+
+  cbFontsChange(Nil);
+end;
+
+procedure TfrmFontViewer.tbFontChange(Sender: TObject);
+ begin
+  FontMatrix.ClearCurrentFrame;
+
+  FontMatrix.DrawCoords[0].X :=0;
+  FontMatrix.DrawCoords[0].Y :=7;
+
+  FontMatrix.DrawFontCharacter(tbFont.Position-32, 1);
+end;
+
+procedure TfrmFontViewer.cbFontsChange(Sender: TObject);
+ var
+  s,temp : string;
+  t : integer;
+
+ begin
+  temp:=ExtractFilePath(Application.ExeName)+'fonts\'+cbFonts.Items[cbFonts.ItemIndex]+'.ledsfont';
+  s:='';
+
+  for t:=1 to length(temp) do
+    if temp[t]<>'&' then
+      s:=s+temp[t];
+
+  if FileExists(s) then begin
+    FontMatrix.LoadFont(s);
+
+    tbFont.Max := fontmatrix.LEDFontSize+32;
+  end
+  else
+    MessageDlg('Cannot find font!!', mtError, [mbOK], 0);
+end;
+
+procedure TfrmFontViewer.FormClose(Sender: TObject; var Action: TCloseAction);
+ begin
+  fontmatrix.Free;
+
+  Action := caFree;
+end;
+
+procedure TfrmFontViewer.BuildFontList;
+ var
+  searchResult : TSearchRec;
+
+ begin
+  if FindFirst(ExtractFilePath(Application.ExeName)+'fonts\*.ledsfont', faAnyFile, searchResult) = 0 then begin
+    cbFonts.Clear;
+
+    repeat
+      cbFonts.Items.Add(RemoveExtension(searchResult.Name));
+    until FindNext(searchResult) <> 0;
+
+    FindClose(searchResult);
+  end;
+
+  cbFonts.ItemIndex:=0;  
+end;
+
+end.

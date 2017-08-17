@@ -1099,7 +1099,7 @@ procedure TTheMatrix.DrawWithBrushPaste(x1, y1 : integer; aTransparent : boolean
   x2, y2 : integer;
 
  begin
-  if MatrixType = psTypeRGB then begin
+  if MatrixType <> psTypeRGB then begin
     for x2:=0 to MatrixCopyX do begin
       for y2:=0 to MatrixCopyY do begin
         if (x2 + x1 >= 0) and (x2 + x1 <= MatrixWidth - 1) and
@@ -2213,8 +2213,6 @@ end;
 
 procedure TTheMatrix.UpdateDrawTool(aSetX, aSetY, aSetColour : integer);
  begin
-  showmessage(inttostr(drawdata.point));
-
   DrawData.Coords[DrawData.Point].X := aSetX;
   DrawData.Coords[DrawData.Point].Y := aSetY;
 
@@ -4414,6 +4412,7 @@ procedure TTheMatrix.pbPreviewPaint(Sender: TObject);
         PreviewBox.Canvas.Brush.Color := DrawData.Colour
       else
         PreviewBox.Canvas.Brush.Color := LEDColours[DrawData.Colour];
+
       DrawShape(True, PreviewBox.Canvas, PreviewBoxSize, PreviewBoxSize, 1);
 
       // =======================================================================
@@ -4443,11 +4442,18 @@ procedure TTheMatrix.pbPreviewPaint(Sender: TObject);
         if (x + lastx >= 0) and (x + lastx <= MatrixWidth - 1) and
           (y + lasty >= 0) and (y + lasty <= MatrixHeight - 1) then begin
 
-           if MatrixDead.Grid[x + lastx, y + lasty] = 0 then
-             PreviewBox.Canvas.Brush.Color := LEDColours[MatrixCopy.Grid[x, y]]
-           else
-             PreviewBox.Canvas.Brush.Color := clBtnFace;
-
+           if MatrixType = psTypeRGB then begin
+             if MatrixDead.Grid[x + lastx, y + lasty] = 0 then
+               PreviewBox.Canvas.Brush.Color := MatrixCopy.Grid[x, y]
+             else
+               PreviewBox.Canvas.Brush.Color := fRGBBackground;
+           end
+           else begin
+             if MatrixDead.Grid[x + lastx, y + lasty] = 0 then
+               PreviewBox.Canvas.Brush.Color := LEDColours[MatrixCopy.Grid[x, y]]
+             else
+               PreviewBox.Canvas.Brush.Color := clBtnFace;
+           end;
 
            case MatrixPixelShape of
              pixelSquare : PreviewBox.Canvas.FillRect(Rect((x + lastx) * PreviewBoxSize,

@@ -33,8 +33,8 @@ type
                      end;
 
 const
-  LEDStudioDate      = 'March 30th 2016';
-  LEDStudioVersion   = 'v0.8.7 BETA';
+  LEDStudioDate      = 'August 17th 2017';
+  LEDStudioVersion   = 'v0.8.8 BETA';
 
   LeftOffset         = 70;
 

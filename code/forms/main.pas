@@ -19,7 +19,7 @@ unit main;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  System.UITypes, System.Contnrs, Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Buttons, ExtCtrls, ToolWin, ComCtrls, Menus, ImgList,
   AngleLbl, ExtDlgs;
 
