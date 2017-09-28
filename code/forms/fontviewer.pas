@@ -17,7 +17,7 @@ unit fontviewer;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Windows, Messages, System.UITypes, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, thematrix, StdCtrls, ComCtrls, ExtCtrls;
 
 type

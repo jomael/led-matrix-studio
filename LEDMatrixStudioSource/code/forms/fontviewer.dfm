@@ -41,7 +41,6 @@ object frmFontViewer: TfrmFontViewer
       Width = 121
       Height = 21
       Style = csDropDownList
-      ItemHeight = 0
       TabOrder = 0
       OnChange = cbFontsChange
     end

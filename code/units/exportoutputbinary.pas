@@ -17,7 +17,7 @@ unit exportoutputbinary;
 interface
 
 
-uses classes,
+uses classes, System.Contnrs,
 
      utility, xglobal;
 

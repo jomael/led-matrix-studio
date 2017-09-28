@@ -17,7 +17,7 @@ unit exportoutputcode;
 interface
 
 
-uses classes,
+uses classes, System.Contnrs,
 
      utility, xglobal;
 

@@ -50,8 +50,6 @@ object frmExport: TfrmExport
         Width = 57
         Height = 25
         Caption = 'Save'
-        TabOrder = 0
-        OnClick = sbSaveClick
         Glyph.Data = {
           36030000424D3603000000000000360000002800000010000000100000000100
           18000000000000030000C21E0000C21E00000000000000000000D8AB8ECD9570
@@ -79,6 +77,8 @@ object frmExport: TfrmExport
           F7E0D1FEFBF8FEFBF7FDF9F6FCF5F0FAF0EAFBF2EDFDF9F6FDFAF7FBF1EBF8E9
           DFECD1BECD926AE2C5B1E1BDA6D9AB8DC9895EC07543BD6E3ABB6C37BB6B36BB
           6A36BB6A36BC6C39BD6E3BBB6D3ABF7444C98D65E7CEBCD8AB8E}
+        TabOrder = 0
+        OnClick = sbSaveClick
       end
       object sbOpen: TBitBtn
         Left = 16
@@ -86,8 +86,6 @@ object frmExport: TfrmExport
         Width = 57
         Height = 25
         Caption = 'Open'
-        TabOrder = 1
-        OnClick = sbOpenClick
         Glyph.Data = {
           36030000424D3603000000000000360000002800000010000000100000000100
           18000000000000030000C21E0000C21E00000000000000000000FFFFFFFFFFFF
@@ -115,6 +113,8 @@ object frmExport: TfrmExport
           FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
           FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
           FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
+        TabOrder = 1
+        OnClick = sbOpenClick
       end
       object cbProfileList: TComboBox
         Left = 75
@@ -122,7 +122,6 @@ object frmExport: TfrmExport
         Width = 142
         Height = 21
         Style = csDropDownList
-        ItemHeight = 0
         TabOrder = 2
       end
       object sbDelete: TBitBtn
@@ -131,8 +130,6 @@ object frmExport: TfrmExport
         Width = 31
         Height = 25
         Hint = 'delete'
-        TabOrder = 3
-        OnClick = sbDeleteClick
         Glyph.Data = {
           36030000424D3603000000000000360000002800000010000000100000000100
           18000000000000030000C21E0000C21E00000000000000000000FF00FFFF00FF
@@ -160,6 +157,8 @@ object frmExport: TfrmExport
           FF00FFFF00FFFF00FFFF00FFDEDEDEB5B5B5A6A6A6E8E8E8F1F1F1D1D1D1B2B2
           B2DCDCDCFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF
           00FFFF00FFE4E4E4E0E0E0FF00FFFF00FFFF00FFFF00FFFF00FF}
+        TabOrder = 3
+        OnClick = sbDeleteClick
       end
     end
     object GroupBox6: TGroupBox
@@ -177,8 +176,6 @@ object frmExport: TfrmExport
         Height = 25
         Cancel = True
         Caption = 'Cancel'
-        ModalResult = 2
-        TabOrder = 0
         Glyph.Data = {
           36030000424D3603000000000000360000002800000010000000100000000100
           18000000000000030000C21E0000C21E00000000000000000000FFFFFFFFFFFF
@@ -206,6 +203,8 @@ object frmExport: TfrmExport
           FFFFFFFFFFFF1313FF0000FF0000FF0000FF0000FD0000FD0000FD1313FDFFFF
           FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
           FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
+        ModalResult = 2
+        TabOrder = 0
       end
       object BitBtn2: TBitBtn
         Left = 10
@@ -213,9 +212,6 @@ object frmExport: TfrmExport
         Width = 75
         Height = 25
         Caption = 'Export'
-        ModalResult = 2
-        TabOrder = 1
-        OnClick = BitBtn2Click
         Glyph.Data = {
           36030000424D3603000000000000360000002800000010000000100000000100
           18000000000000030000C21E0000C21E00000000000000000000FFFFFFFFFFFF
@@ -243,6 +239,9 @@ object frmExport: TfrmExport
           FFFFFFFFFFFFE5F8E99FE3B055CB723BC05C37BE5A49C36A97DCAAE1F5E7FFFF
           FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
           FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
+        ModalResult = 2
+        TabOrder = 1
+        OnClick = BitBtn2Click
       end
       object bCopyToClipboard: TBitBtn
         Left = 86
@@ -250,8 +249,6 @@ object frmExport: TfrmExport
         Width = 31
         Height = 25
         Hint = 'copy to clipboard'
-        TabOrder = 2
-        OnClick = bCopyToClipboardClick
         Glyph.Data = {
           36030000424D3603000000000000360000002800000010000000100000000100
           18000000000000030000C21E0000C21E00000000000000000000FF00FFFF00FF
@@ -279,6 +276,8 @@ object frmExport: TfrmExport
           2063983775A4B6EFFE80DBF380DBF3B6EFFE2E6EA12063986F9ABCFF00FFFF00
           FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FF20639820639820639820639820
           63982D6C9EFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FF}
+        TabOrder = 2
+        OnClick = bCopyToClipboardClick
       end
       object BitBtn3: TBitBtn
         Left = 140
@@ -386,7 +385,6 @@ object frmExport: TfrmExport
             Width = 152
             Height = 21
             Style = csDropDownList
-            ItemHeight = 0
             TabOrder = 0
             OnChange = cbDirectionChange
           end
@@ -396,7 +394,6 @@ object frmExport: TfrmExport
             Width = 152
             Height = 21
             Style = csDropDownList
-            ItemHeight = 0
             TabOrder = 1
             OnChange = cbDirectionChange
           end
@@ -468,7 +465,6 @@ object frmExport: TfrmExport
             Width = 152
             Height = 21
             Style = csDropDownList
-            ItemHeight = 0
             TabOrder = 0
             OnChange = cbLanguageFormatChange
           end
@@ -604,7 +600,6 @@ object frmExport: TfrmExport
             Width = 75
             Height = 21
             Style = csDropDownList
-            ItemHeight = 0
             TabOrder = 0
             OnChange = cbDirectionChange
           end
@@ -762,7 +757,6 @@ object frmExport: TfrmExport
             Width = 152
             Height = 21
             Style = csDropDownList
-            ItemHeight = 0
             TabOrder = 0
             OnChange = cbDirectionChange
           end
@@ -772,7 +766,6 @@ object frmExport: TfrmExport
             Width = 152
             Height = 21
             Style = csDropDownList
-            ItemHeight = 0
             TabOrder = 1
             OnChange = cbDirectionChange
           end

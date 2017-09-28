@@ -1972,11 +1972,11 @@ end;
 
 procedure TForm1.miAutosave2Click(Sender: TObject);
  begin
-  if (Sender<>Nil) then begin
+  if (Sender <> Nil) then begin
     (Sender As TMenuItem).Checked := True;
 
     case (Sender As TMenuItem).Tag of
-      0 : timerAutosave.Interval :=  2 * 60 * 1000;
+      0 : timerAutosave.Interval :=  1 * 60 * 1000;
       1 : timerAutosave.Interval :=  5 * 60 * 1000;
       2 : timerAutosave.Interval := 10 * 60 * 1000;
     end;
@@ -2273,11 +2273,12 @@ procedure TForm1.timerAnimateTimer(Sender: TObject);
 end;
 
 procedure TForm1.timerAutosaveTimer(Sender: TObject);
- var
+var
   ted : TImportData;
+  lFileName : string;
 
- begin
-  if (sbClear.Enabled) or (MatrixMain.AnimPlaying) then begin
+begin
+  if ((sbClear.Enabled) or (not MatrixMain.AnimPlaying)) and (MatrixMain.HaveMatrix) then begin
     ted.Source          := cbSource.ItemIndex;
     ted.SourceLSB       := cbSourceLSB.ItemIndex;
     ted.SourceDirection := cbSourceDirection.ItemIndex;
@@ -2286,10 +2287,16 @@ procedure TForm1.timerAutosaveTimer(Sender: TObject);
     ted.HexOutput       := GetHexOutput;
     ted.Brackets        := GetBrackets;
     ted.MatrixType      := MatrixMain.MatrixType;
+    ted.ASCIIIndex      := AppSettings.ASCIIIndex;
+    ted.MaxFrames       := tbFrames.Max;
 
     // =========================================================================
 
-    MatrixMain.SaveAnimation(ExtractFilePath(Application.ExeName) + 'saves\autosave\' + GetAutoSaveName, ted, AppSettings.LastExport);
+    lFileName := GetAutoSaveName;
+
+    MatrixMain.SaveAnimation(ExtractFilePath(Application.ExeName) + 'saves\autosave\' + lFileName, ted, AppSettings.LastExport);
+
+    statusMain.SimpleText := 'Autosaved current matrix (' + lFileName + ')';
   end;
 end;
 
@@ -3908,12 +3915,12 @@ procedure TForm1.LoadRegistrySettings;
   x := ReadRegistryInteger('autosaveinterval', 0);  // default is ( )
 
   case x of
-    autoSave2Mins  : miAutosave2.Checked  := True;
-    autoSave5Mins  : miAutosave5.Checked  := True;
-    autoSave10Mins : miAutosave10.Checked := True;
+    autoSave2Mins  : miAutosave2Click(miAutosave2);
+    autoSave5Mins  : miAutosave2Click(miAutosave5);
+    autoSave10Mins : miAutosave2Click(miAutosave10);
+  else
+    miAutosave2Click(miAutosave2);
   end;
-
-  miAutosave2Click(Nil);
 
   // ===========================================================================
 

@@ -37,13 +37,12 @@ object Form1: TForm1
         Control = Panel1
         ImageIndex = -1
         MinHeight = 32
-        Width = 1128
+        Width = 1126
       end>
-    ExplicitWidth = 1013
     object Panel1: TPanel
-      Left = 9
+      Left = 11
       Top = 0
-      Width = 1119
+      Width = 1117
       Height = 32
       Align = alClient
       BevelOuter = bvNone
@@ -260,13 +259,12 @@ object Form1: TForm1
         Control = Panel2
         ImageIndex = -1
         MinHeight = 32
-        Width = 1128
+        Width = 1126
       end>
-    ExplicitWidth = 1013
     object Panel2: TPanel
-      Left = 9
+      Left = 11
       Top = 0
-      Width = 1119
+      Width = 1117
       Height = 32
       Align = alClient
       BevelOuter = bvNone
@@ -452,8 +450,6 @@ object Form1: TForm1
     ParentShowHint = False
     ShowHint = True
     TabOrder = 2
-    ExplicitTop = 901
-    ExplicitWidth = 1013
     DesignSize = (
       1132
       30)
@@ -959,7 +955,6 @@ object Form1: TForm1
       TabOrder = 8
       TickStyle = tsNone
       OnChange = tbFramesChange
-      ExplicitWidth = 489
     end
     object bStartFrame: TBitBtn
       Left = 89
@@ -1155,8 +1150,6 @@ object Form1: TForm1
     Height = 19
     Panels = <>
     SimplePanel = True
-    ExplicitTop = 994
-    ExplicitWidth = 1013
   end
   object CoolBar3: TCoolBar
     Left = 0
@@ -1168,9 +1161,8 @@ object Form1: TForm1
         Control = Panel4
         ImageIndex = -1
         MinHeight = 40
-        Width = 1128
+        Width = 1126
       end>
-    ExplicitWidth = 1013
     object Label1: TLabel
       Left = 664
       Top = 8
@@ -1178,9 +1170,9 @@ object Form1: TForm1
       Height = 13
     end
     object Panel4: TPanel
-      Left = 9
+      Left = 11
       Top = 0
-      Width = 1119
+      Width = 1117
       Height = 40
       Align = alClient
       BevelOuter = bvNone
@@ -2136,13 +2128,11 @@ object Form1: TForm1
     ParentBackground = False
     TabOrder = 5
     Visible = False
-    ExplicitLeft = 913
-    ExplicitHeight = 805
     object lFont: TLabel
       Left = 1
       Top = 1
-      Width = 72
-      Height = 129
+      Width = 98
+      Height = 798
       Align = alClient
       Alignment = taCenter
       Caption = 'A'
@@ -2153,6 +2143,8 @@ object Form1: TForm1
       Font.Style = []
       ParentFont = False
       Layout = tlCenter
+      ExplicitWidth = 72
+      ExplicitHeight = 129
     end
     object sbChangeFont: TSpeedButton
       Left = 1
@@ -2170,7 +2162,6 @@ object Form1: TForm1
       Align = alBottom
       BevelOuter = bvNone
       TabOrder = 0
-      ExplicitTop = 779
     end
   end
   object pColourPaletteNew: TPanel
@@ -2185,8 +2176,6 @@ object Form1: TForm1
     ShowHint = True
     TabOrder = 6
     Visible = False
-    ExplicitTop = 931
-    ExplicitWidth = 1013
   end
   object pSourceDisplay: TPanel
     Left = 0
@@ -2280,7 +2269,6 @@ object Form1: TForm1
       Anchors = [akLeft, akTop, akRight]
       TabOrder = 3
       OnKeyPress = eSourceDataKeyPress
-      ExplicitWidth = 601
     end
     object cbSource: TComboBox
       Left = 90
@@ -3062,7 +3050,7 @@ object Form1: TForm1
     Enabled = False
     Interval = 500
     OnTimer = timerAnimateTimer
-    Left = 928
+    Left = 968
   end
   object ilMain: TImageList
     BkColor = clFuchsia
@@ -3920,7 +3908,7 @@ object Form1: TForm1
   object timerAutosave: TTimer
     Enabled = False
     OnTimer = timerAutosaveTimer
-    Left = 896
+    Left = 904
   end
   object puGradient: TPopupMenu
     Left = 832
@@ -4023,7 +4011,7 @@ object Form1: TForm1
   end
   object puGradientRGB: TPopupMenu
     OnPopup = puGradientShapePopup
-    Left = 864
+    Left = 904
     Top = 96
     object miGradientSelectRGB: TMenuItem
       Caption = 'Select colour...'

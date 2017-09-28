@@ -1,8 +1,8 @@
  ===============================================================================
  =                                                                             =
- =  LED Matrix Studio v0.8.6 BETA                                              =
+ =  LED Matrix Studio v0.8.9 BETA                                              =
  =                                                                             =
- =  August 17th 2017                                                           =
+ =  September 27th 2017                                                        =
  =                                                                             =
  =  www.freshney.org // paul@freshney.org                                      =
  =                                                                             =
@@ -15,6 +15,7 @@
  =                                                                             =
  =  Source code:                                                               =
  =  www.maximumoctopus.com/electronics/downloads/LEDMatrixStudioSource.zip     =
+ =  https://sourceforge.net/projects/led-matrix-studio/                        =
  =                                                                             =
  =  Facebook                                                                   =
  =  https://www.facebook.com/LEDMatrixStudio                                   =
@@ -122,9 +123,19 @@
 ========================================================================
 
 ========================================================================
-== Updates for 0.8.8 beta ==============================================
+== Updates for 0.8.9 beta ==============================================
+========================================================================
 
-- Fixed a RGB copy/paste bug
+- Fixed autosave bugs
+  Not setting correct value on load
+  Incorrect file name (...hh_ss instead of hh_mm :)
+  Out of bounds error when saving
+
+========================================================================
+== Updates for 0.8.8 beta ==============================================
+========================================================================
+
+- Fixed an RGB copy/paste bug
 - Fixed couple of minor Preview display bugs
 
 ========================================================================
@@ -275,7 +286,7 @@
 == Updates for 0.7.10 ==================================================
 ========================================================================
 
-- Fixed a bug that would multiply the amount of dat when saving
+- Fixed a bug that would multiply the amount of data when saving
   animations with some settings
 - Added "combine nibbles" option, useful for displays with a width or
   length of 4 pixels (like the Orion4x4 grid board)

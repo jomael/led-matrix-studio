@@ -19,7 +19,7 @@ unit main;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  System.UITypes, System.Contnrs, Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Buttons, ExtCtrls, ToolWin, ComCtrls, Menus, ImgList,
   AngleLbl, ExtDlgs;
 
@@ -1972,7 +1972,7 @@ end;
 
 procedure TForm1.miAutosave2Click(Sender: TObject);
  begin
-  if (Sender<>Nil) then begin
+  if (Sender <> Nil) then begin
     (Sender As TMenuItem).Checked := True;
 
     case (Sender As TMenuItem).Tag of
@@ -2282,10 +2282,15 @@ procedure TForm1.timerAutosaveTimer(Sender: TObject);
     ted.SourceLSB       := cbSourceLSB.ItemIndex;
     ted.SourceDirection := cbSourceDirection.ItemIndex;
     ted.PadMode         := AppSettings.PadMode;
+    showmessage('1');
     ted.HexFormat       := GetHexFormat;
+    showmessage('2');
     ted.HexOutput       := GetHexOutput;
+    showmessage('3');
     ted.Brackets        := GetBrackets;
+    showmessage('4');
     ted.MatrixType      := MatrixMain.MatrixType;
+        showmessage('5');
 
     // =========================================================================
 
@@ -3348,8 +3353,8 @@ procedure TForm1.ToggleGradient(gmode : integer; cleargradient : boolean);
               Tag         := t;
               OnMouseDown := OnGradientClick;
 
-              if MatrixMain.PreviewActive
-                Left := LeftOffset + ((MatrixMain.MatrixWidth + 1) * PixelSize) + (MatrixMain.MatrixWidth * MatrixMain.PreviewBoxSize)
+              if MatrixMain.PreviewActive then
+                Left := LeftOffset + ((MatrixMain.MatrixWidth + 1) * PixelSize) + (MatrixMain.MatrixWidth * MatrixMain.PreviewBoxSize) + 25
               else
                 Left := LeftOffset + ((MatrixMain.MatrixWidth + 1) * PixelSize);
 
@@ -3908,12 +3913,12 @@ procedure TForm1.LoadRegistrySettings;
   x := ReadRegistryInteger('autosaveinterval', 0);  // default is ( )
 
   case x of
-    autoSave2Mins  : miAutosave2.Checked  := True;
-    autoSave5Mins  : miAutosave5.Checked  := True;
-    autoSave10Mins : miAutosave10.Checked := True;
+    autoSave2Mins  : miAutosave2Click(miAutosave2);
+    autoSave5Mins  : miAutosave2Click(miAutosave5);
+    autoSave10Mins : miAutosave2Click(miAutosave10);
+  else
+    miAutosave2Click(miAutosave2);
   end;
-
-  miAutosave2Click(Nil);
 
   // ===========================================================================
 

@@ -33,8 +33,8 @@ type
                      end;
 
 const
-  LEDStudioDate      = 'August 17th 2017';
-  LEDStudioVersion   = 'v0.8.8 BETA';
+  LEDStudioDate      = 'September 27th 2017';
+  LEDStudioVersion   = 'v0.8.9 BETA';
 
   LeftOffset         = 70;
 
@@ -329,10 +329,10 @@ function GetAutoSaveName: string;
   else
     Result := Result + IntToStr(lHour);
 
-  if lSec < 10 then
-    Result := Result + '0' + IntToStr(lSec)
+  if lMin < 10 then
+    Result := Result + '0' + IntToStr(lMin)
   else
-    Result := Result + IntToStr(lSec);
+    Result := Result + IntToStr(lMin);
 
   Result := Result + '.leds';
 end;

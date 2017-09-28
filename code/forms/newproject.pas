@@ -17,7 +17,7 @@ unit newproject;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Windows, Messages, System.UITypes, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Buttons, utility, ExtCtrls, ComCtrls;
 
 type

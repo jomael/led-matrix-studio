@@ -30,8 +30,6 @@ object frmNewProject: TfrmNewProject
     Width = 75
     Height = 25
     Caption = 'Create'
-    TabOrder = 0
-    OnClick = BitBtn1Click
     Glyph.Data = {
       36030000424D3603000000000000360000002800000010000000100000000100
       18000000000000030000C21E0000C21E00000000000000000000FFFFFFFFFFFF
@@ -59,6 +57,8 @@ object frmNewProject: TfrmNewProject
       FFFFFFFFFFFFE5F8E99FE3B055CB723BC05C37BE5A49C36A97DCAAE1F5E7FFFF
       FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
       FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
+    TabOrder = 0
+    OnClick = BitBtn1Click
   end
   object BitBtn2: TBitBtn
     Left = 245
@@ -67,8 +67,6 @@ object frmNewProject: TfrmNewProject
     Height = 25
     Cancel = True
     Caption = 'Cancel'
-    ModalResult = 2
-    TabOrder = 1
     Glyph.Data = {
       36030000424D3603000000000000360000002800000010000000100000000100
       18000000000000030000C21E0000C21E00000000000000000000FFFFFFFFFFFF
@@ -96,6 +94,8 @@ object frmNewProject: TfrmNewProject
       FFFFFFFFFFFF1313FF0000FF0000FF0000FF0000FD0000FD0000FD1313FDFFFF
       FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
       FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
+    ModalResult = 2
+    TabOrder = 1
   end
   object GroupBox3: TGroupBox
     Left = 8
@@ -145,7 +145,6 @@ object frmNewProject: TfrmNewProject
         Height = 21
         Hint = 'Select matrix height'
         Style = csDropDownList
-        ItemHeight = 13
         TabOrder = 0
       end
       object ComboBox8: TComboBox
@@ -155,7 +154,6 @@ object frmNewProject: TfrmNewProject
         Height = 21
         Hint = 'Select matrix width'
         Style = csDropDownList
-        ItemHeight = 13
         TabOrder = 1
       end
       object ComboBox9: TComboBox
@@ -165,7 +163,6 @@ object frmNewProject: TfrmNewProject
         Height = 21
         Hint = 'Number of frames'
         Style = csDropDownList
-        ItemHeight = 13
         TabOrder = 2
       end
     end
@@ -179,6 +176,10 @@ object frmNewProject: TfrmNewProject
     TabOrder = 3
     object TabSheet1: TTabSheet
       Caption = 'Custom'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object GroupBox1: TGroupBox
         Left = 15
         Top = 16
@@ -206,7 +207,6 @@ object frmNewProject: TfrmNewProject
           Height = 21
           Hint = 'Select matrix height'
           Style = csDropDownList
-          ItemHeight = 13
           TabOrder = 0
         end
         object cbWidth: TComboBox
@@ -216,7 +216,6 @@ object frmNewProject: TfrmNewProject
           Height = 21
           Hint = 'Select matrix width'
           Style = csDropDownList
-          ItemHeight = 13
           TabOrder = 1
         end
         object cbMatrixType: TComboBox
@@ -226,7 +225,6 @@ object frmNewProject: TfrmNewProject
           Height = 21
           Hint = 'Number of frames'
           Style = csDropDownList
-          ItemHeight = 13
           TabOrder = 2
         end
         object GroupBox2: TGroupBox
@@ -256,7 +254,6 @@ object frmNewProject: TfrmNewProject
             Height = 21
             Hint = 'Select matrix height'
             Style = csDropDownList
-            ItemHeight = 13
             TabOrder = 0
           end
           object ComboBox2: TComboBox
@@ -266,7 +263,6 @@ object frmNewProject: TfrmNewProject
             Height = 21
             Hint = 'Select matrix width'
             Style = csDropDownList
-            ItemHeight = 13
             TabOrder = 1
           end
           object ComboBox3: TComboBox
@@ -276,7 +272,6 @@ object frmNewProject: TfrmNewProject
             Height = 21
             Hint = 'Number of frames'
             Style = csDropDownList
-            ItemHeight = 13
             TabOrder = 2
           end
         end
@@ -285,6 +280,10 @@ object frmNewProject: TfrmNewProject
     object TabSheet2: TTabSheet
       Caption = 'From Preset'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Label6: TLabel
         Left = 16
         Top = 56
@@ -333,7 +332,6 @@ object frmNewProject: TfrmNewProject
         Width = 274
         Height = 21
         Style = csDropDownList
-        ItemHeight = 13
         TabOrder = 0
         OnChange = cbPresetsChange
       end
@@ -372,7 +370,6 @@ object frmNewProject: TfrmNewProject
         Height = 21
         Hint = 'Select matrix height'
         Style = csDropDownList
-        ItemHeight = 13
         TabOrder = 0
       end
       object ComboBox6: TComboBox
@@ -382,7 +379,6 @@ object frmNewProject: TfrmNewProject
         Height = 21
         Hint = 'Select matrix width'
         Style = csDropDownList
-        ItemHeight = 13
         TabOrder = 1
       end
       object ComboBox10: TComboBox
@@ -392,7 +388,6 @@ object frmNewProject: TfrmNewProject
         Height = 21
         Hint = 'Number of frames'
         Style = csDropDownList
-        ItemHeight = 13
         TabOrder = 2
       end
     end
@@ -412,7 +407,6 @@ object frmNewProject: TfrmNewProject
     Top = 168
     Width = 54
     Height = 21
-    ItemHeight = 13
     TabOrder = 5
     Text = '1'
   end
