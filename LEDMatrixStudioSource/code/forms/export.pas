@@ -896,7 +896,12 @@ begin
 end;
 
 procedure TfrmExport.sbDataRowsClick(Sender: TObject);
- begin
+var
+  oldIndexD, oldIndexS : integer;
+begin
+  oldIndexD := cbDirection.ItemIndex;
+  oldIndexS := cbScanDirection.ItemIndex;
+
   cbDirection.Clear;
   cbScanDirection.Clear;
 
@@ -930,8 +935,21 @@ procedure TfrmExport.sbDataRowsClick(Sender: TObject);
     sbOutputRow.Caption := 'Column';
   end;
 
-  cbDirection.ItemIndex     := 0;
-  cbScanDirection.ItemIndex := 0;
+  if (Sender <> Nil) then
+  begin
+    if (TSpeedButton(Sender).Tag = 1) then begin
+      cbDirection.ItemIndex     := oldIndexD;
+      cbScanDirection.ItemIndex := oldIndexS;
+    end
+    else begin
+      cbDirection.ItemIndex     := 0;
+      cbScanDirection.ItemIndex := 0;
+    end;
+  end
+  else begin
+    cbDirection.ItemIndex     := 0;
+    cbScanDirection.ItemIndex := 0;
+  end;
 
   if (cbAutoPreview.Checked) and not(building) then
     Preview;
@@ -945,7 +963,7 @@ procedure TfrmExport.sbDeleteClick(Sender: TObject);
       if not(DeleteFile(ExtractFilePath(Application.ExeName) + 'export\' + cbProfileList.Text + '.' + profileextension)) then
         MessageDlg('Couldn''t delete profile :(', mtError, [mbOK], 0);
 
-      GetProfiles;        
+      GetProfiles;
     end;
   end;
 end;

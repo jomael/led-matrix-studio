@@ -1,6 +1,6 @@
 // ===================================================================
 //
-// (c) Paul Alan Freshney 2012-2016
+// (c) Paul Alan Freshney 2012-2018
 // www.freshney.org :: paul@freshney.org :: maximumoctopus.com
 //
 // www.MaximumOctopus.com/electronics/builder.htm
@@ -8,7 +8,7 @@
 // Please do not redistribute the source code!
 //
 //   Started: October 26th 2014
-//  Modified: March 30th 2016
+//  Modified: May 24th 2018
 //
 // ===================================================================
 
@@ -16,7 +16,9 @@ unit thematrix;
 
 interface
 
-uses ExtCtrls, classes, controls, types, sysutils, graphics, math, xglobal, contnrs;
+uses ExtCtrls, classes, controls, types, sysutils, graphics, math, xglobal, contnrs,
+
+     ActionObject;
 
 const
   _MaxWidth            = 127; // 0 to 127
@@ -210,6 +212,7 @@ type
     procedure   PerformEffectOnCurrentFrame(aMode : integer);
     procedure   PerformEffectOnAllFrames(aMode : integer);
     procedure   PerformScrollOnCurrentFrame(aMode : integer);
+    procedure   PerformScrollOnCopyFrame(aMode : integer);
     procedure   RotateCurrentFrame(aMode : integer);
     procedure   RotateFrame(aNewAngle : real; aToFrame : integer);
 
@@ -218,7 +221,9 @@ type
     procedure   DrawWithBrushPaste(x1, y1 : integer; aTransparent : boolean);
 
     procedure   CopyCurrentFrame;
+    procedure   CopyBackupToCopyFrame;
     procedure   PasteCurrentFrame;
+    procedure   PasteSpecial(aMode : integer);
 
     procedure   InsertBlankFrameAt(aInsertAt : integer);
     procedure   InsertCopyFrameAt(aInsertAt : integer);
@@ -264,6 +269,8 @@ type
     procedure   RestoreFromUserBuffer(aFrame : integer);
     procedure   CopyFromPrevious(toframe : integer);
 
+    procedure   CopyFromTo(aFromFrame, aToFrame : integer);
+
     procedure   Undo;
     procedure   Redo;
 
@@ -284,6 +291,8 @@ type
     procedure   Refresh;
 
     function    GetTotalUndos: integer;
+
+    procedure   Automate(var aAO : TActionObject);
   published
     Property    PreviewBoxSize : integer   Read fPreviewBoxSize Write SetPreviewBoxSize;
     Property    PreviewActive  : boolean   Read fPreviewActive  Write SetPreviewActive;
@@ -386,7 +395,7 @@ constructor TTheMatrix.Create(AOwner: TComponent; Zig : TWinControl);
   Matrix.Add(lMatrix);
 
   lMatrix          := TMatrix.Create(Self);
-  Matrix.Add(lMatrix);  
+  Matrix.Add(lMatrix);
 
   MatrixBackup     := TMatrix.Create(Self);
   MatrixCopy       := TMatrix.Create(Self);
@@ -677,9 +686,9 @@ procedure TTheMatrix.PaintBoxUpdateDeadPixel(Sender: TObject);
   for x:=0 to MatrixWidth - 1 do begin
     for y:=0 to MatrixHeight - 1 do begin
       if MatrixDead.Grid[x, y] = 0 then
-        PaintBox.Canvas.Brush.Color := $00000000
+        PaintBox.Canvas.Brush.Color := $000000
       else
-        PaintBox.Canvas.Brush.Color := $00FFFFFF;
+        PaintBox.Canvas.Brush.Color := $FFFFFF;
 
       case MatrixPixelShape of
         pixelSquare : PaintBox.Canvas.FillRect(Rect(x * MatrixPixelSize,
@@ -1770,9 +1779,18 @@ procedure TTheMatrix.BackupMatrix(aFrameIndex : integer);
   x,y : integer;
 
  begin
-  for y := 0 to MatrixHeight - 1 do begin
-    for x := 0 to MatrixWidth - 1 do begin
-      MatrixBackup.Grid[x, y] := TMatrix(Matrix[aFrameIndex]).Grid[x, y];
+  if (aFrameIndex > 0) then begin
+    for y := 0 to MatrixHeight - 1 do begin
+      for x := 0 to MatrixWidth - 1 do begin
+        MatrixBackup.Grid[x, y] := TMatrix(Matrix[aFrameIndex]).Grid[x, y];
+      end;
+    end;
+  end
+  else begin
+    for y := 0 to MatrixHeight - 1 do begin
+      for x := 0 to MatrixWidth - 1 do begin
+        MatrixBackup.Grid[x, y] := MatrixCopy.Grid[x, y];
+      end;
     end;
   end;
 end;
@@ -1986,6 +2004,63 @@ procedure TTheMatrix.PerformScrollOnCurrentFrame(aMode : integer);
   PaintBox.Invalidate;
 end;
 
+procedure TTheMatrix.PerformScrollOnCopyFrame(aMode : integer);
+var
+  x,y : integer;
+
+begin
+  BackupMatrix(-1);
+
+  case aMode of
+     modeScrollLeft  : begin
+                         for x:=0 to MatrixWidth - 2 do begin
+                           for y:=0 to MatrixHeight - 1 do begin
+                             MatrixCopy.Grid[x, y] := MatrixBackup.Grid[x + 1, y];
+                           end;
+                         end;
+
+                         for y:=0 to MatrixHeight - 1 do begin
+                           MatrixCopy.Grid[MatrixWidth - 1, y] := MatrixBackup.Grid[0, y];
+                         end;
+                       end;
+     modeScrollRight : begin
+                         for x:=1 to MatrixWidth - 1 do begin
+                           for y:=0 to MatrixHeight - 1 do begin
+                             MatrixCopy.Grid[x, y] := MatrixBackup.Grid[x - 1, y];
+                           end;
+                         end;
+
+                         for y:=0 to MatrixHeight - 1 do begin
+                           MatrixCopy.Grid[0, y] := MatrixBackup.Grid[MatrixWidth - 1, y];
+                         end;
+                       end;
+     modeScrollUp    : begin
+                         for y:=0 to MatrixHeight - 2 do begin
+                           for x:=0 to MatrixWidth - 1 do begin
+                             MatrixCopy.Grid[x, y] := MatrixBackup.Grid[x, y + 1];
+                           end;
+                         end;
+
+                         for x:=0 to MatrixWidth - 1 do begin
+                           MatrixCopy.Grid[x, MatrixHeight - 1] := MatrixBackup.Grid[x, 0];
+                         end;
+                       end;
+     modeScrollDown  : begin
+                         for y:=1 to MatrixHeight - 1 do begin
+                           for x:=0 to MatrixWidth - 1 do begin
+                             MatrixCopy.Grid[x, y] := MatrixBackup.Grid[x, y - 1];
+                           end;
+                         end;
+
+                         for x:=0 to MatrixWidth - 1 do begin
+                           MatrixCopy.Grid[x, 0] := MatrixBackup.Grid[x, MatrixHeight - 1];
+                         end;
+                       end;
+  end;
+
+  CopyBackupToCopyFrame;
+end;
+
 procedure TTheMatrix.RotateCurrentFrame(aMode : integer);
  var
   x,y : integer;
@@ -2096,16 +2171,36 @@ end;
 // =============================================================================
 
 procedure TTheMatrix.CopyCurrentFrame;
- var
+var
   x,y : integer;
 
- begin
+begin
   for y:=0 to MatrixHeight - 1 do begin
     for x:=0 to MatrixWidth - 1 do begin
       MatrixCopy.Grid[x, y] := TMatrix(Matrix[fCurrentFrame]).Grid[x, y];
     end;
   end;
 end;
+
+procedure TTheMatrix.CopyBackupToCopyFrame;
+ var
+  x,y : integer;
+
+ begin
+ { for y:=0 to MatrixHeight - 1 do begin
+    for x:=0 to MatrixWidth - 1 do begin
+      MatrixCopy.Grid[x, y] := MatrixBackup.Grid[x, y];
+    end;
+  end;       }
+end;
+
+procedure TTheMatrix.PasteSpecial(aMode : integer);
+begin
+  PerformScrollOnCopyFrame(aMode);
+
+  PasteCurrentFrame;
+end;
+
 
 procedure TTheMatrix.PasteCurrentFrame;
  var
@@ -2128,7 +2223,7 @@ procedure TTheMatrix.InsertBlankFrameAt(aInsertAt : integer);
  begin
   lMatrix := TMatrix.Create(Self);
 
-  if aInsertAt = Matrix.Count - 1 then
+  if aInsertAt >= Matrix.Count - 1 then
     Matrix.Add(lMatrix)
   else
     Matrix.Insert(aInsertAt + 1, lMatrix);
@@ -3136,7 +3231,7 @@ procedure TTheMatrix.SaveAnimation(aFileName : string; aTED : TImportData; aEEO 
  var
   s : string;
   tf : TextFile;
-  x,y,i : integer;
+  x,y,i, lColour : integer;
 
  begin
   AssignFile(tf, aFileName);
@@ -3193,7 +3288,12 @@ procedure TTheMatrix.SaveAnimation(aFileName : string; aTED : TImportData; aEEO 
       s := '';
 
       for x := 0 to MatrixWidth - 1 do begin
-        s := s + IntToHex(TMatrix(Matrix[i]).Grid[x, y], 6) + ' ';
+        if TMatrix(Matrix[i]).Grid[x, y] < 0 then
+          lColour := 0
+        else
+          lColour := TMatrix(Matrix[i]).Grid[x, y];
+
+        s := s + Copy(IntToHex(TMatrix(Matrix[i]).Grid[x, y], 6), 1, 6) + ' ';
       end;
 
       writeln(tf, 'r:' + s);
@@ -3505,7 +3605,7 @@ function TTheMatrix.LoadLEDMatrixData(aFileName : widestring; var aEEO : TExport
   deadpixelmode          := False;
   matrixMode             := False;
   matrixtype             := 0;
-  lRGBBackground         := -1;
+  lRGBBackground         := -1; // was -1 !!!!
 
   Result.Source          := -1;
   Result.SourceLSB       := -1;
@@ -4144,6 +4244,18 @@ procedure TTheMatrix.CopyFromPrevious(toframe : integer);
   PaintBox.Invalidate;
 end;
 
+procedure TTheMatrix.CopyFromTo(aFromFrame, aToFrame : integer);
+ var
+  x, y : integer;
+
+begin
+  for y:=0 to MatrixHeight - 1 do begin
+    for x:=0 to MatrixWidth - 1 do begin
+      TMatrix(Matrix[aToFrame]).Grid[x, y] := TMatrix(Matrix[aFromFrame]).Grid[x, y];
+    end;
+  end;
+end;
+
 procedure TTheMatrix.Undo;
  begin
   TMatrix(Matrix[fCurrentFrame]).Undo;
@@ -4470,6 +4582,82 @@ procedure TTheMatrix.pbPreviewPaint(Sender: TObject);
     end;
   end;
 end;
+
+
+procedure TTheMatrix.Automate(var aAO : TActionObject);
+var
+  i, a : integer;
+  lAction : integer;
+
+begin
+  case aAO.Source of
+    0 : begin
+          for i:= aAO.FrameStart + 1 to aAO.FrameEnd do begin
+
+            if i > CurrentFrameCount then
+              InsertBlankFrameAt(i);            
+
+            CopyFromTo(i - 1, i);
+
+            fCurrentFrame := i;
+
+            if (aAO.ActionList.Count <> 0) then begin
+              for a := 0 to aAO.ActionList.Count - 1 do begin
+                lAction := StrToIntDef(aAO.ActionList[a], -1);
+
+                case lAction of
+                  0 : PerformEffectOnCurrentFrame(modeMirror);
+                  1 : PerformEffectOnCurrentFrame(modeFlip);
+                  2 : PerformEffectOnCurrentFrame(modeInvert);
+
+                  3 : PerformScrollOnCurrentFrame(modeScrollLeft);
+                  4 : PerformScrollOnCurrentFrame(modeScrollRight);
+                  5 : PerformScrollOnCurrentFrame(modeScrollUp);
+                  6 : PerformScrollOnCurrentFrame(modeScrollDown);
+
+                  7 : RotateCurrentFrame(modeRotateACW);
+                  8 : RotateCurrentFrame(modeRotateCW);
+                else
+                  showmessage('error: ' + aAO.ActionList[a]);
+                end;
+              end;
+            end;
+          end;
+        end;
+    1 : begin
+          for i:= aAO.FrameStart to aAO.FrameEnd do begin
+
+            if i > CurrentFrameCount then
+              InsertBlankFrameAt(i);            
+          
+            fCurrentFrame := i;
+
+            if (aAO.ActionList.Count <> 0) then begin
+              for a := 0 to aAO.ActionList.Count - 1 do begin
+                lAction := StrToIntDef(aAO.ActionList[a], -1);
+
+                case lAction of
+                  0 : PerformEffectOnCurrentFrame(modeMirror);
+                  1 : PerformEffectOnCurrentFrame(modeFlip);
+                  2 : PerformEffectOnCurrentFrame(modeInvert);
+
+                  3 : PerformScrollOnCurrentFrame(modeScrollLeft);
+                  4 : PerformScrollOnCurrentFrame(modeScrollRight);
+                  5 : PerformScrollOnCurrentFrame(modeScrollUp);
+                  6 : PerformScrollOnCurrentFrame(modeScrollDown);
+
+                  7 : RotateCurrentFrame(modeRotateACW);
+                  8 : RotateCurrentFrame(modeRotateCW);
+                else
+                  showmessage('error: ' + aAO.ActionList[a]);
+                end;
+              end;
+            end;
+          end;
+        end;
+  end;
+end;
+
 
 // =============================================================================
 // =============================================================================

@@ -8,7 +8,7 @@
 // Please do not redistribute the source code!
 //
 //   Started: June 10th 2012
-//  Modified: March 30th 2016
+//  Modified: May 28th 2018
 //
 // ===================================================================
 
@@ -33,8 +33,8 @@ type
                      end;
 
 const
-  LEDStudioDate      = 'September 27th 2017';
-  LEDStudioVersion   = 'v0.8.9 BETA';
+  LEDStudioDate      = 'May 28th 2018';
+  LEDStudioVersion   = 'v0.8.11 BETA';
 
   LeftOffset         = 70;
 

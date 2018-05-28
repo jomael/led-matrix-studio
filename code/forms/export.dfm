@@ -311,10 +311,6 @@ object frmExport: TfrmExport
     OnChange = pcExportChange
     object TabSheet1: TTabSheet
       Caption = 'Code'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Memo1: TMemo
         Left = 206
         Top = 0
@@ -567,6 +563,7 @@ object frmExport: TfrmExport
           Caption = 'Each Line of Output'
           TabOrder = 5
           object sbOutputRow: TSpeedButton
+            Tag = 1
             Left = 16
             Top = 24
             Width = 75
@@ -577,6 +574,7 @@ object frmExport: TfrmExport
             OnClick = sbDataRowsClick
           end
           object sbOutputFrame: TSpeedButton
+            Tag = 1
             Left = 93
             Top = 24
             Width = 75
@@ -586,6 +584,7 @@ object frmExport: TfrmExport
             OnClick = sbDataRowsClick
           end
           object sbOutputBytes: TSpeedButton
+            Tag = 1
             Left = 16
             Top = 55
             Width = 75
@@ -698,10 +697,6 @@ object frmExport: TfrmExport
     object TabSheet2: TTabSheet
       Caption = 'Binary'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Panel3: TPanel
         Left = 0
         Top = 0

@@ -21,10 +21,14 @@ interface
 uses
   System.UITypes, System.Contnrs, Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Buttons, ExtCtrls, ToolWin, ComCtrls, Menus, ImgList,
-  AngleLbl, ExtDlgs;
+  AngleLbl, ExtDlgs,
+
+  automate, playbackspeed,
+
+  ActionObject, System.ImageList;
 
 type
-  TForm1 = class(TForm)
+  TfrmMain = class(TForm)
     MenuMain: TMainMenu;
     File1: TMenuItem;
     Exit1: TMenuItem;
@@ -190,10 +194,10 @@ type
     puAnimationSpeed: TPopupMenu;
     Playbackspeed1: TMenuItem;
     N20: TMenuItem;
-    miPlaybackSpeed1: TMenuItem;
-    miPlaybackSpeed2: TMenuItem;
     miPlaybackSpeed3: TMenuItem;
     miPlaybackSpeed4: TMenuItem;
+    miPlaybackSpeed5: TMenuItem;
+    miPlaybackSpeed7: TMenuItem;
     Help1: TMenuItem;
     N21: TMenuItem;
     miImportInToCurrent: TMenuItem;
@@ -239,7 +243,7 @@ type
     lColoursRight: TLabel;
     Bevel17: TBevel;
     lMemoryUsage: TLabel;
-    miPlaybackSpeed5: TMenuItem;
+    miPlaybackSpeed8: TMenuItem;
     N27: TMenuItem;
     Examples1: TMenuItem;
     sbGradient: TSpeedButton;
@@ -346,6 +350,23 @@ type
     iMMBGradient: TImage;
     miPreviewx6: TMenuItem;
     miRedo: TMenuItem;
+    N38: TMenuItem;
+    miAutomate: TMenuItem;
+    miPasteSpecial: TMenuItem;
+    Copyandshiftleft1: TMenuItem;
+    Copyandshiftright1: TMenuItem;
+    Copyandshiftup1: TMenuItem;
+    Copyandshiftdown1: TMenuItem;
+    miPlaybackSpeed2: TMenuItem;
+    miPlaybackSpeed1: TMenuItem;
+    miPlaybackSpeed6: TMenuItem;
+    miPlaybackSpeed9: TMenuItem;
+    miPlaybackSpeed10: TMenuItem;
+    miPlaybackSpeed11: TMenuItem;
+    N39: TMenuItem;
+    miPlaybackSpeedCustom: TMenuItem;
+    N40: TMenuItem;
+    Setcustomspeed1: TMenuItem;
     procedure sbBuildClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure sbClearClick(Sender: TObject);
@@ -415,7 +436,8 @@ type
     procedure Checkforupdates1Click(Sender: TObject);
     procedure sbRotateAnyClick(Sender: TObject);
     procedure Website1Click(Sender: TObject);
-    procedure miPlaybackSpeed1Click(Sender: TObject);
+    procedure SetPlaybackcustom(aValue : integer);
+    procedure miPlaybackSpeed3Click(Sender: TObject);
     procedure Help1Click(Sender: TObject);
     procedure miImportInToCurrentClick(Sender: TObject);
     procedure miFlipAllFramesClick(Sender: TObject);
@@ -493,12 +515,15 @@ type
     procedure puGradientShapePopup(Sender: TObject);
     procedure miGradSetRowClick(Sender: TObject);
     procedure miRedoClick(Sender: TObject);
+    procedure miAutomateClick(Sender: TObject);
+    procedure Copyandshiftleft1Click(Sender: TObject);
+    procedure Setcustomspeed1Click(Sender: TObject);
   public
 
   end;
 
 var
-  Form1: TForm1;
+  frmMain: TfrmMain;
 
 implementation
 
@@ -531,7 +556,7 @@ var
 
  ProjectSettings : TProjectSettings;  // needs to go!
 
-procedure TForm1.FormCreate(Sender: TObject);
+procedure TfrmMain.FormCreate(Sender: TObject);
  var
   x : integer;
 
@@ -680,7 +705,7 @@ procedure TForm1.FormCreate(Sender: TObject);
       LoadFromFileName(ParamStr(1));
 end;
 
-procedure TForm1.FormKeyPress(Sender: TObject; var Key: Char);
+procedure TfrmMain.FormKeyPress(Sender: TObject; var Key: Char);
  var
   tick : cardinal;
 
@@ -707,13 +732,13 @@ procedure TForm1.FormKeyPress(Sender: TObject; var Key: Char);
   end
 end;
 
-procedure TForm1.FormMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+procedure TfrmMain.FormMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
  begin
   statusMain.SimpleText := '(c) Paul Alan Freshney :: ' + LEDStudioDate + ' :: www.freshney.org';
   lPixelColour.Caption  := '';
 end;
 
-procedure TForm1.FormMouseWheelDown(Sender: TObject; Shift: TShiftState; MousePos: TPoint; var Handled: Boolean);
+procedure TfrmMain.FormMouseWheelDown(Sender: TObject; Shift: TShiftState; MousePos: TPoint; var Handled: Boolean);
  begin
   if (tbFrames.Max <> 1) then begin
     if tbFrames.Position = 1 then
@@ -725,7 +750,7 @@ procedure TForm1.FormMouseWheelDown(Sender: TObject; Shift: TShiftState; MousePo
   end;
 end;
 
-procedure TForm1.FormMouseWheelUp(Sender: TObject; Shift: TShiftState; MousePos: TPoint; var Handled: Boolean);
+procedure TfrmMain.FormMouseWheelUp(Sender: TObject; Shift: TShiftState; MousePos: TPoint; var Handled: Boolean);
  begin
   if (tbFrames.Max <> 1) then begin
     if tbFrames.Position = tbFrames.Max then
@@ -737,7 +762,7 @@ procedure TForm1.FormMouseWheelUp(Sender: TObject; Shift: TShiftState; MousePos:
   end;
 end;
 
-procedure TForm1.FormResize(Sender: TObject);
+procedure TfrmMain.FormResize(Sender: TObject);
  begin
   if (miPixelAuto.Checked) and (MatrixMain.HaveMatrix) then begin
     miPixelTinyClick(miPixelAuto);
@@ -746,17 +771,17 @@ procedure TForm1.FormResize(Sender: TObject);
   end;
 end;
 
-procedure TForm1.miFadeFirstLastClick(Sender: TObject);
+procedure TfrmMain.miFadeFirstLastClick(Sender: TObject);
  begin
   MatrixMain.FadeFirstToLast;
 end;
 
-procedure TForm1.FontViewer1Click(Sender: TObject);
+procedure TfrmMain.FontViewer1Click(Sender: TObject);
  begin
   ShowFontViewer;
 end;
 
-procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
+procedure TfrmMain.FormClose(Sender: TObject; var Action: TCloseAction);
  var
   Reg : TRegistry;
   x : integer;
@@ -798,6 +823,8 @@ procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
 
   Reg.WriteString('savelocation',      AppSettings.LastSaveLocation);
   Reg.WriteString('loadlocation',      AppSettings.LastLoadLocation);
+
+  Reg.WriteInteger('customspeed',      AppSettings.CustomSpeed);
 
   if miPixelAuto.Checked then
     Reg.WriteInteger('pixelsize',        0)
@@ -890,7 +917,7 @@ procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
   MatrixMain.Free;
 end;
 
-procedure TForm1.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+procedure TfrmMain.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
  begin
   if MatrixMain.AnimPlaying then begin
     if timerAnimate.Enabled then
@@ -908,13 +935,13 @@ procedure TForm1.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   end;
 end;
 
-procedure TForm1.FormConstrainedResize(Sender: TObject; var MinWidth, MinHeight, MaxWidth, MaxHeight: Integer);
+procedure TfrmMain.FormConstrainedResize(Sender: TObject; var MinWidth, MinHeight, MaxWidth, MaxHeight: Integer);
  begin
   MinWidth  := 713;
   MinHeight := 310;
 end;
 
-function TForm1.GetAutoPixelSize: integer;
+function TfrmMain.GetAutoPixelSize: integer;
  var
   xc, yc, pxc, pyc: integer;
 
@@ -957,7 +984,7 @@ function TForm1.GetAutoPixelSize: integer;
     Result := 1;
 end;
 
-procedure TForm1.UpdateDisplay;
+procedure TfrmMain.UpdateDisplay;
  begin
   tbFrames.Max         := MatrixMain.FrameCount;
 
@@ -970,13 +997,13 @@ procedure TForm1.UpdateDisplay;
   UpdateData;
 end;
 
-procedure TForm1.bCopySourceDataClick(Sender: TObject);
+procedure TfrmMain.bCopySourceDataClick(Sender: TObject);
  begin
   eSourceData.SelectAll;
   eSourceData.CopyToClipboard;
 end;
 
-procedure TForm1.bDeleteFrameClick(Sender: TObject);
+procedure TfrmMain.bDeleteFrameClick(Sender: TObject);
  begin
   if (tbFrames.Position = 1) and (tbFrames.Max = 1) then begin
   end
@@ -990,14 +1017,28 @@ procedure TForm1.bDeleteFrameClick(Sender: TObject);
   end;
 end;
 
-procedure TForm1.bEndFrameClick(Sender: TObject);
+procedure TfrmMain.bEndFrameClick(Sender: TObject);
  begin
   MatrixMain.CurrentFrame := tbFrames.Max;
 
   SetFrameCaption(tbFrames.Max);
 end;
 
-procedure TForm1.bAddFrameClick(Sender: TObject);
+procedure TfrmMain.miAutomateClick(Sender: TObject);
+var
+  lAO : TActionObject;
+
+begin
+  lAO := TActionObject.Create;
+
+  if DoAutomate(tbFrames.Position, tbFrames.Max, lAO) = mrOK then begin
+    MatrixMain.Automate(lAO);
+  end;
+
+  lAO.Free;
+end;
+
+procedure TfrmMain.bAddFrameClick(Sender: TObject);
  begin
   MatrixMain.InsertBlankFrameAt(tbFrames.Position);
 
@@ -1009,7 +1050,7 @@ procedure TForm1.bAddFrameClick(Sender: TObject);
   UpdateDisplay;
 end;
 
-procedure TForm1.bAddFrameCopyClick(Sender: TObject);
+procedure TfrmMain.bAddFrameCopyClick(Sender: TObject);
  begin
   MatrixMain.InsertCopyFrameAt(tbFrames.Position);
 
@@ -1020,7 +1061,7 @@ procedure TForm1.bAddFrameCopyClick(Sender: TObject);
   UpdateDisplay;
 end;
 
-procedure TForm1.bAddFrameMultipleClick(Sender: TObject);
+procedure TfrmMain.bAddFrameMultipleClick(Sender: TObject);
  var
   s : string;
   sf : integer;
@@ -1052,7 +1093,7 @@ procedure TForm1.bAddFrameMultipleClick(Sender: TObject);
     MessageDlg('Invalid number of frames to add!', mtWarning, [mbOK], 0);
 end;
 
-procedure TForm1.SetButtonImage(button : TBitbtn; imageidx : integer);
+procedure TfrmMain.SetButtonImage(button : TBitbtn; imageidx : integer);
  var
   bmp : TBitmap;
 
@@ -1068,12 +1109,26 @@ procedure TForm1.SetButtonImage(button : TBitbtn; imageidx : integer);
   bmp.Free;
 end;
 
-procedure TForm1.miSetDeadPixelsClick(Sender: TObject);
+procedure TfrmMain.Setcustomspeed1Click(Sender: TObject);
+var
+  lCustomSpeed : integer;
+
+begin
+  lCustomSpeed := DoCustomPlaybackSpeed(AppSettings.CustomSpeed);
+
+  if (lCustomSpeed <> 0) then begin
+    AppSettings.CustomSpeed := lCustomSpeed;
+
+    miPlaybackSpeedCustom.Caption := 'Custom (' + IntToStr(lCustomSpeed) + ' ms)';
+  end;
+end;
+
+procedure TfrmMain.miSetDeadPixelsClick(Sender: TObject);
  begin
   MatrixMain.DeadPixelsMode := not MatrixMain.DeadPixelsMode;
 end;
 
-procedure TForm1.bPlayAnimationClick(Sender: TObject);
+procedure TfrmMain.bPlayAnimationClick(Sender: TObject);
  begin
   bPlayAnimation.Enabled    := False;
   bStartFrame.Enabled       := False;
@@ -1095,7 +1150,7 @@ procedure TForm1.bPlayAnimationClick(Sender: TObject);
   ManageUIControls;
 end;
 
-procedure TForm1.bPreviousFrameClick(Sender: TObject);
+procedure TfrmMain.bPreviousFrameClick(Sender: TObject);
  var
   i : integer;
 
@@ -1112,14 +1167,14 @@ procedure TForm1.bPreviousFrameClick(Sender: TObject);
   MatrixMain.CurrentFrame := i;
 end;
 
-procedure TForm1.bStartFrameClick(Sender: TObject);
+procedure TfrmMain.bStartFrameClick(Sender: TObject);
  begin
   MatrixMain.CurrentFrame := 1;
 
   SetFrameCaption(1);
 end;
 
-procedure TForm1.bStopAnimationClick(Sender: TObject);
+procedure TfrmMain.bStopAnimationClick(Sender: TObject);
  begin
   timerAnimate.Enabled      := False;
 
@@ -1141,10 +1196,10 @@ procedure TForm1.bStopAnimationClick(Sender: TObject);
   MatrixMain.AnimPlaying    := False;
   MatrixMain.MatrixReadOnly := False;
 
-  ManageUIControls;  
+  ManageUIControls;
 end;
 
-procedure TForm1.bLightboxClick(Sender: TObject);
+procedure TfrmMain.bLightboxClick(Sender: TObject);
  begin
   if bLightbox.Tag = 0 then
     bLightbox.Tag := 1
@@ -1156,7 +1211,7 @@ procedure TForm1.bLightboxClick(Sender: TObject);
   MatrixMain.LightBox := bLightbox.Tag;
 end;
 
-procedure TForm1.bNextFrameClick(Sender: TObject);
+procedure TfrmMain.bNextFrameClick(Sender: TObject);
  var
   i : integer;
 
@@ -1173,19 +1228,19 @@ procedure TForm1.bNextFrameClick(Sender: TObject);
   MatrixMain.CurrentFrame := i;
 end;
 
-procedure TForm1.DisplayFrame(frameno: integer);
+procedure TfrmMain.DisplayFrame(frameno: integer);
  begin
   SetFrameCaption(frameno);
 
   MatrixMain.CurrentFrame := frameno;
 end;
 
-procedure TForm1.Donate1Click(Sender: TObject);
+procedure TfrmMain.Donate1Click(Sender: TObject);
  begin
   ExecuteFile(0, 'http://www.maximumoctopus.com/donate.htm', '', '');
 end;
 
-procedure TForm1.cbMatrixTypeChange(Sender: TObject);
+procedure TfrmMain.cbMatrixTypeChange(Sender: TObject);
  var
   statusMouseButtonSelect : boolean;
   statusColourSelect0     : boolean;
@@ -1286,13 +1341,13 @@ procedure TForm1.cbMatrixTypeChange(Sender: TObject);
   end;
 end;
 
-procedure TForm1.cbRowsLSBChange(Sender: TObject);
+procedure TfrmMain.cbRowsLSBChange(Sender: TObject);
  begin
   if sbClear.Enabled then
     UpdateData;
 end;
 
-procedure TForm1.Load1Click(Sender: TObject);
+procedure TfrmMain.Load1Click(Sender: TObject);
  begin
   if timerAnimate.Enabled then
     bStopAnimationClick(Nil);
@@ -1315,13 +1370,13 @@ procedure TForm1.Load1Click(Sender: TObject);
   end;
 end;
 
-procedure TForm1.miMemoryR1Click(Sender: TObject);
+procedure TfrmMain.miMemoryR1Click(Sender: TObject);
  begin
   if sbClear.Enabled then
     MatrixMain.RestoreFromUserBuffer((Sender As TMenuItem).Tag);
 end;
 
-procedure TForm1.miMergeClick(Sender: TObject);
+procedure TfrmMain.miMergeClick(Sender: TObject);
  var
   ted : TImportData;
 
@@ -1347,14 +1402,14 @@ procedure TForm1.miMergeClick(Sender: TObject);
   end;
 end;
 
-procedure TForm1.miAutoSaveClick(Sender: TObject);
+procedure TfrmMain.miAutoSaveClick(Sender: TObject);
  begin
   miAutoSave.Checked    := not(miAutoSave.Checked);
 
   timerAutoSave.Enabled := miAutoSave.Checked;
 end;
 
-procedure TForm1.miBracketsNoneClick(Sender: TObject);
+procedure TfrmMain.miBracketsNoneClick(Sender: TObject);
 begin
   AppSettings.OpenBracket  := '';
   AppSettings.CloseBracket := '';
@@ -1376,19 +1431,19 @@ begin
     UpdateData;
 end;
 
-procedure TForm1.miCopyClick(Sender: TObject);
+procedure TfrmMain.miCopyClick(Sender: TObject);
  begin
   MatrixMain.CopyCurrentFrame;
 end;
 
-procedure TForm1.miCopyFromPreviousClick(Sender: TObject);
+procedure TfrmMain.miCopyFromPreviousClick(Sender: TObject);
  begin
   if (sbClear.Enabled) and (tbFrames.Position <> 1) then begin
     MatrixMain.CopyFromPrevious(tbFrames.Position);
   end;
 end;
 
-procedure TForm1.miFontModeClick(Sender: TObject);
+procedure TfrmMain.miFontModeClick(Sender: TObject);
  begin
   pbFont.Visible       := miFontMode.Checked;
   miSaveAsFont.Enabled := miFontMode.Checked;
@@ -1407,7 +1462,7 @@ procedure TForm1.miFontModeClick(Sender: TObject);
   FormResize(Nil);
 end;
 
-procedure TForm1.miHexFormatClick(Sender: TObject);
+procedure TfrmMain.miHexFormatClick(Sender: TObject);
  begin
   if sbClear.Enabled then
     UpdateData;
@@ -1415,7 +1470,7 @@ procedure TForm1.miHexFormatClick(Sender: TObject);
   miHexOutputNoneClick(Nil);
 end;
 
-procedure TForm1.miHexOutputNoneClick(Sender: TObject);
+procedure TfrmMain.miHexOutputNoneClick(Sender: TObject);
  begin
   AppSettings.HexPrefix := '';
 
@@ -1432,7 +1487,7 @@ procedure TForm1.miHexOutputNoneClick(Sender: TObject);
     UpdateData;
 end;
 
-procedure TForm1.miImportInToCurrentClick(Sender: TObject);
+procedure TfrmMain.miImportInToCurrentClick(Sender: TObject);
  var
   ted : TImportData;
 
@@ -1452,7 +1507,7 @@ procedure TForm1.miImportInToCurrentClick(Sender: TObject);
   end;
 end;
 
-procedure TForm1.miMemory1Click(Sender: TObject);
+procedure TfrmMain.miMemory1Click(Sender: TObject);
  begin
   if sbClear.Enabled then begin
     MatrixMain.CopyToUserBuffer((Sender As TMenuItem).Tag);
@@ -1462,7 +1517,7 @@ procedure TForm1.miMemory1Click(Sender: TObject);
   end;
 end;
 
-procedure TForm1.miPresetSaveCurrentClick(Sender: TObject);
+procedure TfrmMain.miPresetSaveCurrentClick(Sender: TObject);
  var
   s : string;
   tf : TextFile;
@@ -1489,21 +1544,21 @@ procedure TForm1.miPresetSaveCurrentClick(Sender: TObject);
   end;
 end;
 
-procedure TForm1.miPreviewClick(Sender: TObject);
+procedure TfrmMain.miPreviewClick(Sender: TObject);
  begin
   MatrixMain.PreviewActive := miPreview.Checked;
 
   FormResize(Nil);  
 end;
 
-procedure TForm1.miRandomnessTinyClick(Sender: TObject);
+procedure TfrmMain.miRandomnessTinyClick(Sender: TObject);
  begin
   (Sender As TMenuItem).Checked := True;
   
   MatrixMain.RandomCoeff := (Sender As TMenuItem).Tag;
 end;
 
-procedure TForm1.BuildFontList;
+procedure TfrmMain.BuildFontList;
  var
   searchResult : TSearchRec;
   mi : TMenuItem;
@@ -1540,7 +1595,7 @@ procedure TForm1.BuildFontList;
     sbFont.Visible := False;
 end;
 
-procedure TForm1.BuildPresetList;
+procedure TfrmMain.BuildPresetList;
  var
   searchResult : TSearchRec;
   mi : TMenuItem;
@@ -1586,7 +1641,7 @@ begin
   end;
 end;
 
-procedure TForm1.BuildGradientList;
+procedure TfrmMain.BuildGradientList;
  var
   searchResult : TSearchRec;
   mi : TMenuItem;
@@ -1632,7 +1687,7 @@ begin
 end;
 
 
-procedure TForm1.SelectFont(Sender : TObject);
+procedure TfrmMain.SelectFont(Sender : TObject);
  var
   s,temp : string;
   t : integer;
@@ -1654,7 +1709,7 @@ procedure TForm1.SelectFont(Sender : TObject);
     MessageDlg('Cannot find font!!', mtError, [mbOK], 0);
 end;
 
-procedure TForm1.SelectPreset(Sender : TObject);
+procedure TfrmMain.SelectPreset(Sender : TObject);
  var
   s,temp : string;
   t : integer;
@@ -1677,7 +1732,7 @@ procedure TForm1.SelectPreset(Sender : TObject);
   end;
 end;
 
-procedure TForm1.LoadPreset(filename : string);
+procedure TfrmMain.LoadPreset(filename : string);
  var
   tf   : TextFile;
   s, v : string;
@@ -1732,7 +1787,7 @@ procedure TForm1.LoadPreset(filename : string);
   sbBuildClick(Load1);
 end;
 
-procedure TForm1.Small1Click(Sender: TObject);
+procedure TfrmMain.Small1Click(Sender: TObject);
  begin
   TMenuItem(Sender).Checked := True;
 
@@ -1741,7 +1796,7 @@ procedure TForm1.Small1Click(Sender: TObject);
   MatrixMain.ChangePixelBrush(puBrushSize.Tag);
 end;
 
-procedure TForm1.miPadAutoClick(Sender: TObject);
+procedure TfrmMain.miPadAutoClick(Sender: TObject);
  begin
   if (Sender <> Nil) then begin
     AppSettings.PadMode := (Sender As TMenuItem).Tag;
@@ -1755,7 +1810,7 @@ procedure TForm1.miPadAutoClick(Sender: TObject);
     UpdateData;
 end;
 
-procedure TForm1.miPixelShapeSquareClick(Sender: TObject);
+procedure TfrmMain.miPixelShapeSquareClick(Sender: TObject);
  begin
   Screen.Cursor := crHourGlass;
 
@@ -1772,7 +1827,7 @@ procedure TForm1.miPixelShapeSquareClick(Sender: TObject);
   Screen.Cursor := crDefault;
 end;
 
-procedure TForm1.miPixelTinyClick(Sender: TObject);
+procedure TfrmMain.miPixelTinyClick(Sender: TObject);
  var
   x, y : integer;
 
@@ -1812,7 +1867,7 @@ procedure TForm1.miPixelTinyClick(Sender: TObject);
   Screen.Cursor := crDefault;
 end;
 
-procedure TForm1.sbPresetClick(Sender: TObject);
+procedure TfrmMain.sbPresetClick(Sender: TObject);
  begin
   if timerAnimate.Enabled then
     bStopAnimationClick(Nil);
@@ -1820,7 +1875,7 @@ procedure TForm1.sbPresetClick(Sender: TObject);
   puPresets.Popup(Left + sbPreset.Left, Top + 80);
 end;
 
-procedure TForm1.sbRotateAnyClick(Sender: TObject);
+procedure TfrmMain.sbRotateAnyClick(Sender: TObject);
  var
   t,origframe : integer;
   byangle : real;
@@ -1848,14 +1903,14 @@ procedure TForm1.sbRotateAnyClick(Sender: TObject);
   Screen.Cursor := crDefault;
 end;
 
-procedure TForm1.tbFramesChange(Sender: TObject);
+procedure TfrmMain.tbFramesChange(Sender: TObject);
  begin
   MatrixMain.CurrentFrame := tbFrames.Position;
 
   SetFrameCaption(tbFrames.Position);
 end;
 
-procedure TForm1.sbChangeFontClick(Sender: TObject);
+procedure TfrmMain.sbChangeFontClick(Sender: TObject);
  begin
   if fdMain.Execute then begin
     lFont.Font := fdMain.Font;
@@ -1864,7 +1919,7 @@ procedure TForm1.sbChangeFontClick(Sender: TObject);
   end;
 end;
 
-procedure TForm1.sbPixelShapeClick(Sender: TObject);
+procedure TfrmMain.sbPixelShapeClick(Sender: TObject);
  begin
   if timerAnimate.Enabled then
     bStopAnimationClick(Nil);
@@ -1872,7 +1927,7 @@ procedure TForm1.sbPixelShapeClick(Sender: TObject);
   puPixelShape.Popup(Left + 250, Top + 80);
 end;
 
-procedure TForm1.sbPixelSizeClick(Sender: TObject);
+procedure TfrmMain.sbPixelSizeClick(Sender: TObject);
  begin
   if timerAnimate.Enabled then
     bStopAnimationClick(Nil);
@@ -1880,17 +1935,17 @@ procedure TForm1.sbPixelSizeClick(Sender: TObject);
   puPixelSize.Popup(Left + 200, Top + 80);
 end;
 
-procedure TForm1.sbMirrorClick(Sender: TObject);
+procedure TfrmMain.sbMirrorClick(Sender: TObject);
  begin
   MatrixMain.PerformEffectOnCurrentFrame(modeFlip);
 end;
 
-procedure TForm1.miFlipAllFramesClick(Sender: TObject);
+procedure TfrmMain.miFlipAllFramesClick(Sender: TObject);
  begin
   MatrixMain.PerformEffectOnAllFrames(modeFlipAll);
 end;
                     
-procedure TForm1.sbMouseModeClick(Sender: TObject);
+procedure TfrmMain.sbMouseModeClick(Sender: TObject);
  begin
   MatrixMain.DrawData.Mode        := TSpeedButton(Sender).Tag;
   MatrixMain.DrawData.Point       := 0;
@@ -1903,50 +1958,88 @@ procedure TForm1.sbMouseModeClick(Sender: TObject);
   DisplayFrame(tbFrames.Position);
 end;
 
-procedure TForm1.sbRotateLClick(Sender: TObject);
+procedure TfrmMain.sbRotateLClick(Sender: TObject);
  begin
   MatrixMain.RotateCurrentFrame(modeRotateACW);
 end;
 
-procedure TForm1.sbRotateRClick(Sender: TObject);
+procedure TfrmMain.sbRotateRClick(Sender: TObject);
  begin
   MatrixMain.RotateCurrentFrame(modeRotateCW);
 end;
 
-procedure TForm1.miShowAnimationToolbarClick(Sender: TObject);
+procedure TfrmMain.miShowAnimationToolbarClick(Sender: TObject);
  begin
   pAnimationToolbar.Visible := miShowAnimationToolbar.Checked;
 end;
 
-procedure TForm1.miPlaybackSpeed1Click(Sender: TObject);
+
+procedure TfrmMain.SetPlaybackCustom(aValue : integer);
+begin
+  miPlaybackSpeedCustom.Checked := True;
+  timerAnimate.Interval         := aValue;
+  bPlayAnimation.Hint           := 'Play animation (custom, ' + IntToStr(aValue) + ' ms';
+  miPlaybackSpeedCustom.Caption := 'Custom (' + IntToStr(aValue) + ' ms)';
+end;
+
+
+procedure TfrmMain.miPlaybackSpeed3Click(Sender: TObject);
  begin
   TMenuItem(Sender).Checked := True;
 
   case TMenuItem(Sender).Tag of
     0 : begin
+          timerAnimate.Interval := 2000;
+          bPlayAnimation.Hint   := 'Play animation (2 seconds)';
+        end;
+    1 : begin
+          timerAnimate.Interval := 1500;
+          bPlayAnimation.Hint   := 'Play animation (1.5 seconds)';
+        end;
+    2 : begin
           timerAnimate.Interval := 1000;
           bPlayAnimation.Hint   := 'Play animation (1 second)';
         end;
-    1 : begin
+    3 : begin
           timerAnimate.Interval := 500;
           bPlayAnimation.Hint   := 'Play animation (0.5 seconds)';
         end;
-    2 : begin
+    4 : begin
           timerAnimate.Interval := 250;
           bPlayAnimation.Hint   := 'Play animation (0.25 seconds)';
         end;
-    3 : begin
+    5 : begin
+          timerAnimate.Interval := 200;
+          bPlayAnimation.Hint   := 'Play animation (0.20 seconds)';
+        end;
+    6 : begin
           timerAnimate.Interval := 100;
           bPlayAnimation.Hint   := 'Play animation (0.1 seconds)';
         end;
-    4 : begin
+    7 : begin
           timerAnimate.Interval := 50;
           bPlayAnimation.Hint   := 'Play animation (0.05 seconds)';
+        end;
+    8 : begin
+          timerAnimate.Interval := 25;
+          bPlayAnimation.Hint   := 'Play animation (0.025 seconds)';
+        end;
+    9 : begin
+          timerAnimate.Interval := 20;
+          bPlayAnimation.Hint   := 'Play animation (0.020 seconds)';
+        end;
+   10 : begin
+          timerAnimate.Interval := 10;
+          bPlayAnimation.Hint   := 'Play animation (0.01 seconds)';
+        end;
+   20 : begin
+          timerAnimate.Interval := AppSettings.CustomSpeed;
+          bPlayAnimation.Hint   := 'Play animation (' + IntToStr(AppSettings.CustomSpeed) + ' ms';
         end;
   end;
 end;
 
-procedure TForm1.miAddCommentClick(Sender: TObject);
+procedure TfrmMain.miAddCommentClick(Sender: TObject);
  var
   s : string;
 
@@ -1958,7 +2051,7 @@ procedure TForm1.miAddCommentClick(Sender: TObject);
   end;
 end;
 
-procedure TForm1.miASCIIStartCodeClick(Sender: TObject);
+procedure TfrmMain.miASCIIStartCodeClick(Sender: TObject);
  var
   s : string;
 
@@ -1970,7 +2063,7 @@ procedure TForm1.miASCIIStartCodeClick(Sender: TObject);
   end;
 end;
 
-procedure TForm1.miAutosave2Click(Sender: TObject);
+procedure TfrmMain.miAutosave2Click(Sender: TObject);
  begin
   if (Sender <> Nil) then begin
     (Sender As TMenuItem).Checked := True;
@@ -1983,7 +2076,7 @@ procedure TForm1.miAutosave2Click(Sender: TObject);
   end;
 end;
 
-procedure TForm1.New1Click(Sender: TObject);
+procedure TfrmMain.New1Click(Sender: TObject);
  begin
   if timerAnimate.Enabled then
     bStopAnimationClick(Nil);
@@ -1995,14 +2088,14 @@ procedure TForm1.New1Click(Sender: TObject);
   end;
 end;
 
-procedure TForm1.miPasteClick(Sender: TObject);
+procedure TfrmMain.miPasteClick(Sender: TObject);
  begin
   MatrixMain.BackupMatrix(tbFrames.Position);
 
   MatrixMain.PasteCurrentFrame;
 end;
 
-procedure TForm1.sbUndoClick(Sender: TObject);
+procedure TfrmMain.sbUndoClick(Sender: TObject);
  begin
   MatrixMain.Undo;
 
@@ -2010,7 +2103,7 @@ procedure TForm1.sbUndoClick(Sender: TObject);
     UpdateData;
 end;
 
-procedure TForm1.miRedoClick(Sender: TObject);
+procedure TfrmMain.miRedoClick(Sender: TObject);
 begin
   MatrixMain.Redo;
 
@@ -2018,7 +2111,7 @@ begin
     UpdateData;
 end;
 
-procedure TForm1.sColour3MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+procedure TfrmMain.sColour3MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
  var
   old : integer;
 
@@ -2079,7 +2172,7 @@ procedure TForm1.sColour3MouseDown(Sender: TObject; Button: TMouseButton; Shift:
   end;
 end;
 
-procedure TForm1.sbBuildClick(Sender: TObject);
+procedure TfrmMain.sbBuildClick(Sender: TObject);
  var
   x,y,mw,mh : integer;
   ps : TProjectSettings;
@@ -2195,17 +2288,17 @@ procedure TForm1.sbBuildClick(Sender: TObject);
   FormResize(Nil);
 end;
 
-procedure TForm1.sbClearClick(Sender: TObject);
+procedure TfrmMain.sbClearClick(Sender: TObject);
  begin
   MatrixMain.ClearCurrentFrame;
 end;
 
-procedure TForm1.sbFlipClick(Sender: TObject);
+procedure TfrmMain.sbFlipClick(Sender: TObject);
  begin
   MatrixMain.PerformEffectOnCurrentFrame(modeMirror);
 end;
 
-procedure TForm1.sbGradientClick(Sender: TObject);
+procedure TfrmMain.sbGradientClick(Sender: TObject);
  begin
   case sbGradient.Tag of
     0 : sbGradient.Tag := 1;
@@ -2218,49 +2311,49 @@ procedure TForm1.sbGradientClick(Sender: TObject);
   FormResize(Nil);
 end;
 
-procedure TForm1.sbGradientMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+procedure TfrmMain.sbGradientMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
  begin
   if Button = mbRight then begin
     puGradients.Popup(Left + 200, Top + 140);
   end;
 end;
 
-procedure TForm1.miMirrorAllFramesClick(Sender: TObject);
+procedure TfrmMain.miMirrorAllFramesClick(Sender: TObject);
  begin
   MatrixMain.PerformEffectOnAllFrames(modeMirrorAll);
 end;
 
-procedure TForm1.sbScrollLeftClick(Sender: TObject);
+procedure TfrmMain.sbScrollLeftClick(Sender: TObject);
  begin
   MatrixMain.PerformScrollOnCurrentFrame(modeScrollLeft);
 end;
 
-procedure TForm1.sbScrollRightClick(Sender: TObject);
+procedure TfrmMain.sbScrollRightClick(Sender: TObject);
  begin
   MatrixMain.PerformScrollOnCurrentFrame(modeScrollRight);
 end;
 
-procedure TForm1.sbScrollUpClick(Sender: TObject);
+procedure TfrmMain.sbScrollUpClick(Sender: TObject);
 begin
   MatrixMain.PerformScrollOnCurrentFrame(modeScrollUp);
 end;
 
-procedure TForm1.sbScrollDownClick(Sender: TObject);
+procedure TfrmMain.sbScrollDownClick(Sender: TObject);
  begin
   MatrixMain.PerformScrollOnCurrentFrame(modeScrollDown);
 end;
 
-procedure TForm1.sbInvertClick(Sender: TObject);
+procedure TfrmMain.sbInvertClick(Sender: TObject);
  begin
   MatrixMain.PerformEffectOnCurrentFrame(modeInvert);
 end;
 
-procedure TForm1.miInvertAllFramesClick(Sender: TObject);
+procedure TfrmMain.miInvertAllFramesClick(Sender: TObject);
  begin
   MatrixMain.PerformEffectOnAllFrames(modeInvertAll);
 end;
 
-procedure TForm1.timerAnimateTimer(Sender: TObject);
+procedure TfrmMain.timerAnimateTimer(Sender: TObject);
  begin
   SetFrameCaption(timerAnimate.Tag);
 
@@ -2272,7 +2365,7 @@ procedure TForm1.timerAnimateTimer(Sender: TObject);
     timerAnimate.Tag := timerAnimate.Tag + 1;
 end;
 
-procedure TForm1.timerAutosaveTimer(Sender: TObject);
+procedure TfrmMain.timerAutosaveTimer(Sender: TObject);
 var
   ted : TImportData;
   lFileName : string;
@@ -2300,7 +2393,7 @@ begin
   end;
 end;
 
-procedure TForm1.Clearallbuffers1Click(Sender: TObject);
+procedure TfrmMain.Clearallbuffers1Click(Sender: TObject);
  var
   x,y,t : integer;
 
@@ -2324,13 +2417,13 @@ procedure TForm1.Clearallbuffers1Click(Sender: TObject);
   end; 
 end;
 
-procedure TForm1.Clearallframes1Click(Sender: TObject);
+procedure TfrmMain.Clearallframes1Click(Sender: TObject);
  begin
   if MessageDlg('Clear all frames!' + #13#13 + 'Are you sure?', mtWarning, [mbYes, mbNo], 0) = mrYes then
     MatrixMain.ClearAllFrames;  
 end;
 
-procedure TForm1.eSourceDataKeyPress(Sender: TObject; var Key: Char);
+procedure TfrmMain.eSourceDataKeyPress(Sender: TObject; var Key: Char);
  begin
   if cbSource.ItemIndex = 0 then begin
     if (Key = #13) and (sbClear.Enabled) then begin
@@ -2344,7 +2437,7 @@ procedure TForm1.eSourceDataKeyPress(Sender: TObject; var Key: Char);
   end;
 end;
 
-procedure TForm1.Importfrombitmap1Click(Sender: TObject);
+procedure TfrmMain.Importfrombitmap1Click(Sender: TObject);
  var
   ted : TImportData;
 
@@ -2388,7 +2481,7 @@ procedure TForm1.Importfrombitmap1Click(Sender: TObject);
   end;
 end;
 
-procedure TForm1.UpdateData;
+procedure TfrmMain.UpdateData;
  var
  mydata  : int64;
  x, y    : integer;
@@ -2840,32 +2933,32 @@ procedure TForm1.UpdateData;
   end;
 end;
 
-procedure TForm1.About2Click(Sender: TObject);
+procedure TfrmMain.About2Click(Sender: TObject);
  begin
   frmAbout.ShowModal;
 end;
 
-procedure TForm1.Checkforupdates1Click(Sender: TObject);
+procedure TfrmMain.Checkforupdates1Click(Sender: TObject);
  begin
   CheckForNewVersion(LEDStudioVersion, LEDStudioDate, 'led.dat', false);
 end;
 
-procedure TForm1.miColumnRowDataToolbarClick(Sender: TObject);
+procedure TfrmMain.miColumnRowDataToolbarClick(Sender: TObject);
  begin
   pSourceDisplay.Visible := miColumnRowDataToolbar.Checked;
 end;
 
-procedure TForm1.miClearAllFramesGradientClick(Sender: TObject);
+procedure TfrmMain.miClearAllFramesGradientClick(Sender: TObject);
  begin
   MatrixMain.ClearAllFramesGradient(sbGradient.Tag);
 end;
 
-procedure TForm1.miCodeTemplatesClick(Sender: TObject);
+procedure TfrmMain.miCodeTemplatesClick(Sender: TObject);
  begin
   DoExportCode(MatrixMain.MatrixType);
 end;
 
-procedure TForm1.Colour01Click(Sender: TObject);
+procedure TfrmMain.Colour01Click(Sender: TObject);
  var
   x : integer;
 
@@ -2880,7 +2973,12 @@ procedure TForm1.Colour01Click(Sender: TObject);
   MatrixMain.MatrixGradientIY[puGradient.Tag] := (Sender As TMenuItem).Tag;
 end;
 
-procedure TForm1.miCombineClick(Sender: TObject);
+procedure TfrmMain.Copyandshiftleft1Click(Sender: TObject);
+begin
+  MatrixMain.PasteSpecial(TMenuItem(Sender).Tag);
+end;
+
+procedure TfrmMain.miCombineClick(Sender: TObject);
  var
   ted : TImportData;
 
@@ -2910,7 +3008,7 @@ procedure TForm1.miCombineClick(Sender: TObject);
   end;
 end;
 
-procedure TForm1.cbSourceChange(Sender: TObject);
+procedure TfrmMain.cbSourceChange(Sender: TObject);
  begin
   cbSourceLSB.Clear;
   cbSourceDirection.Clear;
@@ -2938,23 +3036,23 @@ procedure TForm1.cbSourceChange(Sender: TObject);
     UpdateData;
 end;
 
-procedure TForm1.Examples1Click(Sender: TObject);
+procedure TfrmMain.Examples1Click(Sender: TObject);
  begin
   ExecuteFile(0, '"' + ExtractFilePath(Application.ExeName) + 'example code\' + '"', '', '')
 end;
 
-procedure TForm1.Exit1Click(Sender: TObject);
+procedure TfrmMain.Exit1Click(Sender: TObject);
  begin
   Close;
 end;
 
-procedure TForm1.miExportToBitmapClick(Sender: TObject);
+procedure TfrmMain.miExportToBitmapClick(Sender: TObject);
  begin
   if spdMain.Execute then  
     MatrixMain.ExportToBitmap(spdMain.FileName);
 end;
 
-procedure TForm1.miSaveSingleFrameClick(Sender: TObject);
+procedure TfrmMain.miSaveSingleFrameClick(Sender: TObject);
  var
   ted : TImportData;
 
@@ -2999,7 +3097,7 @@ procedure TForm1.miSaveSingleFrameClick(Sender: TObject);
   end;
 end;
 
-procedure TForm1.miSaveClick(Sender: TObject);
+procedure TfrmMain.miSaveClick(Sender: TObject);
  var
   ted : TImportData;
 
@@ -3025,7 +3123,7 @@ procedure TForm1.miSaveClick(Sender: TObject);
   end;
 end;
 
-procedure TForm1.miSaveGradientClick(Sender: TObject);
+procedure TfrmMain.miSaveGradientClick(Sender: TObject);
  var
   s,g : string;
   t : integer;
@@ -3051,7 +3149,7 @@ procedure TForm1.miSaveGradientClick(Sender: TObject);
   end;
 end;
 
-procedure TForm1.miSaveAsClick(Sender: TObject);
+procedure TfrmMain.miSaveAsClick(Sender: TObject);
  var
   ted : TImportData;
 
@@ -3085,7 +3183,7 @@ procedure TForm1.miSaveAsClick(Sender: TObject);
   end;
 end;
 
-procedure TForm1.miSaveAsFontClick(Sender: TObject);
+procedure TfrmMain.miSaveAsFontClick(Sender: TObject);
  begin
   sdMain.DefaultExt := '.ledsfont';
   sdMain.Filename   := IntToStr(MatrixMain.MatrixWidth) + 'x' + IntToStr(MatrixMain.MatrixHeight);
@@ -3102,24 +3200,24 @@ procedure TForm1.miSaveAsFontClick(Sender: TObject);
   end;
 end;
 
-procedure TForm1.Savebufferstoclipboard1Click(Sender: TObject);
+procedure TfrmMain.Savebufferstoclipboard1Click(Sender: TObject);
  begin
   ExportData(AppSettings.LastExport, 1, MatrixMain.MatrixType);
 end;
 
-procedure TForm1.miGradientAllFramesClick(Sender: TObject);
+procedure TfrmMain.miGradientAllFramesClick(Sender: TObject);
  begin
   MatrixMain.PerformEffectOnAllFrames(modeGradientAll);
 end;
 
-procedure TForm1.miGridToggleClick(Sender: TObject);
+procedure TfrmMain.miGridToggleClick(Sender: TObject);
  begin
   miGridToggle.Checked := not(miGridToggle.Checked);
 
   MatrixMain.ChangeGrid(miGridToggle.Checked);
 end;
 
-procedure TForm1.Help1Click(Sender: TObject);
+procedure TfrmMain.Help1Click(Sender: TObject);
  begin
   if FileExists(ExtractFilePath(Application.ExeName) + 'help\en\help.txt') then
     ExecuteFile(0, ExtractFilePath(Application.ExeName) + 'help\en\help.txt', '', '')
@@ -3127,7 +3225,7 @@ procedure TForm1.Help1Click(Sender: TObject);
     MessageDlg('Help file not found :(', mtWarning, [mbOK], 0);
 end;
 
-procedure TForm1.miExportClick(Sender: TObject);
+procedure TfrmMain.miExportClick(Sender: TObject);
  var
   teo : TExportOptions;
 
@@ -3155,7 +3253,7 @@ procedure TForm1.miExportClick(Sender: TObject);
   end;
 end;
 
-procedure TForm1.SetFrameCaption(i : integer);
+procedure TfrmMain.SetFrameCaption(i : integer);
  begin
   if MatrixMain.SoftwareMode = 1 then begin
     lFrame.Caption     := Char(i + AppSettings.ASCIIIndex - 1);
@@ -3170,17 +3268,17 @@ procedure TForm1.SetFrameCaption(i : integer);
     tbFrames.Position := i;
 end;
 
-procedure TForm1.UpdateMemoryUsage;
+procedure TfrmMain.UpdateMemoryUsage;
  begin
   lMemoryUsage.Caption := 'Using ' + IntToStr(MatrixMain.CalculateMemoryUsage) + ' bytes.';
 end;
 
-procedure TForm1.Website1Click(Sender: TObject);
+procedure TfrmMain.Website1Click(Sender: TObject);
  begin
   ExecuteFile(0, 'http://www.maximumoctopus.com/electronics/builder.htm', '', '');
 end;
 
-procedure TForm1.miPreviewx1Click(Sender: TObject);
+procedure TfrmMain.miPreviewx1Click(Sender: TObject);
  begin
   (Sender as TMenuitem).Checked := True;
   
@@ -3189,7 +3287,7 @@ procedure TForm1.miPreviewx1Click(Sender: TObject);
   FormResize(Nil);  
 end;
 
-procedure TForm1.RecalculatePadding;
+procedure TfrmMain.RecalculatePadding;
  begin
   case AppSettings.PadMode of
     0 : begin
@@ -3259,7 +3357,7 @@ procedure TForm1.RecalculatePadding;
   end;
 end;
 
-procedure TForm1.SetupMatrixColours;
+procedure TfrmMain.SetupMatrixColours;
  var
   x : integer;
 
@@ -3307,7 +3405,7 @@ procedure TForm1.SetupMatrixColours;
 //  ShapeLightBox.Brush.Color  := MatrixMain.LEDColours[5];
 end;
 
-procedure TForm1.OnGradientClick(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+procedure TfrmMain.OnGradientClick(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
  begin
   if MatrixMain.MatrixType = psTypeRGB then begin
     puGradientRGB.Tag := (Sender As TShape).Tag;
@@ -3321,12 +3419,12 @@ procedure TForm1.OnGradientClick(Sender: TObject; Button: TMouseButton; Shift: T
   end;
 end;
 
-procedure TForm1.Openautosavefolder1Click(Sender: TObject);
+procedure TfrmMain.Openautosavefolder1Click(Sender: TObject);
  begin
   ExecuteFile(0, ExtractFilePath(Application.ExeName) + 'saves\autosave\', '', '')
 end;
 
-procedure TForm1.ToggleGradient(gmode : integer; cleargradient : boolean);
+procedure TfrmMain.ToggleGradient(gmode : integer; cleargradient : boolean);
  var
   t : integer;
 
@@ -3422,7 +3520,7 @@ procedure TForm1.ToggleGradient(gmode : integer; cleargradient : boolean);
   MatrixMain.MatrixGradient := gmode;
 end;
 
-procedure TForm1.SelectGradient(Sender : TObject);
+procedure TfrmMain.SelectGradient(Sender : TObject);
  var
   s,temp : string;
   t : integer;
@@ -3446,7 +3544,7 @@ procedure TForm1.SelectGradient(Sender : TObject);
 end;
 
 
-function TForm1.GetHexFormat: integer;
+function TfrmMain.GetHexFormat: integer;
  begin
   if miHexFormat.Checked then
     Result := 1
@@ -3454,7 +3552,7 @@ function TForm1.GetHexFormat: integer;
     Result := 0;
 end;
 
-function TForm1.GetHexOutput:integer;
+function TfrmMain.GetHexOutput:integer;
  begin
   if miHexOutputNone.Checked then
     Result := 0
@@ -3464,7 +3562,7 @@ function TForm1.GetHexOutput:integer;
     Result := 2;
 end;
 
-procedure TForm1.miGradientSelectRGBClick(Sender: TObject);
+procedure TfrmMain.miGradientSelectRGBClick(Sender: TObject);
  begin
   if colorDialog.Execute then begin
     MatrixGradient[puGradientRGB.Tag].Brush.Color  := colorDialog.Color;
@@ -3476,7 +3574,7 @@ procedure TForm1.miGradientSelectRGBClick(Sender: TObject);
   end;
 end;
 
-procedure TForm1.miGradFromClick(Sender: TObject);
+procedure TfrmMain.miGradFromClick(Sender: TObject);
  var
   rdy, gdy, bdy : integer;
   rdx, gdx, bdx : double;
@@ -3530,7 +3628,7 @@ procedure TForm1.miGradFromClick(Sender: TObject);
   end;
 end;
 
-function TForm1.GetBrackets: integer;
+function TfrmMain.GetBrackets: integer;
  begin
   if miBracketsNone.Checked then
     Result := 0
@@ -3542,7 +3640,7 @@ function TForm1.GetBrackets: integer;
     Result := 3;
 end;
 
-procedure TForm1.SetHexOptions(ohexformat, ohexprefix : integer);
+procedure TfrmMain.SetHexOptions(ohexformat, ohexprefix : integer);
  begin
   case ohexformat of
     0 : miHexFormat.Checked := False;
@@ -3561,7 +3659,7 @@ procedure TForm1.SetHexOptions(ohexformat, ohexprefix : integer);
   miHexOutputNoneClick(Nil);
 end;
 
-procedure TForm1.SetPadFormat(opadmode : integer);
+procedure TfrmMain.SetPadFormat(opadmode : integer);
  begin
   case opadmode of
     0 : miPadAuto.Checked   := True;
@@ -3578,7 +3676,7 @@ procedure TForm1.SetPadFormat(opadmode : integer);
   miPadAutoClick(Nil);
 end;
 
-procedure TForm1.miGradSetRowClick(Sender: TObject);
+procedure TfrmMain.miGradSetRowClick(Sender: TObject);
  var
   x : integer;
 
@@ -3597,7 +3695,7 @@ procedure TForm1.miGradSetRowClick(Sender: TObject);
   MatrixMain.Refresh;
 end;
 
-procedure TForm1.SetBrackets(obrackets : integer);
+procedure TfrmMain.SetBrackets(obrackets : integer);
  begin
   case obrackets of
     0 : miBracketsNone.Checked   := True;
@@ -3609,14 +3707,14 @@ procedure TForm1.SetBrackets(obrackets : integer);
   miBracketsNoneClick(Nil);
 end;
 
-procedure TForm1.Preferences1Click(Sender: TObject);
+procedure TfrmMain.Preferences1Click(Sender: TObject);
  begin
   if DoPrefs = mrOK then begin
      MatrixMain.CurrentFrame := MatrixMain.CurrentFrame;
   end;
 end;
 
-procedure TForm1.puGradientShapePopup(Sender: TObject);
+procedure TfrmMain.puGradientShapePopup(Sender: TObject);
  begin
   miGradSetRow.Tag := TShape(Sender).Tag;
 
@@ -3630,7 +3728,7 @@ procedure TForm1.puGradientShapePopup(Sender: TObject);
   end;
 end;
 
-procedure TForm1.MatrixOnChange(Sender : TObject);
+procedure TfrmMain.MatrixOnChange(Sender : TObject);
  begin
   UpdateData;
 
@@ -3640,14 +3738,14 @@ procedure TForm1.MatrixOnChange(Sender : TObject);
   tbFrames.Max := MatrixMain.FrameCount; // last frame available
 end;
 
-procedure TForm1.MatrixOnColourChange(Sender : TObject);
+procedure TfrmMain.MatrixOnColourChange(Sender : TObject);
  begin
   sSelectionLMB.Brush.Color := MatrixMain.LEDRGBColours[1];
   sSelectionMMB.Brush.Color := MatrixMain.LEDRGBColours[2];
   sSelectionRMB.Brush.Color := MatrixMain.LEDRGBColours[3];
 end;
 
-procedure TForm1.MatrixOnMouseOver(const x, y : integer);
+procedure TfrmMain.MatrixOnMouseOver(const x, y : integer);
  begin
   statusMain.SimpleText := 'X: ' + IntToStr(x + 1) +
                            '  Y: '+IntToStr(y + 1) +
@@ -3658,7 +3756,7 @@ procedure TForm1.MatrixOnMouseOver(const x, y : integer);
     lPixelColour.Caption := '$' + IntToHex(RGBConvertTo(TMatrix(MatrixMain.Matrix[tbFrames.Position]).Grid[x, y], rgbConvertToRGB, 1), 6);
 end;
 
-function TForm1.LoadFromFileName(aFilename : string): boolean;
+function TfrmMain.LoadFromFileName(aFilename : string): boolean;
  var
   ted : TImportData;
 
@@ -3728,7 +3826,7 @@ begin
   UpdateData;
 end;
 
-procedure TForm1.LoadRegistrySettings;
+procedure TfrmMain.LoadRegistrySettings;
  var
   x, y : integer;
   Reg : TRegistry;
@@ -3826,6 +3924,13 @@ procedure TForm1.LoadRegistrySettings;
   odMain.InitialDir := AppSettings.LastLoadLocation;
   sdMain.InitialDir := AppSettings.LastSaveLocation;
 
+  AppSettings.CustomSpeed          := ReadRegistryInteger('customspeed', 1000);
+
+  miPlaybackSpeedCustom.Caption := 'Custom (' + IntToStr(AppSettings.CustomSpeed) + ' ms)';
+
+  if (AppSettings.CustomSpeed <= 0) then
+    AppSettings.CustomSpeed := 1000;
+
   // ===========================================================================
 
   PixelSize         := ReadRegistryInteger('pixelsize', 20);
@@ -3859,11 +3964,23 @@ procedure TForm1.LoadRegistrySettings;
   x := ReadRegistryInteger('animspeed', 1000);
 
   case x of
-      50 : miPlaybackSpeed1Click(miPlaybackSpeed5);
-     100 : miPlaybackSpeed1Click(miPlaybackSpeed4);
-     250 : miPlaybackSpeed1Click(miPlaybackSpeed3);
-     500 : miPlaybackSpeed1Click(miPlaybackSpeed2);
-    1000 : miPlaybackSpeed1Click(miPlaybackSpeed1);
+      10 : miPlaybackSpeed3Click(miPlaybackSpeed11);
+      20 : miPlaybackSpeed3Click(miPlaybackSpeed10);
+      25 : miPlaybackSpeed3Click(miPlaybackSpeed9);
+      50 : miPlaybackSpeed3Click(miPlaybackSpeed8);
+     100 : miPlaybackSpeed3Click(miPlaybackSpeed7);
+     200 : miPlaybackSpeed3Click(miPlaybackSpeed6);
+     250 : miPlaybackSpeed3Click(miPlaybackSpeed5);
+     500 : miPlaybackSpeed3Click(miPlaybackSpeed4);
+    1000 : miPlaybackSpeed3Click(miPlaybackSpeed3);
+    1500 : miPlaybackSpeed3Click(miPlaybackSpeed2);
+    2000 : miPlaybackSpeed3Click(miPlaybackSpeed1);
+  else
+    if x > 0 then begin
+      SetPlaybackCustom(x);
+    end
+    else
+      miPlaybackSpeed3Click(miPlaybackSpeed5);
   end;
 
   miShowAnimationToolbarClick(Nil);
@@ -3942,7 +4059,7 @@ procedure TForm1.LoadRegistrySettings;
   Reg.Free;
 end;
 
-procedure TForm1.ManageUIControls;
+procedure TfrmMain.ManageUIControls;
  var
   lNormalFalse : boolean;
   lNormalTrue  : boolean;
@@ -3977,6 +4094,7 @@ procedure TForm1.ManageUIControls;
   miCopy.Enabled              := lNormalTrue;
   miCopyFromPrevious.Enabled  := lNormalTrue;
   miPaste.Enabled             := lNormalTrue;
+  miPasteSpecial.Enabled      := lNormalTrue;
 
   sbClear.Enabled             := lNormalTrue;
   sbFlip.Enabled              := lNormalTrue;
@@ -4048,6 +4166,8 @@ procedure TForm1.ManageUIControls;
   sbSave.Enabled              := lNormalTrue;
 
   tbFrames.Enabled            := lNormalTrue;
+
+  miAutomate.Enabled          := lNormalTrue;
 
   if MatrixMain.MatrixType = 0 then begin
     sbGradient.Enabled               := lNormalFalse;

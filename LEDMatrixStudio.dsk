@@ -1,89 +1,66 @@
 ﻿[Closed Files]
-File_0=TSourceModule,'E:\Software Development\Delphi 2007\projects\MatrixBuilder\xglobal.pas',0,1,125,5,151,0,0,,
-File_1=TSourceModule,'E:\Software Development\Delphi 2007\projects\MatrixBuilder\exportoutputbinary.pas',0,1,224,3,46,0,0,,
-File_2=TSourceModule,'E:\Software Development\Delphi 2007\projects\MatrixBuilder\exportoutputcode.pas',0,1,49,49,15,0,0,,
-File_3=TSourceModule,'E:\Software Development\Delphi 2007\projects\MatrixBuilder\utility.pas',0,1,13,71,19,0,0,,
-File_4=TSourceModule,'E:\Software Development\Delphi 2007\projects\MatrixBuilder\about.pas',0,1,43,46,68,0,0,,
-File_5=TSourceModule,'E:\Software Development\Delphi 2007\projects\MatrixBuilder\optimisation.pas',0,1,121,37,134,0,0,,
-File_6=TSourceModule,'E:\Software Development\Delphi 2007\projects\MatrixBuilder\exportbinary.pas',0,1,1,1,1,0,0,,
-File_7=TSourceModule,'c:\program files (x86)\codegear\rad studio\5.0\SOURCE\WIN32\RTL\SYS\System.pas',0,1,1,42,31,0,0,,
-File_8=TSourceModule,'E:\Software Development\Delphi 2007\projects\MatrixBuilder\optimise_old.pas',0,1,106,40,116,0,0,,
+File_0=TSourceModule,'E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\automate.dfm',0,1,1,1,1,0,0,,
+File_1=TSourceModule,'E:\Software Development\Delphi 2007\projects\MatrixBuilder\xglobal.pas',0,1,125,5,151,0,0,,
+File_2=TSourceModule,'E:\Software Development\Delphi 2007\projects\MatrixBuilder\exportoutputbinary.pas',0,1,224,3,46,0,0,,
+File_3=TSourceModule,'E:\Software Development\Delphi 2007\projects\MatrixBuilder\exportoutputcode.pas',0,1,49,49,15,0,0,,
+File_4=TSourceModule,'E:\Software Development\Delphi 2007\projects\MatrixBuilder\utility.pas',0,1,13,71,19,0,0,,
+File_5=TSourceModule,'E:\Software Development\Delphi 2007\projects\MatrixBuilder\about.pas',0,1,43,46,68,0,0,,
+File_6=TSourceModule,'E:\Software Development\Delphi 2007\projects\MatrixBuilder\optimisation.pas',0,1,121,37,134,0,0,,
+File_7=TSourceModule,'E:\Software Development\Delphi 2007\projects\MatrixBuilder\exportbinary.pas',0,1,1,1,1,0,0,,
+File_8=TSourceModule,'c:\program files (x86)\codegear\rad studio\5.0\SOURCE\WIN32\RTL\SYS\System.pas',0,1,1,42,31,0,0,,
+File_9=TSourceModule,'E:\Software Development\Delphi 2007\projects\MatrixBuilder\optimise_old.pas',0,1,106,40,116,0,0,,
 
 [Modules]
-Module0=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\xglobal.pas
-Module1=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\utility.pas
-Module2=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\main.pas
+Module0=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\utility.pas
+Module1=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\main.pas
+Module2=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\export.pas
 Module3=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\exportoutputcode.pas
 Module4=E:\Software Development\Delphi 2007\projects\MatrixBuilder\LEDMatrixStudio.dproj
-Module5=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\exportoutputbinary.pas
-Module6=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\newproject.pas
-Module7=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\fontviewer.pas
-Module8=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\export.pas
-Module9=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\preferences.pas
-Module10=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\classes\thematrix.pas
-Module11=default.htm
-Count=12
+Module5=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\xglobal.pas
+Module6=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\playbackspeed.pas
+Module7=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\automate.pas
+Module8=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\actionobject.pas
+Module9=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\classes\thematrix.pas
+Module10=default.htm
+Count=11
 EditWindowCount=1
-
-[E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\xglobal.pas]
-ModuleType=TSourceModule
-FormState=0
-FormOnTop=0
 
 [E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\utility.pas]
 ModuleType=TSourceModule
-FormState=0
-FormOnTop=0
 
 [E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\main.pas]
 ModuleType=TSourceModule
-FormState=1
-FormOnTop=0
+
+[E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\export.pas]
+ModuleType=TSourceModule
 
 [E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\exportoutputcode.pas]
 ModuleType=TSourceModule
-FormState=0
-FormOnTop=0
 
 [E:\Software Development\Delphi 2007\projects\MatrixBuilder\LEDMatrixStudio.dproj]
 ModuleType=TBaseProject
 
-[E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\exportoutputbinary.pas]
+[E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\xglobal.pas]
 ModuleType=TSourceModule
-FormState=0
-FormOnTop=0
 
-[E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\newproject.pas]
+[E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\playbackspeed.pas]
 ModuleType=TSourceModule
-FormState=1
-FormOnTop=0
 
-[E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\fontviewer.pas]
+[E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\automate.pas]
 ModuleType=TSourceModule
-FormState=1
-FormOnTop=0
 
-[E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\export.pas]
+[E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\actionobject.pas]
 ModuleType=TSourceModule
-FormState=1
-FormOnTop=0
-
-[E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\preferences.pas]
-ModuleType=TSourceModule
-FormState=1
-FormOnTop=0
 
 [E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\classes\thematrix.pas]
 ModuleType=TSourceModule
-FormState=0
-FormOnTop=0
 
 [default.htm]
 ModuleType=TURLModule
 
 [EditWindow0]
-ViewCount=12
-CurrentEditView=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\xglobal.pas
+ViewCount=11
+CurrentEditView=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\utility.pas
 View0=0
 View1=1
 View2=2
@@ -95,7 +72,6 @@ View7=7
 View8=8
 View9=9
 View10=10
-View11=11
 PercentageSizes=1
 Create=1
 Visible=1
@@ -103,27 +79,27 @@ Docked=1
 State=0
 Left=0
 Top=0
-Width=7215
-Height=7842
+Width=7730
+Height=8954
 MaxLeft=-1
 MaxTop=-1
-ClientWidth=7215
-ClientHeight=7842
+ClientWidth=7730
+ClientHeight=8954
 DockedToMainForm=1
 BorlandEditorCodeExplorer=BorlandEditorCodeExplorer@EditWindow0
 TopPanelSize=0
-LeftPanelSize=1151
+LeftPanelSize=959
 LeftPanelClients=PropertyInspector,DockSite3
-LeftPanelData=00000800010100000000180C000000000000017F0400000000000001000000005A0E000009000000446F636B53697465330100000000E41C00001100000050726F7065727479496E73706563746F72FFFFFFFF
-RightPanelSize=1235
+LeftPanelData=000008000101000000005E0B00000000000001BF0300000000000001000000005A0E000009000000446F636B53697465330100000000271B00001100000050726F7065727479496E73706563746F72FFFFFFFF
+RightPanelSize=1189
 RightPanelClients=DockSite2,DockSite4
-RightPanelData=00000800010100000000180C00000000000001D30400000000000001000000004912000009000000446F636B53697465320100000000E41C000009000000446F636B5369746534FFFFFFFF
-BottomPanelSize=0
+RightPanelData=000008000101000000005E0B00000000000001A50400000000000001000000004912000009000000446F636B53697465320100000000271B000009000000446F636B5369746534FFFFFFFF
+BottomPanelSize=1451
 BottomPanelClients=DockSite1,MessageView
-BottomPanelData=0000080001020200000009000000446F636B53697465310F0000004D65737361676556696577466F726D1534000000000000022106000000000000FFFFFFFF
+BottomPanelData=0000080001020100000009000000446F636B5369746531214800000000000002AB050000000000000100000000214800000F0000004D65737361676556696577466F726DFFFFFFFF
 BottomMiddlePanelSize=0
 BottomMiddlePanelClients=DockSite0,GraphDrawingModel
-BottomMiddelPanelData=0000080001020200000009000000446F636B536974653010000000477261706844726177696E6756696577981D00000000000002F206000000000000FFFFFFFF
+BottomMiddelPanelData=0000080001020200000009000000446F636B536974653010000000477261706844726177696E67566965779F1D00000000000002F206000000000000FFFFFFFF
 
 [View0]
 CustomEditViewType=TWelcomePageView
@@ -132,8 +108,8 @@ WelcomePageURL=bds:/default.htm
 [View1]
 CustomEditViewType=TEditView
 Module=E:\Software Development\Delphi 2007\projects\MatrixBuilder\LEDMatrixStudio.dpr
-CursorX=30
-CursorY=8
+CursorX=5
+CursorY=40
 TopLine=1
 LeftCol=1
 Elisions=
@@ -142,113 +118,105 @@ EditViewName=E:\Software Development\Delphi 2007\projects\MatrixBuilder\LEDMatri
 
 [View2]
 CustomEditViewType=TEditView
-Module=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\xglobal.pas
-CursorX=28
-CursorY=116
-TopLine=115
-LeftCol=1
-Elisions=
-Bookmarks=
-EditViewName=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\xglobal.pas
-
-[View3]
-CustomEditViewType=TEditView
 Module=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\main.pas
-CursorX=1
-CursorY=1
-TopLine=1
+CursorX=28
+CursorY=3912
+TopLine=3908
 LeftCol=1
 Elisions=
 Bookmarks=
 EditViewName=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\main.pas
 
+[View3]
+CustomEditViewType=TEditView
+Module=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\playbackspeed.pas
+CursorX=1
+CursorY=27
+TopLine=1
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\playbackspeed.pas
+
 [View4]
 CustomEditViewType=TEditView
+Module=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\actionobject.pas
+CursorX=21
+CursorY=39
+TopLine=1
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\actionobject.pas
+
+[View5]
+CustomEditViewType=TEditView
+Module=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\automate.pas
+CursorX=29
+CursorY=97
+TopLine=59
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\automate.pas
+
+[View6]
+CustomEditViewType=TEditView
+Module=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\xglobal.pas
+CursorX=33
+CursorY=64
+TopLine=121
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\xglobal.pas
+
+[View7]
+CustomEditViewType=TEditView
 Module=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\utility.pas
-CursorX=15
-CursorY=161
-TopLine=111
+CursorX=28
+CursorY=11
+TopLine=1
 LeftCol=1
 Elisions=
 Bookmarks=
 EditViewName=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\utility.pas
 
-[View5]
-CustomEditViewType=TEditView
-Module=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\preferences.pas
-CursorX=36
-CursorY=20
-TopLine=1
-LeftCol=1
-Elisions=
-Bookmarks=
-EditViewName=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\preferences.pas
-
-[View6]
-CustomEditViewType=TEditView
-Module=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\export.pas
-CursorX=38
-CursorY=20
-TopLine=1
-LeftCol=1
-Elisions=
-Bookmarks=
-EditViewName=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\export.pas
-
-[View7]
-CustomEditViewType=TEditView
-Module=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\fontviewer.pas
-CursorX=38
-CursorY=20
-TopLine=1
-LeftCol=1
-Elisions=
-Bookmarks=
-EditViewName=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\fontviewer.pas
-
 [View8]
 CustomEditViewType=TEditView
-Module=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\newproject.pas
-CursorX=38
-CursorY=20
-TopLine=1
-LeftCol=1
-Elisions=
-Bookmarks=
-EditViewName=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\newproject.pas
-
-[View9]
-CustomEditViewType=TEditView
-Module=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\exportoutputbinary.pas
-CursorX=30
-CursorY=20
-TopLine=1
-LeftCol=1
-Elisions=
-Bookmarks=
-EditViewName=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\exportoutputbinary.pas
-
-[View10]
-CustomEditViewType=TEditView
 Module=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\exportoutputcode.pas
-CursorX=74
-CursorY=7
-TopLine=1
+CursorX=91
+CursorY=308
+TopLine=299
 LeftCol=1
 Elisions=
 Bookmarks=
 EditViewName=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\units\exportoutputcode.pas
 
-[View11]
+[View9]
+CustomEditViewType=TEditView
+Module=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\export.pas
+CursorX=72
+CursorY=915
+TopLine=886
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\forms\export.pas
+
+[View10]
 CustomEditViewType=TEditView
 Module=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\classes\thematrix.pas
-CursorX=3
-CursorY=3142
-TopLine=3128
+CursorX=62
+CursorY=18
+TopLine=1
 LeftCol=1
 Elisions=
 Bookmarks=
 EditViewName=E:\Software Development\Delphi 2007\projects\MatrixBuilder\code\classes\thematrix.pas
+
+[UndockedDesigner]
+Count=0
 
 [Watches]
 Count=1
@@ -264,14 +232,14 @@ Docked=1
 State=0
 Left=0
 Top=0
-Width=3826
-Height=1237
+Width=3823
+Height=1222
 MaxLeft=-1
 MaxTop=-1
-ClientWidth=3826
-ClientHeight=1237
+ClientWidth=3823
+ClientHeight=1222
 TBDockHeight=214
-LRDockWidth=13599
+LRDockWidth=13602
 Dockable=1
 StayOnTop=0
 
@@ -284,24 +252,21 @@ Count=0
 [EmbarcaderoWin64Debugger_AddressBreakpoints]
 Count=0
 
-[EmbarcaderoOSXDebugger_AddressBreakpoints]
-Count=0
-
 [Main Window]
 PercentageSizes=1
 Create=1
 Visible=1
 Docked=0
 State=0
-Left=2163
-Top=1274
-Width=7262
-Height=8520
+Left=2122
+Top=729
+Width=7776
+Height=9676
 MaxLeft=-3
 MaxTop=-7
-ClientWidth=7215
-ClientHeight=8240
-BottomPanelSize=7396
+ClientWidth=7730
+ClientHeight=9396
+BottomPanelSize=8444
 BottomPanelClients=EditWindow0
 BottomPanelData=0000080000000000000000000000000000000000000000000000000100000000000000000C0000004564697457696E646F775F30FFFFFFFF
 
@@ -313,12 +278,12 @@ Docked=1
 State=0
 Left=0
 Top=0
-Width=1235
-Height=4580
+Width=1189
+Height=4617
 MaxLeft=-1
 MaxTop=-1
-ClientWidth=1235
-ClientHeight=4580
+ClientWidth=1189
+ClientHeight=4617
 TBDockHeight=5898
 LRDockWidth=2349
 Dockable=1
@@ -327,18 +292,18 @@ StayOnTop=0
 [MessageView]
 PercentageSizes=1
 Create=1
-Visible=0
+Visible=1
 Docked=1
 State=0
 Left=0
-Top=0
-Width=2770
-Height=1421
+Top=18
+Width=7730
+Height=1406
 MaxLeft=-1
 MaxTop=-1
-ClientWidth=2770
-ClientHeight=1421
-TBDockHeight=1421
+ClientWidth=7730
+ClientHeight=1406
+TBDockHeight=1406
 LRDockWidth=2770
 Dockable=1
 StayOnTop=0
@@ -351,90 +316,52 @@ Docked=1
 State=0
 Left=0
 Top=0
-Width=1235
-Height=2710
+Width=1189
+Height=2275
 MaxLeft=-1
 MaxTop=-1
-ClientWidth=1235
-ClientHeight=2710
-TBDockHeight=7158
-LRDockWidth=2000
+ClientWidth=1189
+ClientHeight=2275
+TBDockHeight=7150
+LRDockWidth=1997
 Dockable=1
 StayOnTop=0
 
-[ModelViewTool]
-PercentageSizes=1
-Create=1
-Visible=1
-Docked=1
-State=0
-Left=0
-Top=0
-Width=1235
-Height=7474
-MaxLeft=-1
-MaxTop=-1
-ClientWidth=1235
-ClientHeight=7474
-TBDockHeight=4882
-LRDockWidth=5305
-Dockable=1
-StayOnTop=0
-
-[ClassBrowserTool]
+[ClipboardHistory]
 PercentageSizes=1
 Create=1
 Visible=0
-Docked=1
-State=0
-Left=-950
-Top=-282
-Width=1843
-Height=3144
-MaxLeft=-1
-MaxTop=-1
-ClientWidth=1843
-ClientHeight=3144
-TBDockHeight=3144
-LRDockWidth=1843
-Dockable=1
-StayOnTop=0
-
-[MetricsView]
-PercentageSizes=1
-Create=1
-Visible=1
-Docked=1
+Docked=0
 State=0
 Left=0
 Top=0
-Width=2337
-Height=1296
-MaxLeft=-1
-MaxTop=-1
-ClientWidth=2337
-ClientHeight=1296
-TBDockHeight=4831
-LRDockWidth=3561
+Width=709
+Height=3277
+MaxLeft=-3
+MaxTop=-7
+ClientWidth=663
+ClientHeight=2997
+TBDockHeight=3277
+LRDockWidth=709
 Dockable=1
 StayOnTop=0
 
-[QAView]
+[ProjectStatistics]
 PercentageSizes=1
 Create=1
-Visible=1
-Docked=1
+Visible=0
+Docked=0
 State=0
 Left=0
 Top=0
-Width=2337
-Height=1296
-MaxLeft=-1
-MaxTop=-1
-ClientWidth=2337
-ClientHeight=1296
-TBDockHeight=4831
-LRDockWidth=3561
+Width=767
+Height=3770
+MaxLeft=-3
+MaxTop=-7
+ClientWidth=721
+ClientHeight=3490
+TBDockHeight=3770
+LRDockWidth=767
 Dockable=1
 StayOnTop=0
 
@@ -445,18 +372,42 @@ Visible=1
 Docked=1
 State=0
 Left=0
-Top=552
-Width=1151
-Height=3778
+Top=547
+Width=959
+Height=3343
 MaxLeft=-1
 MaxTop=-1
-ClientWidth=1151
-ClientHeight=3778
-TBDockHeight=7658
-LRDockWidth=1151
+ClientWidth=959
+ClientHeight=3343
+TBDockHeight=6738
+LRDockWidth=959
 Dockable=1
 StayOnTop=0
-SplitPos=139
+SplitPos=56
+
+[PropInspDesignerSelection]
+ArrangeBy=Name
+SelectedItem=Align,OnClick
+ExpandedItems=Anchors=0,BorderIcons=0,LiveBindings=0,"LiveBindings Designer=0",Margins=0,StyleElements=0,Constraints=0,Font=0
+
+[frmDesignPreview]
+PercentageSizes=1
+Create=1
+Visible=1
+Docked=1
+State=0
+Left=0
+Top=0
+Width=1189
+Height=6554
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=1189
+ClientHeight=6554
+TBDockHeight=5957
+LRDockWidth=2512
+Dockable=1
+StayOnTop=0
 
 [TFileExplorerForm]
 PercentageSizes=1
@@ -464,16 +415,16 @@ Create=1
 Visible=0
 Docked=1
 State=0
-Left=-2809
-Top=-282
-Width=2843
+Left=-3003
+Top=-25
+Width=2846
 Height=6208
 MaxLeft=-1
 MaxTop=-1
-ClientWidth=2843
+ClientWidth=2846
 ClientHeight=6208
 TBDockHeight=6208
-LRDockWidth=2843
+LRDockWidth=2846
 Dockable=1
 StayOnTop=0
 
@@ -483,8 +434,8 @@ Create=1
 Visible=0
 Docked=1
 State=0
-Left=-3021
-Top=-282
+Left=-3417
+Top=343
 Width=276
 Height=361
 MaxLeft=-1
@@ -507,12 +458,12 @@ Docked=1
 State=0
 Left=0
 Top=0
-Width=3826
-Height=1237
+Width=3823
+Height=1222
 MaxLeft=-1
 MaxTop=-1
-ClientWidth=3826
-ClientHeight=1237
+ClientWidth=3823
+ClientHeight=1222
 TBDockHeight=412
 LRDockWidth=4951
 Dockable=1
@@ -526,12 +477,12 @@ Docked=1
 State=0
 Left=0
 Top=0
-Width=3826
-Height=1237
+Width=3823
+Height=1222
 MaxLeft=-1
 MaxTop=-1
-ClientWidth=3826
-ClientHeight=1237
+ClientWidth=3823
+ClientHeight=1222
 TBDockHeight=214
 LRDockWidth=7407
 Dockable=1
@@ -549,14 +500,14 @@ Docked=1
 State=0
 Left=0
 Top=0
-Width=3826
-Height=1237
+Width=3823
+Height=1222
 MaxLeft=-1
 MaxTop=-1
-ClientWidth=3826
-ClientHeight=1237
+ClientWidth=3823
+ClientHeight=1222
 TBDockHeight=1539
-LRDockWidth=3480
+LRDockWidth=3483
 Dockable=1
 StayOnTop=0
 
@@ -568,18 +519,18 @@ Docked=1
 State=0
 Left=0
 Top=0
-Width=3826
-Height=1237
+Width=3823
+Height=1222
 MaxLeft=-1
 MaxTop=-1
-ClientWidth=3826
-ClientHeight=1237
+ClientWidth=3823
+ClientHeight=1222
 TBDockHeight=2062
-LRDockWidth=3480
+LRDockWidth=3483
 Dockable=1
 StayOnTop=0
 
-[FindReferencsForm]
+[PatchForm]
 PercentageSizes=1
 Create=1
 Visible=1
@@ -593,8 +544,27 @@ MaxLeft=-1
 MaxTop=-1
 ClientWidth=2337
 ClientHeight=1296
+TBDockHeight=2504
+LRDockWidth=3398
+Dockable=1
+StayOnTop=0
+
+[FindReferencsForm]
+PercentageSizes=1
+Create=1
+Visible=1
+Docked=1
+State=0
+Left=0
+Top=0
+Width=2337
+Height=1060
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=2337
+ClientHeight=1060
 TBDockHeight=2320
-LRDockWidth=2826
+LRDockWidth=2823
 Dockable=1
 StayOnTop=0
 
@@ -612,8 +582,8 @@ MaxLeft=-1
 MaxTop=-1
 ClientWidth=2337
 ClientHeight=1296
-TBDockHeight=3203
-LRDockWidth=2826
+TBDockHeight=3211
+LRDockWidth=2823
 Dockable=1
 StayOnTop=0
 
@@ -632,7 +602,7 @@ MaxTop=-1
 ClientWidth=2337
 ClientHeight=1296
 TBDockHeight=1156
-LRDockWidth=3674
+LRDockWidth=3677
 Dockable=1
 StayOnTop=0
 Column0Width=314
@@ -652,14 +622,14 @@ Docked=1
 State=0
 Left=0
 Top=0
-Width=1235
-Height=7474
+Width=1189
+Height=6554
 MaxLeft=-1
 MaxTop=-1
-ClientWidth=1235
-ClientHeight=7474
+ClientWidth=1189
+ClientHeight=6554
 TBDockHeight=4882
-LRDockWidth=7151
+LRDockWidth=7148
 Dockable=1
 StayOnTop=0
 
@@ -669,16 +639,73 @@ Create=1
 Visible=0
 Docked=1
 State=0
-Left=0
-Top=0
-Width=2858
+Left=658
+Top=1075
+Width=2855
 Height=3211
 MaxLeft=-1
 MaxTop=-1
-ClientWidth=2858
+ClientWidth=2855
 ClientHeight=3211
 TBDockHeight=3211
-LRDockWidth=2858
+LRDockWidth=2855
+Dockable=1
+StayOnTop=0
+
+[ClassBrowserTool]
+PercentageSizes=1
+Create=1
+Visible=0
+Docked=1
+State=0
+Left=-1128
+Top=-139
+Width=1846
+Height=3144
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=1846
+ClientHeight=3144
+TBDockHeight=3144
+LRDockWidth=1846
+Dockable=1
+StayOnTop=0
+
+[MetricsView]
+PercentageSizes=1
+Create=1
+Visible=1
+Docked=1
+State=0
+Left=0
+Top=0
+Width=2337
+Height=1296
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=2337
+ClientHeight=1296
+TBDockHeight=4831
+LRDockWidth=3564
+Dockable=1
+StayOnTop=0
+
+[QAView]
+PercentageSizes=1
+Create=1
+Visible=1
+Docked=1
+State=0
+Left=0
+Top=0
+Width=2337
+Height=1296
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=2337
+ClientHeight=1296
+TBDockHeight=4831
+LRDockWidth=3564
 Dockable=1
 StayOnTop=0
 
@@ -690,14 +717,14 @@ Docked=1
 State=0
 Left=0
 Top=0
-Width=3826
-Height=1237
+Width=3823
+Height=1222
 MaxLeft=-1
 MaxTop=-1
-ClientWidth=3826
-ClientHeight=1237
+ClientWidth=3823
+ClientHeight=1222
 TBDockHeight=1546
-LRDockWidth=8744
+LRDockWidth=8741
 Dockable=1
 StayOnTop=0
 Column0Width=200
@@ -716,14 +743,33 @@ Docked=1
 State=0
 Left=0
 Top=0
-Width=1151
-Height=3697
+Width=959
+Height=3733
 MaxLeft=-1
 MaxTop=-1
-ClientWidth=1151
-ClientHeight=3697
-TBDockHeight=3675
+ClientWidth=959
+ClientHeight=3733
+TBDockHeight=3682
 LRDockWidth=1895
+Dockable=1
+StayOnTop=0
+
+[ModelViewTool]
+PercentageSizes=1
+Create=1
+Visible=1
+Docked=1
+State=0
+Left=0
+Top=0
+Width=1189
+Height=6554
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=1189
+ClientHeight=6554
+TBDockHeight=4882
+LRDockWidth=5308
 Dockable=1
 StayOnTop=0
 
@@ -736,12 +782,12 @@ State=0
 Left=0
 Top=0
 Width=1826
-Height=6178
+Height=6171
 MaxLeft=-3
 MaxTop=-7
 ClientWidth=1779
-ClientHeight=5928
-TBDockHeight=6178
+ClientHeight=5891
+TBDockHeight=6171
 LRDockWidth=1826
 Dockable=1
 StayOnTop=0
@@ -771,7 +817,7 @@ Dockable=1
 StayOnTop=0
 TabPosition=1
 ActiveTabID=RefactoringForm
-TabDockClients=RefactoringForm,FindReferencsForm,ToDo List,MetricsView,QAView
+TabDockClients=RefactoringForm,PatchForm,FindReferencsForm,ToDo List,MetricsView,QAView
 
 [DockSite1]
 HostDockSite=DockBottomPanel
@@ -782,15 +828,15 @@ Visible=0
 Docked=1
 State=0
 Left=0
-Top=0
-Width=3826
-Height=1421
+Top=18
+Width=3823
+Height=1406
 MaxLeft=-1
 MaxTop=-1
-ClientWidth=3826
-ClientHeight=1421
-TBDockHeight=1421
-LRDockWidth=3826
+ClientWidth=3823
+ClientHeight=1406
+TBDockHeight=1406
+LRDockWidth=3823
 Dockable=1
 StayOnTop=0
 TabPosition=1
@@ -806,20 +852,20 @@ Visible=1
 Docked=1
 State=0
 Left=0
-Top=23
-Width=1235
-Height=4764
+Top=18
+Width=1189
+Height=4801
 MaxLeft=-1
 MaxTop=-1
-ClientWidth=1235
-ClientHeight=4764
-TBDockHeight=7658
-LRDockWidth=1235
+ClientWidth=1189
+ClientHeight=4801
+TBDockHeight=6738
+LRDockWidth=1189
 Dockable=1
 StayOnTop=0
 TabPosition=1
 ActiveTabID=ProjectManager
-TabDockClients=ProjectManager,ModelViewTool,DataExplorerContainer,TFileExplorerForm
+TabDockClients=ProjectManager,ModelViewTool,DataExplorerContainer,frmDesignPreview,TFileExplorerForm
 
 [DockSite3]
 HostDockSite=DockLeftPanel
@@ -830,15 +876,15 @@ Visible=1
 Docked=1
 State=0
 Left=0
-Top=23
-Width=1151
-Height=3697
+Top=18
+Width=959
+Height=3733
 MaxLeft=-1
 MaxTop=-1
-ClientWidth=1151
-ClientHeight=3697
-TBDockHeight=7658
-LRDockWidth=1151
+ClientWidth=959
+ClientHeight=3733
+TBDockHeight=6738
+LRDockWidth=959
 Dockable=1
 StayOnTop=0
 TabPosition=1
@@ -854,15 +900,15 @@ Visible=1
 Docked=1
 State=0
 Left=0
-Top=697
-Width=1235
-Height=2710
+Top=692
+Width=1189
+Height=2275
 MaxLeft=-1
 MaxTop=-1
-ClientWidth=1235
-ClientHeight=2710
-TBDockHeight=7658
-LRDockWidth=1235
+ClientWidth=1189
+ClientHeight=2275
+TBDockHeight=6738
+LRDockWidth=1189
 Dockable=1
 StayOnTop=0
 TabPosition=1

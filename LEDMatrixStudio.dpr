@@ -21,14 +21,16 @@ uses
   checkversion,
   checkupdatesplash,
   importbitmap,
-  exportcode;
+  exportcode,
+  automate in 'code\forms\automate.pas' {frmAutomate},
+  playbackspeed in 'code\forms\playbackspeed.pas' {frmCustomPlayback};
 
 {$R *.res}
 
 begin
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
-  Application.CreateForm(TForm1, Form1);
+  Application.CreateForm(TfrmMain, frmMain);
   Application.CreateForm(TfrmAbout, frmAbout);
   Application.CreateForm(TfrmCheckVersion, frmCheckVersion);
   Application.CreateForm(TfrmUpdateSplash, frmUpdateSplash);

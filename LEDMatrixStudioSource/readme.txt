@@ -1,8 +1,8 @@
  ===============================================================================
  =                                                                             =
- =  LED Matrix Studio v0.8.9 BETA                                              =
+ =  LED Matrix Studio v0.8.11 BETA                                             =
  =                                                                             =
- =  September 27th 2017                                                        =
+ =  May 28th 2018                                                              =
  =                                                                             =
  =  www.freshney.org // paul@freshney.org                                      =
  =                                                                             =
@@ -16,9 +16,6 @@
  =  Source code:                                                               =
  =  www.maximumoctopus.com/electronics/downloads/LEDMatrixStudioSource.zip     =
  =  https://sourceforge.net/projects/led-matrix-studio/                        =
- =                                                                             =
- =  Facebook                                                                   =
- =  https://www.facebook.com/LEDMatrixStudio                                   =
  =                                                                             =
  ===============================================================================
 
@@ -121,6 +118,16 @@
 
 ========================================================================
 ========================================================================
+
+========================================================================
+== Updates for 0.8.11 beta =============================================
+========================================================================
+
+- Added more playback speed options, and a custom option
+- Added a simple animation processing system
+- Added the ability to paste with a shift up/down/left/right
+  ALT+arrow_key to shift the image as you paste!
+- Fixed a couple of minor export bugs
 
 ========================================================================
 == Updates for 0.8.9 beta ==============================================

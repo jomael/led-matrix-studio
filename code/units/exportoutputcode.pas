@@ -322,17 +322,17 @@ function CreateExportAnimation(teo : TExportOptions; var aOutput : TStringList; 
         2 : begin
               for y := 7 downto 0 do begin
                 for z:=0 to matrixdata[y].Count - 1 do
-                  op := op + matrixdata[y][z] + spacingstring;
+                  op := op + matrixdata[y][z];// + spacingstring;
               end;
 
               for y := 15 downto 8 do begin
                 for z:=0 to matrixdata[y].Count - 1 do
-                  op := op + matrixdata[y][z] + spacingstring;
+                  op := op + matrixdata[y][z];// + spacingstring;
               end;
 
               for y := 23 downto 16 do begin
                 for z:=0 to matrixdata[y].Count - 1 do
-                  op := op + matrixdata[y][z] + spacingstring;
+                  op := op + matrixdata[y][z];// + spacingstring;
               end;
             end;
       end;

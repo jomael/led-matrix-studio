@@ -61,6 +61,7 @@ type
                      LastExport       : TExportOptions;
                      LastSaveLocation : string;
                      LastLoadLocation : string;
+                     CustomSpeed      : integer;
                    end;                   
 
 const

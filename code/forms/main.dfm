@@ -1,8 +1,8 @@
-object Form1: TForm1
+object frmMain: TfrmMain
   Left = 0
   Top = 0
   Caption = 'LED Matrix Studio'
-  ClientHeight = 1033
+  ClientHeight = 698
   ClientWidth = 1132
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -441,7 +441,7 @@ object Form1: TForm1
   end
   object pAnimationToolbar: TPanel
     Left = 0
-    Top = 921
+    Top = 586
     Width = 1132
     Height = 30
     Align = alBottom
@@ -1145,7 +1145,7 @@ object Form1: TForm1
   end
   object statusMain: TStatusBar
     Left = 0
-    Top = 1014
+    Top = 679
     Width = 1132
     Height = 19
     Panels = <>
@@ -2122,7 +2122,7 @@ object Form1: TForm1
     Left = 1032
     Top = 96
     Width = 100
-    Height = 825
+    Height = 490
     Align = alRight
     Color = clWhite
     ParentBackground = False
@@ -2132,7 +2132,7 @@ object Form1: TForm1
       Left = 1
       Top = 1
       Width = 98
-      Height = 798
+      Height = 463
       Align = alClient
       Alignment = taCenter
       Caption = 'A'
@@ -2156,7 +2156,7 @@ object Form1: TForm1
     end
     object pASCIICode: TPanel
       Left = 1
-      Top = 799
+      Top = 464
       Width = 98
       Height = 25
       Align = alBottom
@@ -2166,7 +2166,7 @@ object Form1: TForm1
   end
   object pColourPaletteNew: TPanel
     Left = 0
-    Top = 951
+    Top = 616
     Width = 1132
     Height = 30
     Align = alBottom
@@ -2179,7 +2179,7 @@ object Form1: TForm1
   end
   object pSourceDisplay: TPanel
     Left = 0
-    Top = 981
+    Top = 646
     Width = 1132
     Height = 33
     Align = alBottom
@@ -2193,7 +2193,7 @@ object Form1: TForm1
       33)
     object Label2: TLabel
       Left = 4
-      Top = 11
+      Top = 10
       Width = 78
       Height = 13
       Caption = 'Simple Export'
@@ -2396,6 +2396,32 @@ object Form1: TForm1
         Enabled = False
         ShortCut = 16470
         OnClick = miPasteClick
+      end
+      object miPasteSpecial: TMenuItem
+        Caption = 'Paste special'
+        object Copyandshiftleft1: TMenuItem
+          Caption = 'Paste and shift left'
+          ShortCut = 32805
+          OnClick = Copyandshiftleft1Click
+        end
+        object Copyandshiftright1: TMenuItem
+          Tag = 1
+          Caption = 'Paste and shift right'
+          ShortCut = 32807
+          OnClick = Copyandshiftleft1Click
+        end
+        object Copyandshiftup1: TMenuItem
+          Tag = 2
+          Caption = 'Paste and shift up'
+          ShortCut = 32806
+          OnClick = Copyandshiftleft1Click
+        end
+        object Copyandshiftdown1: TMenuItem
+          Tag = 3
+          Caption = 'Paste and shift down'
+          ShortCut = 32808
+          OnClick = Copyandshiftleft1Click
+        end
       end
       object N16: TMenuItem
         Caption = '-'
@@ -2996,6 +3022,14 @@ object Form1: TForm1
         Caption = 'Open autosave folder'
         OnClick = Openautosavefolder1Click
       end
+      object N38: TMenuItem
+        Caption = '-'
+      end
+      object miAutomate: TMenuItem
+        Caption = 'Automate'
+        Enabled = False
+        OnClick = miAutomateClick
+      end
     end
     object About1: TMenuItem
       Caption = 'Help'
@@ -3056,7 +3090,7 @@ object Form1: TForm1
     BkColor = clFuchsia
     Left = 656
     Bitmap = {
-      494C010106000900040010001000FF00FF00FF10FFFFFFFFFFFFFFFF424D3600
+      494C010106000900140010001000FF00FF00FF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000002000000001002000000000000020
       000000000000000000000000000000000000FF00FF00FF00FF00FF00FF00FF00
       FF00FF00FF00FF00FF00CA8A6100C3845800D38B6800E18F7000DC8D6C00DA8B
@@ -3344,7 +3378,7 @@ object Form1: TForm1
   object ilMenu: TImageList
     Left = 680
     Bitmap = {
-      494C010108000D00040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010108000D00140010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000003000000001002000000000000030
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -3871,38 +3905,101 @@ object Form1: TForm1
       Caption = '-'
     end
     object miPlaybackSpeed1: TMenuItem
-      Caption = '1 second'
+      Caption = '2 seconds'
       GroupIndex = 1
       RadioItem = True
-      OnClick = miPlaybackSpeed1Click
+      OnClick = miPlaybackSpeed3Click
     end
     object miPlaybackSpeed2: TMenuItem
       Tag = 1
+      Caption = '1.5 seconds'
+      GroupIndex = 1
+      RadioItem = True
+      OnClick = miPlaybackSpeed3Click
+    end
+    object miPlaybackSpeed3: TMenuItem
+      Tag = 2
+      Caption = '1 second'
+      GroupIndex = 1
+      RadioItem = True
+      OnClick = miPlaybackSpeed3Click
+    end
+    object miPlaybackSpeed4: TMenuItem
+      Tag = 3
       Caption = '0.5 seconds'
       Checked = True
       GroupIndex = 1
       RadioItem = True
-      OnClick = miPlaybackSpeed1Click
-    end
-    object miPlaybackSpeed3: TMenuItem
-      Tag = 2
-      Caption = '0.25 seconds'
-      GroupIndex = 1
-      RadioItem = True
-      OnClick = miPlaybackSpeed1Click
-    end
-    object miPlaybackSpeed4: TMenuItem
-      Tag = 3
-      Caption = '0.1 seconds'
-      GroupIndex = 1
-      RadioItem = True
-      OnClick = miPlaybackSpeed1Click
+      OnClick = miPlaybackSpeed3Click
     end
     object miPlaybackSpeed5: TMenuItem
       Tag = 4
+      Caption = '0.25 seconds'
+      GroupIndex = 1
+      RadioItem = True
+      OnClick = miPlaybackSpeed3Click
+    end
+    object miPlaybackSpeed6: TMenuItem
+      Tag = 5
+      Caption = '0.2 seconds'
+      GroupIndex = 1
+      RadioItem = True
+      OnClick = miPlaybackSpeed3Click
+    end
+    object miPlaybackSpeed7: TMenuItem
+      Tag = 6
+      Caption = '0.1 seconds'
+      GroupIndex = 1
+      RadioItem = True
+      OnClick = miPlaybackSpeed3Click
+    end
+    object miPlaybackSpeed8: TMenuItem
+      Tag = 7
       Caption = '0.05 seconds'
       GroupIndex = 1
-      OnClick = miPlaybackSpeed1Click
+      RadioItem = True
+      OnClick = miPlaybackSpeed3Click
+    end
+    object miPlaybackSpeed9: TMenuItem
+      Tag = 8
+      Caption = '0.025 seconds'
+      GroupIndex = 1
+      RadioItem = True
+      OnClick = miPlaybackSpeed3Click
+    end
+    object miPlaybackSpeed10: TMenuItem
+      Tag = 9
+      Caption = '0.020 seconds'
+      GroupIndex = 1
+      RadioItem = True
+      OnClick = miPlaybackSpeed3Click
+    end
+    object miPlaybackSpeed11: TMenuItem
+      Tag = 10
+      Caption = '0.01 seconds'
+      GroupIndex = 1
+      RadioItem = True
+      OnClick = miPlaybackSpeed3Click
+    end
+    object N39: TMenuItem
+      Caption = '-'
+      GroupIndex = 1
+    end
+    object miPlaybackSpeedCustom: TMenuItem
+      Tag = 20
+      Caption = 'Custom'
+      GroupIndex = 1
+      RadioItem = True
+      OnClick = miPlaybackSpeed3Click
+    end
+    object N40: TMenuItem
+      Caption = '-'
+      GroupIndex = 1
+    end
+    object Setcustomspeed1: TMenuItem
+      Caption = 'Set custom speed'
+      GroupIndex = 1
+      OnClick = Setcustomspeed1Click
     end
   end
   object timerAutosave: TTimer
