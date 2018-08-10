@@ -61,10 +61,28 @@ type
     lPresetWidth: TLabel;
     lPresetHeight: TLabel;
     cbFrames: TComboBox;
+    rbCommon: TRadioButton;
+    rbAll: TRadioButton;
+    GroupBox7: TGroupBox;
+    GroupBox8: TGroupBox;
+    Label10: TLabel;
+    ComboBox4: TComboBox;
+    ComboBox11: TComboBox;
+    ComboBox12: TComboBox;
+    shapeSquare: TShape;
+    shapeCircle: TShape;
+    rbPixelSquare: TRadioButton;
+    rbPixelCircle: TRadioButton;
     procedure FormCreate(Sender: TObject);
     procedure BitBtn1Click(Sender: TObject);
     procedure cbPresetsChange(Sender: TObject);
+    procedure rbCommonClick(Sender: TObject);
+    procedure shapeSquareMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
   private
+    FOldWidth  : string;
+    FOldHeight : string;
+
     procedure BuildPresetList;
     procedure LoadPreset(filename : string);
   public
@@ -82,8 +100,13 @@ implementation
 
 uses xglobal;
 
+
+const CCommonSizes : array[1..15] of string = ('1', '2', '4', '5', '7', '8', '12', '16', '24', '32', '48', '60', '64', '128', '256');
+
+
 var
  clearstatus : boolean;
+
 
 function DoNewProject(oldsettings : TProjectSettings; appstatus : boolean): TProjectSettings;
  begin
@@ -94,11 +117,28 @@ function DoNewProject(oldsettings : TProjectSettings; appstatus : boolean): TPro
       Result.height := -1;
       Result.clear  := False;
 
+      if oldsettings.pixel = 0 then
+        rbPixelSquare.Checked := True
+      else
+        rbPixelCircle.Checked := True;
+
       clearstatus   := appstatus;
 
       cbMatrixType.ItemIndex := oldsettings.mtype;
-      cbWidth.ItemIndex      := cbWidth.Items.IndexOf(IntToStr(oldsettings.width));
-      cbHeight.ItemIndex     := cbHeight.Items.IndexOf(IntToStr(oldsettings.height));
+
+      // ===========================================================================
+
+      FOldWidth  := IntToStr(oldsettings.width);
+      FOldHeight := IntToStr(oldsettings.height);
+
+      if Result.sizetype then
+        rbCommon.Checked := True
+      else
+        rbAll.Checked    := True;
+
+      rbCommonClick(Nil);
+
+      // ===========================================================================
 
       BuildPresetList;
 
@@ -116,8 +156,18 @@ function DoNewProject(oldsettings : TProjectSettings; appstatus : boolean): TPro
           Result.height  := StrToInt(lPresetHeight.Caption);
         end;
 
-        Result.clear   := cbClearAll.Checked;
-        Result.special := StrToInt(cbFrames.Text);
+        Result.clear    := cbClearAll.Checked;
+        Result.special  := StrToInt(cbFrames.Text);
+
+        if rbPixelSquare.Checked then
+          Result.pixel := 0
+        else
+          Result.pixel := 1;
+
+        if rbCommon.Checked then
+          Result.sizetype := True
+        else
+          Result.sizetype := False;
       end;
     finally
       Free;
@@ -146,10 +196,7 @@ procedure TfrmNewProject.BitBtn1Click(Sender: TObject);
 end;
 
 procedure TfrmNewProject.FormCreate(Sender: TObject);
- var
-  x : integer;
-
- begin
+begin
   cbMatrixType.Items.Add('Single colour');
   cbMatrixType.Items.Add('Bi-colour (sequential)');
   cbMatrixType.Items.Add('Bi-colour (bitplanes)');
@@ -165,14 +212,7 @@ procedure TfrmNewProject.FormCreate(Sender: TObject);
   cbFrames.Items.Add('20');
   cbFrames.Items.Add('25');  
   cbFrames.Items.Add('50');
-  cbFrames.Items.Add('100');  
-
-  // ===========================================================================
-
-  for x:=1 to 128 do begin
-    cbWidth.Items.Add(IntToStr(x));
-    cbHeight.Items.Add(IntToStr(x));
-  end;
+  cbFrames.Items.Add('100');
 end;
 
 procedure TfrmNewProject.BuildPresetList;
@@ -252,6 +292,54 @@ procedure TfrmNewProject.LoadPreset(filename : string);
   end;
 
   CloseFile(tf);
+end;
+
+
+procedure TfrmNewProject.rbCommonClick(Sender: TObject);
+var
+  x : integer;
+
+begin
+  cbWidth.Clear;
+  cbHeight.Clear;
+
+  if rbAll.Checked then begin
+    for x:=1 to 256 do begin
+      cbWidth.Items.Add(IntToStr(x));
+      cbHeight.Items.Add(IntToStr(x));
+    end;
+
+    cbWidth.ItemIndex  := cbWidth.Items.IndexOf(FOldWidth);
+    cbHeight.ItemIndex := cbHeight.Items.IndexOf(FOldHeight);
+  end
+  else begin
+    for x:=1 to 15 do begin
+      cbWidth.Items.Add(CCommonSizes[x]);
+      cbHeight.Items.Add(CCommonSizes[x]);
+    end;
+
+    cbWidth.ItemIndex  := cbWidth.Items.IndexOf(FOldWidth);
+    cbHeight.ItemIndex := cbHeight.Items.IndexOf(FOldHeight);
+
+    if cbWidth.ItemIndex = -1 then
+      cbWidth.ItemIndex := 7;
+
+    if cbWidth.ItemIndex = -1 then
+      cbWidth.ItemIndex := 7;
+  end;
+
+  FOldWidth  := cbWidth.Text;
+  FOldHeight := cbHeight.Text;
+end;
+
+
+procedure TfrmNewProject.shapeSquareMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  if TShape(Sender).Tag = 0 then
+    rbPixelSquare.Checked := True
+  else
+    rbPixelCircle.Checked := True;
 end;
 
 end.

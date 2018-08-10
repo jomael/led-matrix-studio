@@ -4,7 +4,7 @@ object frmFontViewer: TfrmFontViewer
   BorderStyle = bsDialog
   Caption = 'Font Viewer'
   ClientHeight = 289
-  ClientWidth = 392
+  ClientWidth = 1152
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -57,12 +57,13 @@ object frmFontViewer: TfrmFontViewer
   object Panel2: TPanel
     Left = 0
     Top = 237
-    Width = 392
+    Width = 1152
     Height = 52
     Align = alBottom
     Color = clWhite
     ParentBackground = False
     TabOrder = 1
+    ExplicitWidth = 392
     object Label2: TLabel
       Left = 8
       Top = 9

@@ -8,7 +8,7 @@
 // Please do not redistribute the source code!
 //
 //   Started: October 26th 2014
-//  Modified: May 24th 2018
+//  Modified: July 29th 2018
 //
 // ===================================================================
 
@@ -21,40 +21,50 @@ uses ExtCtrls, classes, controls, types, sysutils, graphics, math, xglobal, cont
      ActionObject;
 
 const
-  _MaxWidth            = 127; // 0 to 127
-  _MaxHeight           = 127; // 0 to 127
+  _MaxWidth               = 255; // 0 to 255
+  _MaxHeight              = 255; // 0 to 255
 
-  modeFlipAll          = 0;
-  modeMirrorAll        = 1;
-  modeInvertAll        = 2;
-  modeGradientAll      = 3;
+  modeFlipAll             = 0;
+  modeMirrorAll           = 1;
+  modeInvertAll           = 2;
+  modeGradientAll         = 3;
 
-  modeFlip             = 0;
-  modeMirror           = 1;
-  modeInvert           = 2;
+  modeFlip                = 0;
+  modeMirror              = 1;
+  modeInvert              = 2;
 
-  modeScrollLeft       = 0;
-  modeScrollRight      = 1;
-  modeScrollUp         = 2;
-  modeScrollDown       = 3;
+  modeScrollLeft          = 0;
+  modeScrollRight         = 1;
+  modeScrollUp            = 2;
+  modeScrollDown          = 3;
+  modeWipeHorizontal      = 4;
+  modeWipeHorizontalClear = 5;
+  modeWipeVertical        = 6;
+  modeWipeVerticalClear   = 7;
 
-  modeRotateCW         = 0;
-  modeRotateACW        = 1;
+  modeRotateCW            = 0;
+  modeRotateACW           = 1;
 
-  drawModeNone         = 0;
-  drawModeFilledBox    = 1;
-  drawModeEmptyBox     = 2;
-  drawModeLine         = 3;
-  drawModeFont         = 4;
-  drawModeEmptyCircle  = 5;
-  drawModeFilledCircle = 6;
-  drawModeRandom       = 7;
-  drawModeMulti        = 8;
-  drawModePicker       = 9;
-  drawModeCopy         = 10; // active when user is selecting point 1 and point 2 of the capture square
-  drawModePaste        = 11; // active when user is pasting copied section
+  drawModeNone            = 0;
+  drawModeFilledBox       = 1;
+  drawModeEmptyBox        = 2;
+  drawModeLine            = 3;
+  drawModeFont            = 4;
+  drawModeEmptyCircle     = 5;
+  drawModeFilledCircle    = 6;
+  drawModeRandom          = 7;
+  drawModeMulti           = 8;
+  drawModePicker          = 9;
+  drawModeCopy            = 10; // active when user is selecting point 1 and point 2 of the capture square
+  drawModePaste           = 11; // active when user is pasting copied section
 
-  LeftOffset           = 70;
+  softwareModeAnimation   = 0;
+  softwareModeFont        = 1;
+
+  viewModeSquare          = 0;
+  viewModeRadial          = 1;
+
+  LeftOffset              = 70;
 
 type
 
@@ -89,6 +99,15 @@ type
                 Special : integer;
               end;
 
+  TPreviewOptions = record
+                      Active   : boolean;
+                      Size     : integer; // 1...6
+                      View     : integer; // 0 = square, 1 = radial
+
+                      RPixel   : integer; // size of pixel in radial mode
+                      ROffSet  : integer; // size of the inner void (pixels, radius)
+                    end;
+
   TTheMatrix = class
   private
     PaintBox         : TPaintBox;
@@ -97,16 +116,16 @@ type
     FOnColourChange  : TNotifyEvent;    
     FOnMouseOver     : TMouseOverEvent;
 
-    fFrameCount      : integer;
-    fCurrentFrame    : integer;
-    fLightBox        : integer;
-    fRGBBackground   : integer;
-    fRandomCoeff     : integer;
-    fDeadPixelsMode  : boolean;
-    fMatrixReadOnly  : boolean;
+    FFrameCount      : integer;
+    FCurrentFrame    : integer;
+    FLightBox        : integer;
+    FRGBBackground   : integer;
+    FRandomCoeff     : integer;
+    FDeadPixelsMode  : boolean;
+    FMatrixReadOnly  : boolean;
     fSoftwareMode    : integer; // 0 - normal, 1 = font
-    fPreviewBoxSize  : integer; // 1...6
-    fPreviewActive   : boolean;
+
+    fPreviewOptions  : TPreviewOptions;
 
     function  LoadDataParameterType(s : string; aHeaderMode, aMatrixMode, aDeadPixelMode : boolean): integer;
     procedure ClickPixel(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -128,8 +147,11 @@ type
     function  CurrentFrameCount: integer;
     procedure SetPreviewBoxSize(aSize : integer);
     procedure SetPreviewActive(aActive : boolean);
+    procedure SetPreviewViewMode(aMode : integer);
+    procedure SetPreviewVoid(aOffset : integer);
 
     procedure pbPreviewPaint(Sender: TObject);
+    procedure pbPreviewPaintRadial(Sender: TObject);
   public
     HaveMatrix       : boolean;
 
@@ -294,20 +316,23 @@ type
 
     procedure   Automate(var aAO : TActionObject);
   published
-    Property    PreviewBoxSize : integer   Read fPreviewBoxSize Write SetPreviewBoxSize;
-    Property    PreviewActive  : boolean   Read fPreviewActive  Write SetPreviewActive;
-    Property    FrameCount     : integer   Read CurrentFrameCount;
-    Property    CurrentFrame   : integer   Read fCurrentFrame   Write ChangeCurrentFrame;
-    Property    LightBox       : integer   Read fLightBox       Write ChangeLightBox;
-    Property    RGBBackground  : integer   Read fRGBBackground  Write fRGBBackground;
-    Property    RandomCoeff    : integer   Read fRandomCoeff    Write fRandomCoeff;
-    Property    DeadPixelsMode : boolean   Read fDeadPixelsMode Write ChangeDeadPixelsMode;
-    Property    MatrixReadOnly : boolean   Read fMatrixReadOnly Write ChangeMatrixReadOnly;
-    Property    SoftwareMode   : integer   Read fSoftwareMode   Write ChangeSoftwareMode;
+    property    FrameCount     : integer   read CurrentFrameCount;
+    property    CurrentFrame   : integer   read fCurrentFrame   write ChangeCurrentFrame;
+    property    LightBox       : integer   read fLightBox       write ChangeLightBox;
+    property    RGBBackground  : integer   read fRGBBackground  write fRGBBackground;
+    property    RandomCoeff    : integer   read fRandomCoeff    write fRandomCoeff;
+    property    DeadPixelsMode : boolean   read fDeadPixelsMode write ChangeDeadPixelsMode;
+    property    MatrixReadOnly : boolean   read fMatrixReadOnly write ChangeMatrixReadOnly;
+    property    SoftwareMode   : integer   read fSoftwareMode   write ChangeSoftwareMode;
 
-    property    OnChange       : TNotifyEvent    Read FOnChange       Write FOnChange;
-    property    OnMouseOver    : TMouseOverEvent Read FOnMouseOver    Write FOnMouseOver;
-    property    OnColourChange : TNotifyEvent    Read FOnColourChange Write FOnColourChange;
+    property    PreviewActive  : boolean   read fPreviewOptions.Active  write SetPreviewActive;
+    property    PreviewBoxSize : integer   read fPreviewOptions.Size    write SetPreviewBoxSize;
+    property    PreviewView    : integer   read fPreviewOptions.View    write SetPreviewViewMode;
+    property    PreviewVoid    : integer   read FPreviewOptions.ROffset write SetPreviewVoid;
+
+    property    OnChange       : TNotifyEvent    read FOnChange       write FOnChange;
+    property    OnMouseOver    : TMouseOverEvent read FOnMouseOver    write FOnMouseOver;
+    property    OnColourChange : TNotifyEvent    read FOnColourChange write FOnColourChange;
   protected
     procedure   MatrixChange; dynamic;
     procedure   ColourChange; dynamic;
@@ -353,40 +378,44 @@ constructor TTheMatrix.Create(AOwner: TComponent; Zig : TWinControl);
   lMatrix : TMatrix;
   x : integer;
  begin
-  PaintBox             := TPaintBox.Create(AOwner);
-  PaintBox.Parent      := Zig;
-  PaintBox.OnPaint     := PaintBoxUpdate;
+  PaintBox                := TPaintBox.Create(AOwner);
+  PaintBox.Parent         := Zig;
+  PaintBox.OnPaint        := PaintBoxUpdate;
 
-  PreviewBox           := TPaintBox.Create(AOwner);
-  PreviewBox.Parent    := Zig;
-  PreviewBox.Visible   := False;
-  PreviewBox.Top       := 102;
-  PreviewBox.Left      := 607;
+  PreviewBox              := TPaintBox.Create(AOwner);
+  PreviewBox.Parent       := Zig;
+  PreviewBox.Visible      := False;
+  PreviewBox.Top          := 102;
+  PreviewBox.Left         := 607;
 
-  FPreviewBoxSize      := 1;
-  FPreviewActive       := False;
+  PreviewBox.Canvas.Pen.Color := clBtnFace;
 
-  HaveMatrix           := False;
+  fPreviewOptions.Active  := False;
+  fPreviewOptions.Size    := 1;
+  fPreviewOptions.View    := viewModeSquare;
+  FPreviewOptions.ROffset := 15;
 
-  fFrameCount          := 1;
-  fCurrentFrame        := 1;
-  fLightBox            := 0;
-  fDeadPixelsMode      := False;
+  HaveMatrix              := False;
 
-  DrawData.Mode        := drawModeNone;
-  DrawData.Point       := 0;
-  DrawData.Colour      := 1;
-  DrawData.Coords[0].X := -1;
-  DrawData.Coords[0].Y := -1;
+  fFrameCount             := 1;
+  fCurrentFrame           := 1;
+  fLightBox               := 0;
+  fDeadPixelsMode         := False;
 
-  fRandomCoeff         := 30;
+  DrawData.Mode           := drawModeNone;
+  DrawData.Point          := 0;
+  DrawData.Colour         := 1;
+  DrawData.Coords[0].X    := -1;
+  DrawData.Coords[0].Y    := -1;
 
-  MatrixGradient       := 0;
+  fRandomCoeff            := 30;
 
-  MatrixBrushSize      := 0;
-  MatrixPixelSize      := 1;
+  MatrixGradient          := 0;
 
-  MatrixComment        := '';
+  MatrixBrushSize         := 0;
+  MatrixPixelSize         := 1;
+
+  MatrixComment           := '';
 
   // ===========================================================================
 
@@ -451,27 +480,64 @@ procedure TTheMatrix.MouseOver;
 end;
 
 procedure TTheMatrix.SetPreviewBoxSize(aSize : integer);
- begin
-  FPreviewBoxSize    := aSize;
+var
+  lMD : integer;
 
-  PreviewBox.OnPaint := pbPreviewPaint;
+begin
+  FPreviewOptions.Size := aSize;
 
-  PreviewBox.Tag     := aSize;
+  if not(HaveMatrix) then
+    Exit;
 
-  PreviewBox.Width   := (MatrixWidth) * PreviewBox.Tag;
-  PreviewBox.Height  := (MatrixHeight) * PreviewBox.Tag;
+  PreviewBox.Width     := (MatrixWidth) * FPreviewOptions.Size;
+  PreviewBox.Height    := (MatrixHeight) * FPreviewOptions.Size;
 
-  PreviewBox.Left    := LeftOffset + (MatrixPixelSize * (MatrixWidth)) + 20;
+  if FPreviewOptions.View = viewModeSquare then
+    PreviewBox.OnPaint := pbPreviewPaint
+  else begin
+    PreviewBox.OnPaint := pbPreviewPaintRadial;
+
+    lMD := Max(PreviewBox.Width, PreviewBox.Height);
+
+    PreviewBox.Width  := lMD;
+    PreviewBox.Height := lMD;
+  end;
+
+  if FPreviewOptions.View = 1 then begin
+    // calculate circumference at ROffSet pixels from centre = 2 * pi * ROffSet
+    // divide this by the number of pixels and we get the maximium pixel size
+
+    FPreviewOptions.RPixel   := Round((2 * Pi * FPreviewOptions.ROffSet) / MatrixWidth);
+
+    if FPreviewOptions.RPixel = 0 then
+      FPreviewOptions.RPixel := 1;
+  end;
+
+  PreviewBox.Left      := LeftOffset + (MatrixPixelSize * (MatrixWidth)) + 20;
 
   PreviewBox.Invalidate;
 end;
 
 procedure TTheMatrix.SetPreviewActive(aActive : boolean);
  begin
-  FPreviewActive     := aActive;
-  PreviewBox.Visible := aActive;
+  FPreviewOptions.Active := aActive;
+  PreviewBox.Visible     := aActive;
 
-  PreviewBox.Invalidate;  
+  PreviewBox.Invalidate;
+end;
+
+procedure TTheMatrix.SetPreviewViewMode(aMode : integer);
+begin
+  FPreviewOptions.View := aMode;
+
+  SetPreviewBoxSize(FPreviewOptions.Size);
+end;
+
+procedure TTheMatrix.SetPreviewVoid(aOffset : integer);
+begin
+  FPreviewOptions.ROffset := aOffset;
+
+  SetPreviewBoxSize(FPreviewOptions.Size);
 end;
 
 function TTheMatrix.CurrentFrameCount: integer;
@@ -944,7 +1010,7 @@ procedure TTheMatrix.NewMatrix(aMatrixType, aFrameCount, aTop, aLeft, aWidth, aH
 
   HaveMatrix := True;
 
-  SetPreviewBoxSize(fPreviewBoxSize);
+  SetPreviewBoxSize(FPreviewOptions.Size);
 
   MatrixChange;
 end;
@@ -1020,19 +1086,21 @@ procedure TTheMatrix.ChangeSoftwareMode(aSoftwareMode : integer);
 
  begin
   case aSoftwareMode of
-    0 : begin
-          ClearAllFrames;
-        end;
-    1 : begin
-          ClearAllFrames;
+    softwareModeAnimation : begin
+                              ClearAllFrames;
+                            end;
+    softwareModeFont      : begin
+                              ClearAllFrames;
 
-          for t:= 1 to 95 do begin
-            lMatrix := TMatrix.Create(Self);
+                              for t:= 1 to 95 do begin
+                                lMatrix := TMatrix.Create(Self);
 
-            Matrix.Add(lMatrix);
-          end;
-        end;
+                                Matrix.Add(lMatrix);
+                              end;
+                            end;
   end;
+
+  fSoftwareMode := aSoftwareMode;
 
   MatrixChange;
 
@@ -1845,32 +1913,32 @@ procedure TTheMatrix.PerformEffectOnCurrentFrame(aMode : integer);
   BackupMatrix(fCurrentFrame);
 
   case aMode of
-    modeFlip      : begin
-                      for x := 0 to MatrixWidth - 1 do begin
-                        for y := 0 to MatrixHeight - 1 do begin
-                          TMatrix(Matrix[fCurrentFrame]).Grid[x, y] := MatrixBackup.Grid[MatrixWidth - x - 1, y];
-                        end;
-                      end;
-                    end;
-    modeMirror    : begin
-                      for y:=0 to MatrixHeight - 1 do begin
-                        for x:=0 to MatrixWidth - 1 do begin
-                          TMatrix(Matrix[fCurrentFrame]).Grid[x, y] := MatrixBackup.Grid[x, MatrixHeight - y - 1];
-                        end;
-                      end;
-                    end;
-    modeInvert    : begin
-                      for x:=0 to MatrixWidth - 1 do begin
-                        for y:=0 to MatrixHeight - 1 do begin
-                          case MatrixType of
-                            psTypeMono         : TMatrix(Matrix[fCurrentFrame]).Grid[x, y] := 1 - TMatrix(Matrix[fCurrentFrame]).Grid[x, y];
-                            psTypeBiSequential,
-                            psTypeBiBitPlanes  : TMatrix(Matrix[fCurrentFrame]).Grid[x, y] := 3 - TMatrix(Matrix[fCurrentFrame]).Grid[x, y];
-                            psTypeRGB          : TMatrix(Matrix[fCurrentFrame]).Grid[x, y] := $FFFFFF - TMatrix(Matrix[fCurrentFrame]).Grid[x, y];
-                          end;
-                        end;
-                      end;
-                    end;
+    modeFlip                : begin
+                                for x := 0 to MatrixWidth - 1 do begin
+                                  for y := 0 to MatrixHeight - 1 do begin
+                                    TMatrix(Matrix[fCurrentFrame]).Grid[x, y] := MatrixBackup.Grid[MatrixWidth - x - 1, y];
+                                  end;
+                                end;
+                              end;
+    modeMirror              : begin
+                                for y:=0 to MatrixHeight - 1 do begin
+                                  for x:=0 to MatrixWidth - 1 do begin
+                                    TMatrix(Matrix[fCurrentFrame]).Grid[x, y] := MatrixBackup.Grid[x, MatrixHeight - y - 1];
+                                  end;
+                                end;
+                              end;
+    modeInvert              : begin
+                                for x:=0 to MatrixWidth - 1 do begin
+                                  for y:=0 to MatrixHeight - 1 do begin
+                                    case MatrixType of
+                                      psTypeMono         : TMatrix(Matrix[fCurrentFrame]).Grid[x, y] := 1 - TMatrix(Matrix[fCurrentFrame]).Grid[x, y];
+                                      psTypeBiSequential,
+                                      psTypeBiBitPlanes  : TMatrix(Matrix[fCurrentFrame]).Grid[x, y] := 3 - TMatrix(Matrix[fCurrentFrame]).Grid[x, y];
+                                      psTypeRGB          : TMatrix(Matrix[fCurrentFrame]).Grid[x, y] := $FFFFFF - TMatrix(Matrix[fCurrentFrame]).Grid[x, y];
+                                    end;
+                                  end;
+                                end;
+                              end;
   end;
 
   TMatrix(Matrix[fCurrentFrame]).AddToHistory;
@@ -1945,56 +2013,126 @@ end;
 
 procedure TTheMatrix.PerformScrollOnCurrentFrame(aMode : integer);
  var
-  x,y : integer;
+  x, y, z : integer;
 
  begin
   BackupMatrix(fCurrentFrame);
 
   case aMode of
-     modeScrollLeft  : begin
-                         for x:=0 to MatrixWidth - 2 do begin
-                           for y:=0 to MatrixHeight - 1 do begin
-                             TMatrix(Matrix[fCurrentFrame]).Grid[x, y] := MatrixBackup.Grid[x + 1, y];
-                           end;
-                         end;
+     modeScrollLeft          : begin
+                                 for x:=0 to MatrixWidth - 2 do begin
+                                   for y:=0 to MatrixHeight - 1 do begin
+                                     TMatrix(Matrix[fCurrentFrame]).Grid[x, y] := MatrixBackup.Grid[x + 1, y];
+                                   end;
+                                 end;
 
-                         for y:=0 to MatrixHeight - 1 do begin
-                           TMatrix(Matrix[fCurrentFrame]).Grid[MatrixWidth - 1, y] := MatrixBackup.Grid[0, y];
-                         end;
-                       end;
-     modeScrollRight : begin
-                         for x:=1 to MatrixWidth - 1 do begin
-                           for y:=0 to MatrixHeight - 1 do begin
-                             TMatrix(Matrix[fCurrentFrame]).Grid[x, y] := MatrixBackup.Grid[x - 1, y];
-                           end;
-                         end;
+                                 for y:=0 to MatrixHeight - 1 do begin
+                                   TMatrix(Matrix[fCurrentFrame]).Grid[MatrixWidth - 1, y] := MatrixBackup.Grid[0, y];
+                                 end;
+                               end;
+     modeScrollRight         : begin
+                                 for x:=1 to MatrixWidth - 1 do begin
+                                   for y:=0 to MatrixHeight - 1 do begin
+                                     TMatrix(Matrix[fCurrentFrame]).Grid[x, y] := MatrixBackup.Grid[x - 1, y];
+                                   end;
+                                 end;
 
-                         for y:=0 to MatrixHeight - 1 do begin
-                           TMatrix(Matrix[fCurrentFrame]).Grid[0, y] := MatrixBackup.Grid[MatrixWidth - 1, y];
-                         end;
-                       end;
-     modeScrollUp    : begin
-                         for y:=0 to MatrixHeight - 2 do begin
-                           for x:=0 to MatrixWidth - 1 do begin
-                             TMatrix(Matrix[fCurrentFrame]).Grid[x, y] := MatrixBackup.Grid[x, y + 1];
-                           end;
-                         end;
+                                 for y:=0 to MatrixHeight - 1 do begin
+                                   TMatrix(Matrix[fCurrentFrame]).Grid[0, y] := MatrixBackup.Grid[MatrixWidth - 1, y];
+                                 end;
+                               end;
+     modeScrollUp            : begin
+                                 for y:=0 to MatrixHeight - 2 do begin
+                                   for x:=0 to MatrixWidth - 1 do begin
+                                     TMatrix(Matrix[fCurrentFrame]).Grid[x, y] := MatrixBackup.Grid[x, y + 1];
+                                   end;
+                                 end;
 
-                         for x:=0 to MatrixWidth - 1 do begin
-                           TMatrix(Matrix[fCurrentFrame]).Grid[x, MatrixHeight - 1] := MatrixBackup.Grid[x, 0];
-                         end;
-                       end;
-     modeScrollDown  : begin
-                         for y:=1 to MatrixHeight - 1 do begin
-                           for x:=0 to MatrixWidth - 1 do begin
-                             TMatrix(Matrix[fCurrentFrame]).Grid[x, y] := MatrixBackup.Grid[x, y - 1];
-                           end;
-                         end;
+                                 for x:=0 to MatrixWidth - 1 do begin
+                                   TMatrix(Matrix[fCurrentFrame]).Grid[x, MatrixHeight - 1] := MatrixBackup.Grid[x, 0];
+                                 end;
+                               end;
+     modeScrollDown          : begin
+                                 for y:=1 to MatrixHeight - 1 do begin
+                                   for x:=0 to MatrixWidth - 1 do begin
+                                     TMatrix(Matrix[fCurrentFrame]).Grid[x, y] := MatrixBackup.Grid[x, y - 1];
+                                   end;
+                                 end;
 
-                         for x:=0 to MatrixWidth - 1 do begin
-                           TMatrix(Matrix[fCurrentFrame]).Grid[x, 0] := MatrixBackup.Grid[x, MatrixHeight - 1];
-                         end;
-                       end;
+                                 for x:=0 to MatrixWidth - 1 do begin
+                                   TMatrix(Matrix[fCurrentFrame]).Grid[x, 0] := MatrixBackup.Grid[x, MatrixHeight - 1];
+                                 end;
+                               end;
+     modeWipeVertical        : begin
+                                 z := Round(MatrixWidth / 2);
+
+                                 for x:=0 to z - 2 do begin
+                                   for y:=0 to MatrixHeight - 1 do begin
+                                     TMatrix(Matrix[fCurrentFrame]).Grid[x, y] := MatrixBackup.Grid[x + 1, y];
+                                   end;
+                                 end;
+
+                                 for x:=MatrixWidth - 1 downto z  + 1do begin
+                                   for y:=0 to MatrixHeight - 1 do begin
+                                     TMatrix(Matrix[fCurrentFrame]).Grid[x, y] := MatrixBackup.Grid[x - 1, y];
+                                   end;
+                                 end;
+
+                                  for y:=0 to MatrixHeight - 1 do begin
+                                    TMatrix(Matrix[fCurrentFrame]).Grid[z - 1, y] := MatrixBackup.Grid[0, y];
+                                    TMatrix(Matrix[fCurrentFrame]).Grid[z, y]     := MatrixBackup.Grid[MatrixWidth - 1, y];
+                                  end;
+                               end;
+     modeWipeVerticalClear   : begin
+                                 z := Round(MatrixWidth / 2);
+
+                                 for x:=0 to z - 2 do begin
+                                   for y:=0 to MatrixHeight - 1 do begin
+                                     TMatrix(Matrix[fCurrentFrame]).Grid[x, y] := MatrixBackup.Grid[x + 1, y];
+                                   end;
+                                 end;
+
+                                 for x:=MatrixWidth - 1 downto z  + 1do begin
+                                   for y:=0 to MatrixHeight - 1 do begin
+                                     TMatrix(Matrix[fCurrentFrame]).Grid[x, y] := MatrixBackup.Grid[x - 1, y];
+                                   end;
+                                 end;
+                               end;
+     modeWipeHorizontal      : begin
+                                 z := Round(MatrixHeight / 2);
+
+                                 for y := 0 to z - 2 do begin
+                                   for x:=0 to MatrixWidth - 1 do begin
+                                     TMatrix(Matrix[fCurrentFrame]).Grid[x, y] := MatrixBackup.Grid[x, y + 1];
+                                   end;
+                                 end;
+
+                                 for y := MatrixHeight - 1 downto z + 1 do begin
+                                   for x:=0 to MatrixWidth - 1 do begin
+                                     TMatrix(Matrix[fCurrentFrame]).Grid[x, y] := MatrixBackup.Grid[x, y - 1];
+                                   end;
+                                 end;
+
+                                 for x:=0 to MatrixWidth - 1 do begin
+                                   TMatrix(Matrix[fCurrentFrame]).Grid[x, z - 1] := MatrixBackup.Grid[x, 0];
+                                   TMatrix(Matrix[fCurrentFrame]).Grid[x, z]     := MatrixBackup.Grid[x, MatrixHeight - 1];
+                                 end;
+                               end;
+     modeWipeHorizontalClear : begin
+                                 z := Round(MatrixHeight / 2);
+
+                                 for y := 0 to z - 2 do begin
+                                   for x:=0 to MatrixWidth - 1 do begin
+                                     TMatrix(Matrix[fCurrentFrame]).Grid[x, y] := MatrixBackup.Grid[x, y + 1];
+                                   end;
+                                 end;
+
+                                 for y := MatrixHeight - 1 downto z + 1 do begin
+                                   for x:=0 to MatrixWidth - 1 do begin
+                                     TMatrix(Matrix[fCurrentFrame]).Grid[x, y] := MatrixBackup.Grid[x, y - 1];
+                                   end;
+                                 end;
+                               end;
   end;
 
   TMatrix(Matrix[fCurrentFrame]).AddToHistory;
@@ -2920,9 +3058,9 @@ procedure TTheMatrix.DeleteFrame(aFrame : integer);
   Matrix.Delete(aFrame);
 
   if aFrame >= Matrix.Count then
-    fCurrentFrame := Matrix.Count;
+    fCurrentFrame := Matrix.Count - 1;
 
-  MatrixChange;
+  //MatrixChange;
 
   PaintBox.Invalidate;
 end;
@@ -4366,29 +4504,28 @@ procedure TTheMatrix.ChangeSelectionColour(aSelectionLMB, aSelectionMMB, aSelect
 end; 
 
 function TTheMatrix.CalculateMemoryUsage: integer;
- begin
+var
+  a, b : integer;
+
+begin
   if MatrixType = psTypeRGB then begin
     Result := MatrixWidth * MatrixHeight * 4 * FrameCount;
   end
   else begin
-    case MatrixHeight - 1 of
-       0..7  : Result := 1;
-       8..15 : Result := 2;
-      16..23 : Result := 4;
-      24..31 : Result := 4;
-      32..39 : Result := 8;
-      40..47 : Result := 8;
-      48..55 : Result := 8;
-      56..63 : Result := 8;
-    else
-      Result := 0;
-    end;
-
-    if SoftwareMode = 1 then begin
-      Result := (Result * (MatrixWidth)) * (96);
+    if MatrixHeight >= MatrixWidth then begin
+      a := (MatrixHeight + 1) div 8;
+      b := (MatrixWidth);
     end
     else begin
-      Result := (Result * (MatrixWidth)) * (FrameCount);
+      a := (MatrixWidth + 1) div 8;
+      b := (MatrixHeight);
+    end;
+
+    if FSoftwareMode = 1 then begin
+      Result := (a * b) * (96);
+    end
+    else begin
+      Result := (a * b) * (FrameCount);
     end;
 
     // if using any of the bicolour modes then double requirements
@@ -4502,14 +4639,14 @@ procedure TTheMatrix.pbPreviewPaint(Sender: TObject);
       end;
 
       case MatrixPixelShape of
-        pixelSquare : PreviewBox.Canvas.FillRect(Rect(x * PreviewBox.Tag,
-                                                      y * PreviewBox.Tag,
-                                                      (x * PreviewBox.Tag) + PreviewBox.Tag,
-                                                      (y * PreviewBox.Tag) + PreviewBox.Tag));
-        pixelCircle : PreviewBox.Canvas.Ellipse(x * PreviewBox.Tag,
-                                                y * PreviewBox.Tag,
-                                                (x * PreviewBox.Tag) + PreviewBox.Tag,
-                                                (y * PreviewBox.Tag) + PreviewBox.Tag);
+        pixelSquare : PreviewBox.Canvas.FillRect(Rect(x * FPreviewOptions.Size,
+                                                      y * FPreviewOptions.Size,
+                                                      (x * FPreviewOptions.Size) + FPreviewOptions.Size,
+                                                      (y * FPreviewOptions.Size) + FPreviewOptions.Size));
+        pixelCircle : PreviewBox.Canvas.Ellipse(x * FPreviewOptions.Size,
+                                                y * FPreviewOptions.Size,
+                                                (x * FPreviewOptions.Size) + FPreviewOptions.Size,
+                                                (y * FPreviewOptions.Size) + FPreviewOptions.Size);
       end;
     end;
   end;
@@ -4525,21 +4662,21 @@ procedure TTheMatrix.pbPreviewPaint(Sender: TObject);
       else
         PreviewBox.Canvas.Brush.Color := LEDColours[DrawData.Colour];
 
-      DrawShape(True, PreviewBox.Canvas, PreviewBoxSize, PreviewBoxSize, 1);
+      DrawShape(True, PreviewBox.Canvas, FPreviewOptions.Size, FPreviewOptions.Size, 1);
 
       // =======================================================================
 
       PreviewBox.Canvas.Brush.Color := LEDColours[4];
 
       case MatrixPixelShape of
-        pixelSquare : PreviewBox.Canvas.FillRect(Rect(DrawData.Coords[0].X * PreviewBoxSize,
-                                                      DrawData.Coords[0].Y * PreviewBoxSize,
-                                                      (DrawData.Coords[0].X * PreviewBoxSize) + PreviewBoxSize,
-                                                      (DrawData.Coords[0].Y * PreviewBoxSize) + PreviewBoxSize));
-        pixelCircle : PreviewBox.Canvas.Ellipse(DrawData.Coords[0].X * PreviewBoxSize,
-                                                DrawData.Coords[0].Y * PreviewBoxSize,
-                                                (DrawData.Coords[0].X * PreviewBoxSize) + PreviewBoxSize,
-                                                (DrawData.Coords[0].Y * PreviewBoxSize) + PreviewBoxSize);
+        pixelSquare : PreviewBox.Canvas.FillRect(Rect(DrawData.Coords[0].X * FPreviewOptions.Size,
+                                                      DrawData.Coords[0].Y * FPreviewOptions.Size.Size,
+                                                      (DrawData.Coords[0].X * FPreviewOptions.Size) + FPreviewOptions.Size,
+                                                      (DrawData.Coords[0].Y * FPreviewOptions.Size) + FPreviewOptions.Size));
+        pixelCircle : PreviewBox.Canvas.Ellipse(DrawData.Coords[0].X * FPreviewOptions.Size,
+                                                DrawData.Coords[0].Y * FPreviewOptions.Size,
+                                                (DrawData.Coords[0].X * FPreviewOptions.Size) + FPreviewOptions.Size,
+                                                (DrawData.Coords[0].Y * FPreviewOptions.Size) + FPreviewOptions.Size);
       end;
     end;
   end;
@@ -4568,17 +4705,61 @@ procedure TTheMatrix.pbPreviewPaint(Sender: TObject);
            end;
 
            case MatrixPixelShape of
-             pixelSquare : PreviewBox.Canvas.FillRect(Rect((x + lastx) * PreviewBoxSize,
-                                                         (y + lasty) * PreviewBoxSize,
-                                                         ((x + lastx) * PreviewBoxSize) + PreviewBoxSize,
-                                                         ((y + lasty) * PreviewBoxSize) + PreviewBoxSize));
-             pixelCircle : PreviewBox.Canvas.Ellipse((x + lastx) * PreviewBoxSize,
-                                                   (y + lasty) * PreviewBoxSize,
-                                                   ((x + lastx) * PreviewBoxSize) + PreviewBoxSize,
-                                                   ((y + lasty) * PreviewBoxSize) + PreviewBoxSize);
+             pixelSquare : PreviewBox.Canvas.FillRect(Rect((x + lastx) * FPreviewOptions.Size,
+                                                         (y + lasty) * FPreviewOptions.Size,
+                                                         ((x + lastx) * FPreviewOptions.Size) + FPreviewOptions.Size,
+                                                         ((y + lasty) * FPreviewOptions.Size) + FPreviewOptions.Size));
+             pixelCircle : PreviewBox.Canvas.Ellipse((x + lastx) * FPreviewOptions.Size,
+                                                   (y + lasty) * FPreviewOptions.Size,
+                                                   ((x + lastx) * FPreviewOptions.Size) + FPreviewOptions.Size,
+                                                   ((y + lasty) * FPreviewOptions.Size) + FPreviewOptions.Size);
            end;
         end;
       end;
+    end;
+  end;
+end;
+
+
+procedure TTheMatrix.pbPreviewPaintRadial(Sender: TObject);
+ var
+  x, y : integer;
+  xp, yp : integer;
+  lAC  : double;
+  lAS  : double;
+  lD  : double;
+  lCX : integer;
+  lCY : integer;
+
+ begin
+  lCX := Round(PreviewBox.Width / 2);
+  lCY := Round(PreviewBox.Height / 2);
+
+  for x:=0 to MatrixWidth - 1 do begin
+    for y:=0 to MatrixHeight - 1 do begin
+      if MatrixType = psTypeRGB then
+        PreviewBox.Canvas.Brush.Color := TMatrix(Matrix[fCurrentFrame]).Grid[x, y]
+      else begin
+        case TMatrix(Matrix[fCurrentFrame]).Grid[x, y] of
+          0 : PreviewBox.Canvas.Brush.Color := LEDColours[0];
+          1 : PreviewBox.Canvas.Brush.Color := LEDColours[1];
+          2 : PreviewBox.Canvas.Brush.Color := LEDColours[2];
+          3 : PreviewBox.Canvas.Brush.Color := LEDColours[3];
+        end;
+      end;
+
+      lAC :=  Cos(DegToRad((MatrixWidth -1 - x) / MatrixWidth -1) * 360);
+      lAS :=  Sin(DegToRad((MatrixWidth -1 - x) / MatrixWidth -1) * 360);
+
+      lD :=  (lCX - FPreviewOptions.ROffSet) / MatrixHeight;
+
+      xp :=  lCX + Round((FPreviewOptions.ROffSet + (lD * (MatrixHeight - 1 - y))) * lAC);
+      yp :=  lCY - Round((FPreviewOptions.ROffSet + (lD * (MatrixHeight - 1 - y))) * lAS);
+
+      PreviewBox.Canvas.Ellipse(xp,
+                                yp,
+                                xp + FPreviewOptions.RPixel,
+                                yp + FPreviewOptions.RPixel);
     end;
   end;
 end;
@@ -4591,7 +4772,7 @@ var
 
 begin
   case aAO.Source of
-    0 : begin
+    0 : begin // first frame is source
           for i:= aAO.FrameStart + 1 to aAO.FrameEnd do begin
 
             if i > CurrentFrameCount then
@@ -4606,17 +4787,22 @@ begin
                 lAction := StrToIntDef(aAO.ActionList[a], -1);
 
                 case lAction of
-                  0 : PerformEffectOnCurrentFrame(modeMirror);
-                  1 : PerformEffectOnCurrentFrame(modeFlip);
-                  2 : PerformEffectOnCurrentFrame(modeInvert);
+                   0 : PerformEffectOnCurrentFrame(modeMirror);
+                   1 : PerformEffectOnCurrentFrame(modeFlip);
+                   2 : PerformEffectOnCurrentFrame(modeInvert);
 
-                  3 : PerformScrollOnCurrentFrame(modeScrollLeft);
-                  4 : PerformScrollOnCurrentFrame(modeScrollRight);
-                  5 : PerformScrollOnCurrentFrame(modeScrollUp);
-                  6 : PerformScrollOnCurrentFrame(modeScrollDown);
+                   3 : PerformScrollOnCurrentFrame(modeScrollLeft);
+                   4 : PerformScrollOnCurrentFrame(modeScrollRight);
+                   5 : PerformScrollOnCurrentFrame(modeScrollUp);
+                   6 : PerformScrollOnCurrentFrame(modeScrollDown);
 
-                  7 : RotateCurrentFrame(modeRotateACW);
-                  8 : RotateCurrentFrame(modeRotateCW);
+                   7 : RotateCurrentFrame(modeRotateACW);
+                   8 : RotateCurrentFrame(modeRotateCW);
+
+                   9 : PerformScrollOnCurrentFrame(modeWipeVertical);
+                  10 : PerformScrollOnCurrentFrame(modeWipeVerticalClear);
+                  11 : PerformScrollOnCurrentFrame(modeWipeHorizontal);
+                  12 : PerformScrollOnCurrentFrame(modeWipeHorizontalClear);
                 else
                   showmessage('error: ' + aAO.ActionList[a]);
                 end;
@@ -4624,12 +4810,12 @@ begin
             end;
           end;
         end;
-    1 : begin
+    1 : begin // previous frame is source
           for i:= aAO.FrameStart to aAO.FrameEnd do begin
 
             if i > CurrentFrameCount then
-              InsertBlankFrameAt(i);            
-          
+              InsertBlankFrameAt(i);
+
             fCurrentFrame := i;
 
             if (aAO.ActionList.Count <> 0) then begin
@@ -4637,17 +4823,22 @@ begin
                 lAction := StrToIntDef(aAO.ActionList[a], -1);
 
                 case lAction of
-                  0 : PerformEffectOnCurrentFrame(modeMirror);
-                  1 : PerformEffectOnCurrentFrame(modeFlip);
-                  2 : PerformEffectOnCurrentFrame(modeInvert);
+                   0 : PerformEffectOnCurrentFrame(modeMirror);
+                   1 : PerformEffectOnCurrentFrame(modeFlip);
+                   2 : PerformEffectOnCurrentFrame(modeInvert);
 
-                  3 : PerformScrollOnCurrentFrame(modeScrollLeft);
-                  4 : PerformScrollOnCurrentFrame(modeScrollRight);
-                  5 : PerformScrollOnCurrentFrame(modeScrollUp);
-                  6 : PerformScrollOnCurrentFrame(modeScrollDown);
+                   3 : PerformScrollOnCurrentFrame(modeScrollLeft);
+                   4 : PerformScrollOnCurrentFrame(modeScrollRight);
+                   5 : PerformScrollOnCurrentFrame(modeScrollUp);
+                   6 : PerformScrollOnCurrentFrame(modeScrollDown);
 
-                  7 : RotateCurrentFrame(modeRotateACW);
-                  8 : RotateCurrentFrame(modeRotateCW);
+                   7 : RotateCurrentFrame(modeRotateACW);
+                   8 : RotateCurrentFrame(modeRotateCW);
+
+                   9 : PerformScrollOnCurrentFrame(modeWipeVertical);
+                  10 : PerformScrollOnCurrentFrame(modeWipeVerticalClear);
+                  11 : PerformScrollOnCurrentFrame(modeWipeHorizontal);
+                  12 : PerformScrollOnCurrentFrame(modeWipeHorizontalClear);
                 else
                   showmessage('error: ' + aAO.ActionList[a]);
                 end;

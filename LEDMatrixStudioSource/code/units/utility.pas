@@ -25,16 +25,18 @@ type
              end;
 
   TProjectSettings = record
-                       mtype   : integer;
-                       width   : integer;
-                       height  : integer;
-                       clear   : boolean;
-                       special : integer;
+                       mtype    : integer;
+                       width    : integer;
+                       height   : integer;
+                       clear    : boolean;
+                       special  : integer;
+                       sizetype : boolean;
+                       pixel    : integer; // 0 = square, 1 = circle
                      end;
 
 const
-  LEDStudioDate      = 'May 28th 2018';
-  LEDStudioVersion   = 'v0.8.11 BETA';
+  LEDStudioDate      = 'August 5th 2018';
+  LEDStudioVersion   = 'v0.8.13 BETA';
 
   LeftOffset         = 70;
 

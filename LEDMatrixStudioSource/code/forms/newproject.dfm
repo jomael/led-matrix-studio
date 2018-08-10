@@ -4,8 +4,8 @@ object frmNewProject: TfrmNewProject
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'New Project'
-  ClientHeight = 303
-  ClientWidth = 328
+  ClientHeight = 402
+  ClientWidth = 337
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -19,14 +19,14 @@ object frmNewProject: TfrmNewProject
   TextHeight = 13
   object Bevel19: TBevel
     Left = 10
-    Top = 260
+    Top = 359
     Width = 310
     Height = 4
     Shape = bsTopLine
   end
   object BitBtn1: TBitBtn
-    Left = 164
-    Top = 270
+    Left = 173
+    Top = 369
     Width = 75
     Height = 25
     Caption = 'Create'
@@ -61,8 +61,8 @@ object frmNewProject: TfrmNewProject
     OnClick = BitBtn1Click
   end
   object BitBtn2: TBitBtn
-    Left = 245
-    Top = 270
+    Left = 254
+    Top = 369
     Width = 75
     Height = 25
     Cancel = True
@@ -99,8 +99,8 @@ object frmNewProject: TfrmNewProject
   end
   object GroupBox3: TGroupBox
     Left = 8
-    Top = 143
-    Width = 310
+    Top = 242
+    Width = 321
     Height = 57
     Caption = 'Animation'
     TabOrder = 2
@@ -170,25 +170,21 @@ object frmNewProject: TfrmNewProject
   object pcNew: TPageControl
     Left = 8
     Top = 8
-    Width = 314
-    Height = 121
+    Width = 321
+    Height = 140
     ActivePage = TabSheet1
     TabOrder = 3
     object TabSheet1: TTabSheet
       Caption = 'Custom'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object GroupBox1: TGroupBox
-        Left = 15
-        Top = 16
-        Width = 274
-        Height = 57
+        Left = 10
+        Top = 14
+        Width = 291
+        Height = 85
         Caption = 'Matrtix Options'
         TabOrder = 0
         object Label1: TLabel
-          Left = 203
+          Left = 221
           Top = 23
           Width = 9
           Height = 18
@@ -201,7 +197,7 @@ object frmNewProject: TfrmNewProject
           ParentFont = False
         end
         object cbHeight: TComboBox
-          Left = 219
+          Left = 237
           Top = 20
           Width = 41
           Height = 21
@@ -210,7 +206,7 @@ object frmNewProject: TfrmNewProject
           TabOrder = 0
         end
         object cbWidth: TComboBox
-          Left = 155
+          Left = 173
           Top = 20
           Width = 42
           Height = 21
@@ -221,7 +217,7 @@ object frmNewProject: TfrmNewProject
         object cbMatrixType: TComboBox
           Left = 15
           Top = 20
-          Width = 132
+          Width = 144
           Height = 21
           Hint = 'Number of frames'
           Style = csDropDownList
@@ -275,15 +271,31 @@ object frmNewProject: TfrmNewProject
             TabOrder = 2
           end
         end
+        object rbCommon: TRadioButton
+          Left = 179
+          Top = 55
+          Width = 66
+          Height = 17
+          Caption = 'Common'
+          Checked = True
+          TabOrder = 4
+          TabStop = True
+          OnClick = rbCommonClick
+        end
+        object rbAll: TRadioButton
+          Left = 246
+          Top = 55
+          Width = 30
+          Height = 17
+          Caption = 'All'
+          TabOrder = 5
+          OnClick = rbCommonClick
+        end
       end
     end
     object TabSheet2: TTabSheet
       Caption = 'From Preset'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label6: TLabel
         Left = 16
         Top = 56
@@ -339,8 +351,8 @@ object frmNewProject: TfrmNewProject
   end
   object GroupBox5: TGroupBox
     Left = 8
-    Top = 206
-    Width = 310
+    Top = 305
+    Width = 321
     Height = 43
     TabOrder = 4
     object GroupBox6: TGroupBox
@@ -404,10 +416,98 @@ object frmNewProject: TfrmNewProject
   end
   object cbFrames: TComboBox
     Left = 83
-    Top = 168
+    Top = 267
     Width = 54
     Height = 21
     TabOrder = 5
     Text = '1'
+  end
+  object GroupBox7: TGroupBox
+    Left = 8
+    Top = 154
+    Width = 321
+    Height = 82
+    Caption = 'Pixel shape'
+    TabOrder = 6
+    object shapeSquare: TShape
+      Left = 79
+      Top = 17
+      Width = 50
+      Height = 50
+      OnMouseDown = shapeSquareMouseDown
+    end
+    object shapeCircle: TShape
+      Tag = 1
+      Left = 155
+      Top = 17
+      Width = 50
+      Height = 50
+      Shape = stCircle
+    end
+    object GroupBox8: TGroupBox
+      Left = 24
+      Top = -63
+      Width = 273
+      Height = 57
+      Caption = 'Matrtix Options'
+      TabOrder = 0
+      object Label10: TLabel
+        Left = 203
+        Top = 23
+        Width = 9
+        Height = 18
+        Caption = 'X'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -15
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ParentFont = False
+      end
+      object ComboBox4: TComboBox
+        Left = 219
+        Top = 20
+        Width = 41
+        Height = 21
+        Hint = 'Select matrix height'
+        Style = csDropDownList
+        TabOrder = 0
+      end
+      object ComboBox11: TComboBox
+        Left = 155
+        Top = 20
+        Width = 42
+        Height = 21
+        Hint = 'Select matrix width'
+        Style = csDropDownList
+        TabOrder = 1
+      end
+      object ComboBox12: TComboBox
+        Left = 15
+        Top = 20
+        Width = 132
+        Height = 21
+        Hint = 'Number of frames'
+        Style = csDropDownList
+        TabOrder = 2
+      end
+    end
+    object rbPixelSquare: TRadioButton
+      Left = 60
+      Top = 32
+      Width = 21
+      Height = 17
+      Checked = True
+      TabOrder = 1
+      TabStop = True
+    end
+    object rbPixelCircle: TRadioButton
+      Left = 211
+      Top = 32
+      Width = 21
+      Height = 17
+      TabOrder = 2
+      OnMouseDown = shapeSquareMouseDown
+    end
   end
 end

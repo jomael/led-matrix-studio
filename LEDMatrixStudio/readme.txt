@@ -1,8 +1,8 @@
  ===============================================================================
  =                                                                             =
- =  LED Matrix Studio v0.8.11 BETA                                             =
+ =  LED Matrix Studio v0.8.13 BETA                                             =
  =                                                                             =
- =  May 28th 2018                                                              =
+ =  August 5th 2018                                                            =
  =                                                                             =
  =  www.freshney.org // paul@freshney.org                                      =
  =                                                                             =
@@ -23,13 +23,13 @@
  
  Thanks for downloading the latest version of my LED Matrix Studio.
 
- A few years ago I started playing with Picaxe and Arduino 
+ Several years ago I started playing with Picaxe and Arduino 
  microcontrollers and one of the first things I bought was an 8x8
  LED matrix. In the passing couple of years I've bought lots and lots
  of LED boards! I love LEDs, I think it's an addiction!
 
  After working out the bit-patterns on a piece of paper a couple of
- times I did what any programmer would do - I wrote a simple 
+ times I did what any programmer would do: I wrote a simple 
  program to work out the bit-patterns for me. That simple program
  morphed in to three separate programs, each designed for slightly 
  different things. 
@@ -56,7 +56,7 @@
 
  Features:
  
- - Supports up to 128x128 matrix
+ - Supports up to 256x256 matrix
  - Supports single colour, bi-colour and RGB matrices
  - Seven sizes of "pixel" allows for use on almost any resolution PC
    Plus auto-size!
@@ -89,6 +89,7 @@
  - Import from bitmap image (one or more frames)
  - Export to bitmap 
  - Preview mode, view the image at x1, x2, x3, x4, x5 and x6 pixel size.
+   Preview as displayed, or map the pixels radially. 
  - Open source, download from the address at the top of this doc
 
  If you find a bug or have a feature request then *please* email me.
@@ -120,11 +121,32 @@
 ========================================================================
 
 ========================================================================
+== Updates for 0.8.13 beta =============================================
+========================================================================
+
+- Fixed crash when trying to delete the last frame
+- Tweaks to the automate mode
+- Added support for 256x256 matrix size. Only use this is you have the
+  space (you may need to disable preview display)
+- Few other tweaks
+- Added new preview mode: radial. Maps the pixels around a circle.
+  Change the size of the "void" in the circle from the View menu
+- Added Export button to the top toolbar
+- Added a new help document \docs\en\Help.pdf
+- Lots of minor tweaks
+
+========================================================================
+== Updates for 0.8.12 beta =============================================
+========================================================================
+
+- Fixed Font mode. A some point in the last few versions I broke it :(
+
+========================================================================
 == Updates for 0.8.11 beta =============================================
 ========================================================================
 
 - Added more playback speed options, and a custom option
-- Added a simple animation processing system
+- Added a simple animation processing system (tools->automate)
 - Added the ability to paste with a shift up/down/left/right
   ALT+arrow_key to shift the image as you paste!
 - Fixed a couple of minor export bugs

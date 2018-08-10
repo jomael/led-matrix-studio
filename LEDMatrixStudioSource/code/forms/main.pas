@@ -23,7 +23,7 @@ uses
   Dialogs, StdCtrls, Buttons, ExtCtrls, ToolWin, ComCtrls, Menus, ImgList,
   AngleLbl, ExtDlgs,
 
-  automate, playbackspeed,
+  automate, playbackspeed, xglobal,
 
   ActionObject, System.ImageList;
 
@@ -229,7 +229,6 @@ type
     sColour2: TShape;
     sColour1: TShape;
     sColour0: TShape;
-    pColourPaletteNew: TPanel;
     miPad40bits: TMenuItem;
     miPad48bits: TMenuItem;
     miPad56bits: TMenuItem;
@@ -244,7 +243,6 @@ type
     Bevel17: TBevel;
     lMemoryUsage: TLabel;
     miPlaybackSpeed8: TMenuItem;
-    N27: TMenuItem;
     Examples1: TMenuItem;
     sbGradient: TSpeedButton;
     puGradient: TPopupMenu;
@@ -289,7 +287,6 @@ type
     miPreviewx2: TMenuItem;
     miPreviewx3: TMenuItem;
     miPreviewx4: TMenuItem;
-    Donate1: TMenuItem;
     N12: TMenuItem;
     N26: TMenuItem;
     miAddComment: TMenuItem;
@@ -367,6 +364,15 @@ type
     miPlaybackSpeedCustom: TMenuItem;
     N40: TMenuItem;
     Setcustomspeed1: TMenuItem;
+    PreviewView1: TMenuItem;
+    miPreviewViewSquare: TMenuItem;
+    miPreviewViewRadial: TMenuItem;
+    PreviewVoidRadial1: TMenuItem;
+    miPreviewVoid10: TMenuItem;
+    miPreviewVoid15: TMenuItem;
+    miPreviewVoid20: TMenuItem;
+    SpeedButton1: TSpeedButton;
+    Bevel4: TBevel;
     procedure sbBuildClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure sbClearClick(Sender: TObject);
@@ -518,6 +524,9 @@ type
     procedure miAutomateClick(Sender: TObject);
     procedure Copyandshiftleft1Click(Sender: TObject);
     procedure Setcustomspeed1Click(Sender: TObject);
+    procedure SetSimpleExport(aTEO : TExportOptions);
+    procedure miPreviewViewSquareClick(Sender: TObject);
+    procedure miPreviewVoid10Click(Sender: TObject);
   public
 
   end;
@@ -530,7 +539,7 @@ implementation
 {$R *.dfm}
 
 uses registry, about, utility, checkversion, importbitmap, export, thematrix,
-     fontviewer, math, newproject, xglobal, exportcode, preferences;
+     fontviewer, math, newproject, exportcode, preferences;
 
 var
  PixelSize  : integer = 20;
@@ -565,7 +574,7 @@ procedure TfrmMain.FormCreate(Sender: TObject);
   BackupCaption            := Caption;
   AppSettings.DataFilename := '';
   FLastTick                := GetTickCount();
-  AppSettings.ASCIIIndex   := 32; // start ascii code (space)
+  AppSettings.ASCIIIndex   := 32;   // start ascii code (space)
 
   DoubleBuffered           := True; // stops the preview paintbox from flickering :)
 
@@ -801,6 +810,7 @@ procedure TfrmMain.FormClose(Sender: TObject; var Action: TCloseAction);
   Reg.WriteInteger('matrixtype',       ProjectSettings.mtype);
   Reg.WriteInteger('gridwidth',        ProjectSettings.width);
   Reg.WriteInteger('gridheight',       ProjectSettings.height);
+  Reg.WriteInteger('pixelshape',       ProjectSettings.pixel);
 
   Reg.WriteInteger('oncolour',         MatrixMain.LEDColoursSingle[1]);
   Reg.WriteInteger('oncolour2',        MatrixMain.LEDColoursSingle[2]);
@@ -900,6 +910,9 @@ procedure TfrmMain.FormClose(Sender: TObject; var Action: TCloseAction);
   Reg.WriteBool('previewactive', miPreview.Checked);
 
   Reg.WriteInteger('previewsize', MatrixMain.PreviewBoxSize);
+  Reg.WriteInteger('previewview', MatrixMain.PreviewView);
+  Reg.WriteInteger('previewvoid', MatrixMain.PreviewVoid);
+
 
   // ===========================================================================
 
@@ -948,7 +961,7 @@ function TfrmMain.GetAutoPixelSize: integer;
  begin
   if MatrixMain.HaveMatrix then begin
     xc := ClientWidth - 70;
-    yc := ClientHeight - AppSettings.Topoffset - 70 - statusMain.Height;
+    yc := ClientHeight - AppSettings.Topoffset - 25 - statusMain.Height;
 
     if MatrixMain.PreviewActive  then xc := xc - (MatrixMain.MatrixWidth * MatrixMain.PreviewBoxSize) - 30;
 
@@ -1010,8 +1023,8 @@ procedure TfrmMain.bDeleteFrameClick(Sender: TObject);
   else begin
     MatrixMain.DeleteFrame(tbFrames.Position);
 
-    if tbFrames.Position = tbFrames.Max then
-      tbFrames.Position := tbFrames.Position - 1;
+   // if tbFrames.Position >= tbFrames.Max then
+     // tbFrames.Position := tbFrames.Max - 1;
 
     UpdateDisplay;
   end;
@@ -1031,7 +1044,7 @@ var
 begin
   lAO := TActionObject.Create;
 
-  if DoAutomate(tbFrames.Position, tbFrames.Max, lAO) = mrOK then begin
+  if DoAutomate(tbFrames.Position, tbFrames.Max, MatrixMain.MatrixWidth, lAO) = mrOK then begin
     MatrixMain.Automate(lAO);
   end;
 
@@ -1237,7 +1250,7 @@ end;
 
 procedure TfrmMain.Donate1Click(Sender: TObject);
  begin
-  ExecuteFile(0, 'http://www.maximumoctopus.com/donate.htm', '', '');
+ ExecuteFile(0, 'http://www.maximumoctopus.com/donate.htm', '', '');
 end;
 
 procedure TfrmMain.cbMatrixTypeChange(Sender: TObject);
@@ -1396,6 +1409,10 @@ procedure TfrmMain.miMergeClick(Sender: TObject);
 
     // =======================================================================
 
+    if tbFrames.Max<ted.MaxFrames then begin
+      tbFrames.Max := ted.MaxFrames;
+    end;
+
     UpdateDisplay;
 
     AppSettings.LastLoadLocation := ExtractFilePath(odMain.Filename);
@@ -1449,9 +1466,9 @@ procedure TfrmMain.miFontModeClick(Sender: TObject);
   miSaveAsFont.Enabled := miFontMode.Checked;
 
   if miFontMode.Checked then
-    MatrixMain.SoftwareMode := 1
+    MatrixMain.SoftwareMode := softwareModeFont
   else
-    MatrixMain.SoftwareMode := 0;
+    MatrixMain.SoftwareMode := softwareModeAnimation;
 
   tbFrames.Max := MatrixMain.FrameCount;
 
@@ -1796,6 +1813,15 @@ procedure TfrmMain.Small1Click(Sender: TObject);
   MatrixMain.ChangePixelBrush(puBrushSize.Tag);
 end;
 
+procedure TfrmMain.miPreviewViewSquareClick(Sender: TObject);
+begin
+  (Sender as TMenuitem).Checked := True;
+
+  MatrixMain.PreviewView := (Sender As TMenuItem).Tag;
+
+  FormResize(Nil);
+end;
+
 procedure TfrmMain.miPadAutoClick(Sender: TObject);
  begin
   if (Sender <> Nil) then begin
@@ -2076,6 +2102,15 @@ procedure TfrmMain.miAutosave2Click(Sender: TObject);
   end;
 end;
 
+procedure TfrmMain.miPreviewVoid10Click(Sender: TObject);
+begin
+  (Sender as TMenuitem).Checked := True;
+
+  MatrixMain.PreviewVoid := (Sender As TMenuItem).Tag;
+
+  FormResize(Nil);
+end;
+
 procedure TfrmMain.New1Click(Sender: TObject);
  begin
   if timerAnimate.Enabled then
@@ -2195,12 +2230,15 @@ procedure TfrmMain.sbBuildClick(Sender: TObject);
 
     if ps.mtype = -1 then Exit;
 
-    ProjectSettings.mtype   := ps.mtype;
-    ProjectSettings.width   := ps.width;
-    ProjectSettings.height  := ps.height;
-    ProjectSettings.clear   := ps.clear;
-    ProjectSettings.special := ps.special;
-    tbFrames.Max            := ps.special;
+    ProjectSettings.mtype    := ps.mtype;
+    ProjectSettings.width    := ps.width;
+    ProjectSettings.height   := ps.height;
+    ProjectSettings.clear    := ps.clear;
+    ProjectSettings.special  := ps.special;
+    ProjectSettings.sizetype := ps.sizetype;
+    ProjectSettings.pixel    := ps.pixel;
+
+    tbFrames.Max             := ps.special;
 
     if ProjectSettings.mtype = psTypeRGB then
       ClearTExportOptions(True, AppSettings.LastExport)
@@ -2222,6 +2260,11 @@ procedure TfrmMain.sbBuildClick(Sender: TObject);
 
   if miPixelAuto.Checked then
     PixelSize := GetAutoPixelSize;
+
+  case ProjectSettings.pixel of
+    0 : miPixelShapeSquareClick(miPixelShapeSquare);
+    1 : miPixelShapeSquareClick(miPixelShapeRound);
+  end;
 
   MatrixMain.NewMatrix(ProjectSettings.mtype, ProjectSettings.special, AppSettings.TopOffSet, LeftOffset, mw, mh,
                        PixelSize, PixelShape, miGridToggle.Checked, False, ProjectSettings.clear);
@@ -3219,8 +3262,8 @@ end;
 
 procedure TfrmMain.Help1Click(Sender: TObject);
  begin
-  if FileExists(ExtractFilePath(Application.ExeName) + 'help\en\help.txt') then
-    ExecuteFile(0, ExtractFilePath(Application.ExeName) + 'help\en\help.txt', '', '')
+  if FileExists(ExtractFilePath(Application.ExeName) + 'help\en\help.pdf') then
+    ExecuteFile(0, ExtractFilePath(Application.ExeName) + 'help\en\help.pdf', '', '')
   else
     MessageDlg('Help file not found :(', mtWarning, [mbOK], 0);
 end;
@@ -3250,8 +3293,24 @@ procedure TfrmMain.miExportClick(Sender: TObject);
     AppSettings.LastExport.RGBMode         := teo.RGBMode;
     AppSettings.LastExport.RGBChangePixels := teo.RGBChangePixels;
     AppSettings.LastExport.RGBChangeColour := teo.RGBChangeColour;
+
+    SetSimpleExport(teo);
   end;
 end;
+
+
+procedure TfrmMain.SetSimpleExport(aTEO : TExportOptions);
+begin
+  cbSource.ItemIndex := aTEO.Source;
+
+  cbSourceChange(Nil);
+
+  cbSourceLSB.ItemIndex       := aTEO.LSB;
+  cbSourceDirection.ItemIndex := aTEO.Orientation;
+
+  cbRowsLSBChange(Nil);
+end;
+
 
 procedure TfrmMain.SetFrameCaption(i : integer);
  begin
@@ -3269,8 +3328,18 @@ procedure TfrmMain.SetFrameCaption(i : integer);
 end;
 
 procedure TfrmMain.UpdateMemoryUsage;
- begin
-  lMemoryUsage.Caption := 'Using ' + IntToStr(MatrixMain.CalculateMemoryUsage) + ' bytes.';
+var
+  lSize : integer;
+
+begin
+  lSize := MatrixMain.CalculateMemoryUsage;
+
+  if (lSize < 32768) then
+    lMemoryUsage.Caption := 'Using ' + IntToStr(lSize) + ' bytes.'
+  else begin
+    lMemoryUsage.Caption := 'Using ' + FloatToStrF((lSize / 1024), ffFixed, 7, 3) + ' KB';
+  end;
+
 end;
 
 procedure TfrmMain.Website1Click(Sender: TObject);
@@ -3870,6 +3939,7 @@ procedure TfrmMain.LoadRegistrySettings;
   ProjectSettings.mtype           := ReadRegistryInteger('matrixtype', 0);
   ProjectSettings.width           := ReadRegistryInteger('gridwidth', 7);
   ProjectSettings.height          := ReadRegistryInteger('gridheight', 7);
+  ProjectSettings.pixel           := ReadRegistryInteger('pixelshape', 0);
 
   // ===========================================================================
 
@@ -4052,6 +4122,17 @@ procedure TfrmMain.LoadRegistrySettings;
     4 : miPreviewx1Click(miPreviewx4);
     5 : miPreviewx1Click(miPreviewx5);
     6 : miPreviewx1Click(miPreviewx6);
+  end;
+
+  case ReadRegistryInteger('previewview', 0) of
+    0 : miPreviewViewSquareClick(miPreviewViewSquare);
+    1 : miPreviewViewSquareClick(miPreviewViewRadial);
+  end;
+
+  case ReadRegistryInteger('previewvoid', 15) of
+    10 : miPreviewVoid10Click(miPreviewVoid10);
+    15 : miPreviewVoid10Click(miPreviewVoid15);
+    20 : miPreviewVoid10Click(miPreviewVoid20);
   end;
 
   // ===========================================================================

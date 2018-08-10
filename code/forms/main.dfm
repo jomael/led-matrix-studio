@@ -2,8 +2,8 @@ object frmMain: TfrmMain
   Left = 0
   Top = 0
   Caption = 'LED Matrix Studio'
-  ClientHeight = 698
-  ClientWidth = 1132
+  ClientHeight = 690
+  ClientWidth = 1281
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -30,19 +30,19 @@ object frmMain: TfrmMain
   object CoolBar1: TCoolBar
     Left = 0
     Top = 0
-    Width = 1132
+    Width = 1281
     Height = 33
     Bands = <
       item
         Control = Panel1
         ImageIndex = -1
         MinHeight = 32
-        Width = 1126
+        Width = 1275
       end>
     object Panel1: TPanel
       Left = 11
       Top = 0
-      Width = 1117
+      Width = 1266
       Height = 32
       Align = alClient
       BevelOuter = bvNone
@@ -51,7 +51,7 @@ object frmMain: TfrmMain
       TabOrder = 0
       object sbBuild: TSpeedButton
         Left = 5
-        Top = 4
+        Top = 5
         Width = 58
         Height = 22
         Hint = 'Create new matrix'
@@ -86,15 +86,15 @@ object frmMain: TfrmMain
         OnClick = sbBuildClick
       end
       object Bevel3: TBevel
-        Left = 261
-        Top = 14
+        Left = 328
+        Top = 15
         Width = 5
         Height = 10
         Shape = bsLeftLine
       end
       object sbPreset: TSpeedButton
-        Left = 338
-        Top = 4
+        Left = 405
+        Top = 5
         Width = 50
         Height = 22
         Hint = 'Select a pre-saved preset'
@@ -103,8 +103,8 @@ object frmMain: TfrmMain
       end
       object sbPixelSize: TSpeedButton
         Tag = 2
-        Left = 204
-        Top = 4
+        Left = 271
+        Top = 5
         Width = 50
         Height = 22
         Hint = 'Select pixel size'
@@ -119,16 +119,16 @@ object frmMain: TfrmMain
         Shape = bsLeftLine
       end
       object lMemoryUsage: TLabel
-        Left = 403
-        Top = 9
+        Left = 470
+        Top = 10
         Width = 69
         Height = 13
         Caption = 'Using 0 bytes.'
       end
       object sbPixelShape: TSpeedButton
         Tag = 2
-        Left = 270
-        Top = 4
+        Left = 337
+        Top = 5
         Width = 50
         Height = 22
         Hint = 'Select pixel shape'
@@ -136,8 +136,8 @@ object frmMain: TfrmMain
         OnClick = sbPixelShapeClick
       end
       object Bevel19: TBevel
-        Left = 328
-        Top = 14
+        Left = 395
+        Top = 15
         Width = 5
         Height = 10
         Shape = bsLeftLine
@@ -241,8 +241,25 @@ object frmMain: TfrmMain
         OnClick = Load1Click
       end
       object Bevel10: TBevel
-        Left = 395
-        Top = 11
+        Left = 462
+        Top = 12
+        Width = 5
+        Height = 10
+        Shape = bsLeftLine
+      end
+      object SpeedButton1: TSpeedButton
+        Tag = 2
+        Left = 206
+        Top = 5
+        Width = 50
+        Height = 22
+        Hint = 'Select pixel size'
+        Caption = 'Export'
+        OnClick = miExportClick
+      end
+      object Bevel4: TBevel
+        Left = 262
+        Top = 15
         Width = 5
         Height = 10
         Shape = bsLeftLine
@@ -252,19 +269,19 @@ object frmMain: TfrmMain
   object CoolBar2: TCoolBar
     Left = 0
     Top = 33
-    Width = 1132
+    Width = 1281
     Height = 33
     Bands = <
       item
         Control = Panel2
         ImageIndex = -1
         MinHeight = 32
-        Width = 1126
+        Width = 1275
       end>
     object Panel2: TPanel
       Left = 11
       Top = 0
-      Width = 1117
+      Width = 1266
       Height = 32
       Align = alClient
       BevelOuter = bvNone
@@ -441,8 +458,8 @@ object frmMain: TfrmMain
   end
   object pAnimationToolbar: TPanel
     Left = 0
-    Top = 586
-    Width = 1132
+    Top = 608
+    Width = 1281
     Height = 30
     Align = alBottom
     Color = clWhite
@@ -450,8 +467,9 @@ object frmMain: TfrmMain
     ParentShowHint = False
     ShowHint = True
     TabOrder = 2
+    ExplicitTop = 549
     DesignSize = (
-      1132
+      1281
       30)
     object lFrame: TLabel
       Left = 162
@@ -945,7 +963,7 @@ object frmMain: TfrmMain
     object tbFrames: TTrackBar
       Left = 513
       Top = 1
-      Width = 608
+      Width = 757
       Height = 28
       Anchors = [akLeft, akTop, akRight]
       Enabled = False
@@ -1145,23 +1163,24 @@ object frmMain: TfrmMain
   end
   object statusMain: TStatusBar
     Left = 0
-    Top = 679
-    Width = 1132
+    Top = 671
+    Width = 1281
     Height = 19
     Panels = <>
     SimplePanel = True
+    ExplicitTop = 642
   end
   object CoolBar3: TCoolBar
     Left = 0
     Top = 66
-    Width = 1132
+    Width = 1281
     Height = 30
     Bands = <
       item
         Control = Panel4
         ImageIndex = -1
         MinHeight = 40
-        Width = 1126
+        Width = 1275
       end>
     object Label1: TLabel
       Left = 664
@@ -1172,7 +1191,7 @@ object frmMain: TfrmMain
     object Panel4: TPanel
       Left = 11
       Top = 0
-      Width = 1117
+      Width = 1266
       Height = 40
       Align = alClient
       BevelOuter = bvNone
@@ -1184,7 +1203,7 @@ object frmMain: TfrmMain
         Top = 2
         Width = 30
         Height = 22
-        Hint = 'Select normal drawing mode'
+        Hint = 'Select normal drawing mode (RMB for sizes)'
         GroupIndex = 1
         Down = True
         Enabled = False
@@ -1945,7 +1964,7 @@ object frmMain: TfrmMain
         Top = 2
         Width = 30
         Height = 22
-        Hint = 'Draw text on the matrix'
+        Hint = 'Draw text on the matrix (RMB for font selection)'
         GroupIndex = 1
         Enabled = False
         Glyph.Data = {
@@ -2119,20 +2138,21 @@ object frmMain: TfrmMain
     end
   end
   object pbFont: TPanel
-    Left = 1032
+    Left = 1181
     Top = 96
     Width = 100
-    Height = 490
+    Height = 512
     Align = alRight
     Color = clWhite
     ParentBackground = False
     TabOrder = 5
     Visible = False
+    ExplicitHeight = 453
     object lFont: TLabel
       Left = 1
       Top = 1
       Width = 98
-      Height = 463
+      Height = 485
       Align = alClient
       Alignment = taCenter
       Caption = 'A'
@@ -2156,40 +2176,29 @@ object frmMain: TfrmMain
     end
     object pASCIICode: TPanel
       Left = 1
-      Top = 464
+      Top = 486
       Width = 98
       Height = 25
       Align = alBottom
       BevelOuter = bvNone
       TabOrder = 0
+      ExplicitTop = 427
     end
-  end
-  object pColourPaletteNew: TPanel
-    Left = 0
-    Top = 616
-    Width = 1132
-    Height = 30
-    Align = alBottom
-    Color = clWhite
-    ParentBackground = False
-    ParentShowHint = False
-    ShowHint = True
-    TabOrder = 6
-    Visible = False
   end
   object pSourceDisplay: TPanel
     Left = 0
-    Top = 646
-    Width = 1132
+    Top = 638
+    Width = 1281
     Height = 33
     Align = alBottom
     Color = clWhite
     ParentBackground = False
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 7
+    TabOrder = 6
+    ExplicitTop = 609
     DesignSize = (
-      1132
+      1281
       33)
     object Label2: TLabel
       Left = 4
@@ -2261,7 +2270,7 @@ object frmMain: TfrmMain
     object eSourceData: TEdit
       Left = 401
       Top = 6
-      Width = 720
+      Width = 869
       Height = 21
       Hint = 
         'This represents the data, row by row, for the current matrix (fe' +
@@ -2311,12 +2320,12 @@ object frmMain: TfrmMain
         Caption = '-'
       end
       object miMerge: TMenuItem
-        Caption = 'Merge in to current matrix...'
+        Caption = 'Merge in to animation...'
         Enabled = False
         OnClick = miMergeClick
       end
       object miCombine: TMenuItem
-        Caption = 'Combine with the current matrix...'
+        Caption = 'Combine with animation...'
         Enabled = False
         OnClick = miCombineClick
       end
@@ -2689,12 +2698,12 @@ object frmMain: TfrmMain
         Caption = '-'
       end
       object PreviousFrame1: TMenuItem
-        Caption = 'Previous Frame'
+        Caption = 'Previous frame'
         ShortCut = 112
         OnClick = bPreviousFrameClick
       end
       object NextFrame1: TMenuItem
-        Caption = 'Next Frame'
+        Caption = 'Next frame'
         ShortCut = 113
         OnClick = bNextFrameClick
       end
@@ -2715,7 +2724,7 @@ object frmMain: TfrmMain
         OnClick = miPreviewClick
       end
       object PreviewSize1: TMenuItem
-        Caption = 'Preview Size'
+        Caption = 'Preview size'
         object miPreviewx1: TMenuItem
           Tag = 1
           AutoCheck = True
@@ -2766,11 +2775,49 @@ object frmMain: TfrmMain
           OnClick = miPreviewx1Click
         end
       end
+      object PreviewView1: TMenuItem
+        Caption = 'Preview view'
+        object miPreviewViewSquare: TMenuItem
+          Caption = 'Square'
+          Checked = True
+          RadioItem = True
+          OnClick = miPreviewViewSquareClick
+        end
+        object miPreviewViewRadial: TMenuItem
+          Tag = 1
+          Caption = 'Radial'
+          RadioItem = True
+          OnClick = miPreviewViewSquareClick
+        end
+      end
+      object PreviewVoidRadial1: TMenuItem
+        Caption = 'Preview void (Radial)'
+        object miPreviewVoid10: TMenuItem
+          Tag = 10
+          Caption = '10'
+          Checked = True
+          Default = True
+          RadioItem = True
+          OnClick = miPreviewVoid10Click
+        end
+        object miPreviewVoid15: TMenuItem
+          Tag = 15
+          Caption = '15'
+          RadioItem = True
+          OnClick = miPreviewVoid10Click
+        end
+        object miPreviewVoid20: TMenuItem
+          Tag = 20
+          Caption = '20'
+          RadioItem = True
+          OnClick = miPreviewVoid10Click
+        end
+      end
       object N29: TMenuItem
         Caption = '-'
       end
       object FontViewer1: TMenuItem
-        Caption = 'Font Viewer...'
+        Caption = 'Font viewer...'
         OnClick = FontViewer1Click
       end
     end
@@ -2816,7 +2863,7 @@ object frmMain: TfrmMain
         Caption = '-'
       end
       object miFadeFirstLast: TMenuItem
-        Caption = 'Fade First->Last'
+        Caption = 'Fade first->last'
         Enabled = False
         OnClick = miFadeFirstLastClick
       end
@@ -2988,12 +3035,12 @@ object frmMain: TfrmMain
     object ools1: TMenuItem
       Caption = 'Tools'
       object miAutoSave: TMenuItem
-        Caption = 'Auto Save'
+        Caption = 'Auto-save'
         RadioItem = True
         OnClick = miAutoSaveClick
       end
       object Autosaveinterval1: TMenuItem
-        Caption = 'Auto Save interval'
+        Caption = 'Auto-save interval'
         object miAutosave2: TMenuItem
           Caption = '2 minutes'
           GroupIndex = 2
@@ -3019,7 +3066,7 @@ object frmMain: TfrmMain
         Caption = '-'
       end
       object Openautosavefolder1: TMenuItem
-        Caption = 'Open autosave folder'
+        Caption = 'Open auto-save folder'
         OnClick = Openautosavefolder1Click
       end
       object N38: TMenuItem
@@ -3038,13 +3085,6 @@ object frmMain: TfrmMain
         OnClick = Help1Click
       end
       object N12: TMenuItem
-        Caption = '-'
-      end
-      object Donate1: TMenuItem
-        Caption = 'Donate...'
-        OnClick = Donate1Click
-      end
-      object N27: TMenuItem
         Caption = '-'
       end
       object Examples1: TMenuItem
@@ -3090,7 +3130,7 @@ object frmMain: TfrmMain
     BkColor = clFuchsia
     Left = 656
     Bitmap = {
-      494C010106000900140010001000FF00FF00FF10FFFFFFFFFFFFFFFF424D3600
+      494C010106000900480010001000FF00FF00FF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000002000000001002000000000000020
       000000000000000000000000000000000000FF00FF00FF00FF00FF00FF00FF00
       FF00FF00FF00FF00FF00CA8A6100C3845800D38B6800E18F7000DC8D6C00DA8B
@@ -3378,7 +3418,7 @@ object frmMain: TfrmMain
   object ilMenu: TImageList
     Left = 680
     Bitmap = {
-      494C010108000D00140010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010108000D00480010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000003000000001002000000000000030
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
